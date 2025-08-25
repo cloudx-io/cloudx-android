@@ -17,59 +17,114 @@ internal class InterstitialAdapter(
     private var listener: InterstitialListener?
 ) : Interstitial, AdLoadOperationAvailability by AlwaysReadyToLoadAd {
 
-    private var ad: InterstitialAd? = null
+    private var interstitialAd: InterstitialAd? = null
 
     override fun load() {
-        val ad = InterstitialAd(activity, adUnitId)
-        this.ad = ad
+        log(TAG, "Loading interstitial ad for placement: $adUnitId")
 
-        ad.loadAd(ad.buildLoadAdConfig().withAdListener(object : InterstitialAdListener {
-            override fun onError(p0: Ad?, p1: AdError?) {
-                listener?.onError(CloudXAdError(description = p1?.errorMessage ?: ""))
-            }
+        // Check if an ad is already loaded
+        val existingInterstitialAd = this.interstitialAd
+        if (checkAndHandleAdReady(existingInterstitialAd)) {
+            return
+        }
 
-            override fun onAdLoaded(p0: Ad?) {
-                listener?.onLoad()
-            }
+        val interstitialAd = InterstitialAd(activity, adUnitId)
+        this.interstitialAd = interstitialAd
 
-            override fun onAdClicked(p0: Ad?) {
-                listener?.onClick()
-            }
+        // Check if the newly constructed ad is already loaded
+        if (checkAndHandleAdReady(interstitialAd)) {
+            return
+        }
 
-            override fun onLoggingImpression(p0: Ad?) {
-                listener?.onImpression()
-            }
-
-            override fun onInterstitialDisplayed(p0: Ad?) {
-                listener?.onShow()
-            }
-
-            override fun onInterstitialDismissed(p0: Ad?) {
-                listener?.onHide()
-            }
-        }).build())
+        log(TAG, "Starting to load interstitial ad for placement: $adUnitId")
+        interstitialAd.loadAd(
+            interstitialAd.buildLoadAdConfig()
+                .withAdListener(createAdListener(listener))
+                .build()
+        )
     }
 
     override fun show() {
-        val ad = this.ad
+        log(TAG, "Attempting to show interstitial ad for placement: $adUnitId")
+        val ad = this.interstitialAd
         if (ad == null || !ad.isAdLoaded) {
-            listener?.onError(CloudXAdError(description = "can't show: ad is not loaded"))
+            log(TAG, "Interstitial ad not ready to show for placement: $adUnitId (ad not loaded)")
+            listener?.onError(CloudXAdError(description = "Interstitial ad is not loaded"))
             return
         }
 
         // Check if ad is already expired or invalidated, and do not show ad if that is the case. You will not get paid to show an invalidated ad.
         if (ad.isAdInvalidated) {
-            listener?.onError(CloudXAdError(description = "can't show: ad is invalidated"))
+            log(TAG, "Interstitial ad invalidated for placement: $adUnitId")
+            listener?.onError(CloudXAdError(description = "Interstitial ad is invalidated"))
             return
         }
 
         // Show the ad
+        log(TAG, "Showing interstitial ad for placement: $adUnitId")
         ad.show()
     }
 
     override fun destroy() {
-        ad?.destroy()
-        ad = null
+        log(TAG, "Destroying interstitial ad for placement: $adUnitId")
+        interstitialAd?.destroy()
+        interstitialAd = null
         listener = null
     }
+
+    private fun createAdListener(listener: InterstitialListener?) =
+        object : InterstitialAdListener {
+            override fun onError(ad: Ad?, adError: AdError?) {
+                log(
+                    TAG,
+                    "Interstitial ad failed to load for placement $adUnitId with error: ${adError?.errorMessage} (${adError?.errorCode})"
+                )
+                listener?.onError(
+                    CloudXAdError(
+                        description = adError?.errorMessage ?: "Unknown error"
+                    )
+                )
+            }
+
+            override fun onAdLoaded(ad: Ad?) {
+                log(TAG, "Interstitial ad loaded successfully for placement: $adUnitId")
+                listener?.onLoad()
+            }
+
+            override fun onAdClicked(ad: Ad?) {
+                log(TAG, "Interstitial ad clicked for placement: $adUnitId")
+                listener?.onClick()
+            }
+
+            override fun onLoggingImpression(ad: Ad?) {
+                log(TAG, "Interstitial ad impression logged for placement: $adUnitId")
+                listener?.onImpression()
+            }
+
+            override fun onInterstitialDisplayed(ad: Ad?) {
+                log(TAG, "Interstitial ad displayed for placement: $adUnitId")
+                listener?.onShow()
+            }
+
+            override fun onInterstitialDismissed(ad: Ad?) {
+                log(TAG, "Interstitial ad dismissed for placement: $adUnitId")
+                listener?.onHide()
+            }
+        }
+
+    /**
+     * Helper function to check if an interstitial ad is ready and handle the callback
+     * Returns true if ad was ready (and callback was triggered), false otherwise
+     */
+    private fun checkAndHandleAdReady(ad: InterstitialAd?): Boolean {
+        return if (ad != null && ad.isAdLoaded && !ad.isAdInvalidated) {
+            log(TAG, "Interstitial ad already loaded for placement: $adUnitId")
+            listener?.onLoad()
+            true
+        } else {
+            false
+        }
+    }
 }
+
+private const val TAG = "MetaInterstitialAdapter"

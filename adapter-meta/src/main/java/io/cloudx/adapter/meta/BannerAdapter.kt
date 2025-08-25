@@ -20,54 +20,66 @@ internal class BannerAdapter(
     private var listener: BannerListener?
 ) : Banner {
 
-    private var ad: AdView? = null
+    private var adView: AdView? = null
 
     override fun load() {
-        val ad = AdView(
+        log(TAG, "Loading banner ad for placement: $adUnitId")
+        val adView = AdView(
             activity,
             adUnitId,
             if (adViewSize == AdViewSize.Standard) AdSize.BANNER_HEIGHT_50 else AdSize.RECTANGLE_HEIGHT_250
         )
-        this.ad = ad
+        this.adView = adView
 
-        with(ad) {
+        with(adView) {
             container.onAdd(this)
+            log(TAG, "Starting to load banner ad for placement: $adUnitId")
 
             loadAd(
                 buildLoadAdConfig()
-                    .withAdListener(createListener(listener))
+                    .withAdListener(createAdListener(listener))
                     .build()
             )
         }
     }
 
-    private fun createListener(listener: BannerListener?) = object : AdListener {
+    override fun destroy() {
+        log(TAG, "Destroying banner ad for placement: $adUnitId")
+        adView?.let {
+            it.destroy()
+            container.onRemove(it)
+        }
+        adView = null
 
-        override fun onError(p0: Ad?, p1: AdError?) {
-            listener?.onError(CloudXAdError(description = p0.toString()))
+        listener = null
+    }
+
+    private fun createAdListener(listener: BannerListener?) = object : AdListener {
+
+        override fun onError(ad: Ad?, adError: AdError?) {
+            log(
+                TAG,
+                "Banner ad failed to load for placement $adUnitId with error: ${adError?.errorMessage} (${adError?.errorCode})"
+            )
+            listener?.onError(CloudXAdError(description = adError?.errorMessage ?: "Unknown error"))
         }
 
-        override fun onAdLoaded(p0: Ad?) {
+        override fun onAdLoaded(ad: Ad?) {
+            log(TAG, "Banner ad loaded successfully for placement: $adUnitId")
             listener?.onLoad()
         }
 
-        override fun onAdClicked(p0: Ad?) {
+        override fun onAdClicked(ad: Ad?) {
+            log(TAG, "Banner ad clicked for placement: $adUnitId")
             listener?.onClick()
         }
 
-        override fun onLoggingImpression(p0: Ad?) {
+        override fun onLoggingImpression(ad: Ad?) {
+            log(TAG, "Banner ad impression logged for placement: $adUnitId")
             listener?.onShow()
             listener?.onImpression()
         }
     }
-
-    override fun destroy() {
-        ad?.let {
-            it.destroy()
-            container.onRemove(it)
-        }
-        ad = null
-
-        listener = null
-    }
 }
+
+private const val TAG = "MetaBannerAdapter"

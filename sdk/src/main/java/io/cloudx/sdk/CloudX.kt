@@ -122,7 +122,7 @@ object CloudX {
      *
      * _General usage guideline:_
      * 1. Create [CloudXAdView] instance via invoking this function.
-     * 2. If created successfully, consider attaching an optional [listener][AdViewListener] which is then can be used for tracking ad events (impression, click, hidden, etc)
+     * 2. If created successfully, consider attaching an optional [listener][CloudXAdViewListener] which is then can be used for tracking ad events (impression, click, hidden, etc)
      * 3. Attach [CloudXAdView] to the view hierarchy; ads start loading and displaying automatically, depending on placement's ad refresh rate (comes in init config)
      * 4. Whenever parent Activity or Fragment is destroyed; or when ads are not required anymore - release ad instance resources via calling [destroy()][io.cloudx.sdk.Destroyable.destroy]
      * @param activity activity instance to which [CloudXAdView] instance is going to be attached to.
@@ -137,7 +137,7 @@ object CloudX {
     fun createBanner(
         activity: Activity,
         placementName: String,
-        listener: AdViewListener?
+        listener: CloudXAdViewListener?
     ): CloudXAdView? {
         initializationService?.metricsTrackerNew?.trackMethodCall(MetricsType.Method.CreateBanner)
 
@@ -156,7 +156,7 @@ object CloudX {
      *
      * _General usage guideline:_
      * 1. Create [CloudXAdView] instance via invoking this function.
-     * 2. If created successfully, consider attaching an optional [listener][AdViewListener] which is then can be used for tracking ad events (impression, click, hidden, etc)
+     * 2. If created successfully, consider attaching an optional [listener][CloudXAdViewListener] which is then can be used for tracking ad events (impression, click, hidden, etc)
      * 3. Attach [CloudXAdView] to the view hierarchy; ads start loading and displaying automatically, depending on placement's ad refresh rate (comes in init config)
      * 4. Whenever parent Activity or Fragment is destroyed; or when ads are not required anymore - release ad instance resources via calling [destroy()][io.cloudx.sdk.Destroyable.destroy]
      * @param activity activity instance to which [CloudXAdView] instance is going to be attached to.
@@ -171,7 +171,7 @@ object CloudX {
     fun createMREC(
         activity: Activity,
         placementName: String,
-        listener: AdViewListener?
+        listener: CloudXAdViewListener?
     ): CloudXAdView? {
         initializationService?.metricsTrackerNew?.trackMethodCall(MetricsType.Method.CreateMrec)
         return initializationService?.adFactory?.createBanner(
@@ -193,11 +193,11 @@ object CloudX {
      * 3. _Fullscreen ad implementations start precaching logic internally automatically in an optimised way, so you don't have to worry about any ad loading complexities.
      * We provide several APIs, use any appropriate ones for your use-cases:_
      *
-     * - call [load()][BaseFullscreenAd.load]; then wait for [onAdLoadSuccess()][BasePublisherListener.onAdLoadSuccess] or [onAdLoadFailed()][BasePublisherListener.onAdLoadFailed] event;
+     * - call [load()][BaseFullscreenAd.load]; then wait for [onAdLoadSuccess()][CloudXAdListener.onAdLoaded] or [onAdLoadFailed()][CloudXAdListener.onAdLoadFailed] event;
      * - alternatively, check [isAdLoaded][BaseFullscreenAd.isAdLoaded] property: if _true_ feel free to [show()][BaseFullscreenAd.show] the ad;
      * - another option is to [setIsAdLoadedListener][BaseFullscreenAd.setIsAdLoadedListener], which then always fires event upon internal loaded ad cache size changes.
      *
-     * 4. call [show()][BaseFullscreenAd.show] when you're ready to display an ad; then wait for [onAdShowSuccess()][BasePublisherListener.onAdShowSuccess] or [onAdShowFailed()][BasePublisherListener.onAdShowFailed] event;
+     * 4. call [show()][BaseFullscreenAd.show] when you're ready to display an ad; then wait for [onAdShowSuccess()][CloudXAdListener.onAdDisplayed] or [onAdShowFailed()][CloudXAdListener.onAdDisplayFailed] event;
      * 5. Whenever parent Activity or Fragment is destroyed; or when ads are not required anymore - release ad instance resources via calling [destroy()][Destroyable.destroy]
      *
      * @param activity activity instance to which [CloudXInterstitialAd] ad instance is going to be attached to.
@@ -230,11 +230,11 @@ object CloudX {
      * 3. _Fullscreen ad implementations start precaching logic internally automatically in an optimised way, so you don't have to worry about any ad loading complexities.
      * We provide several APIs, use any appropriate ones for your use-cases:_
      *
-     * - call [load()][BaseFullscreenAd.load]; then wait for [onAdLoadSuccess()][BasePublisherListener.onAdLoadSuccess] or [onAdLoadFailed()][BasePublisherListener.onAdLoadFailed] event;
+     * - call [load()][BaseFullscreenAd.load]; then wait for [onAdLoadSuccess()][CloudXAdListener.onAdLoaded] or [onAdLoadFailed()][CloudXAdListener.onAdLoadFailed] event;
      * - alternatively, check [isAdLoaded][BaseFullscreenAd.isAdLoaded] property: if _true_ feel free to [show()][BaseFullscreenAd.show] the ad;
      * - another option is to [setIsAdLoadedListener][BaseFullscreenAd.setIsAdLoadedListener], which then always fires event upon internal loaded ad cache size changes.
      *
-     * 4. call [show()][BaseFullscreenAd.show] when you're ready to display an ad; then wait for [onAdShowSuccess()][BasePublisherListener.onAdShowSuccess] or [onAdShowFailed()][BasePublisherListener.onAdShowFailed] event;
+     * 4. call [show()][BaseFullscreenAd.show] when you're ready to display an ad; then wait for [onAdShowSuccess()][CloudXAdListener.onAdDisplayed] or [onAdShowFailed()][CloudXAdListener.onAdDisplayFailed] event;
      * 5. Whenever parent Activity or Fragment is destroyed; or when ads are not required anymore - release ad instance resources via calling [destroy()][Destroyable.destroy]
      *
      * @param activity activity instance to which [CloudXRewardedAd] ad instance is going to be attached to.
@@ -263,7 +263,7 @@ object CloudX {
      *
      * _General usage guideline:_
      * 1. Create [CloudXAdView] instance via invoking this function.
-     * 2. If created successfully, consider attaching an optional [listener][AdViewListener] which is then can be used for tracking ad events (impression, click, hidden, etc)
+     * 2. If created successfully, consider attaching an optional [listener][CloudXAdViewListener] which is then can be used for tracking ad events (impression, click, hidden, etc)
      * 3. Attach [CloudXAdView] to the view hierarchy; ads start loading and displaying automatically, depending on placement's ad refresh rate (comes in init config)
      * 4. Whenever parent Activity or Fragment is destroyed; or when ads are not required anymore - release ad instance resources via calling [destroy()][io.cloudx.sdk.Destroyable.destroy]
      * @param activity activity instance to which [CloudXAdView] instance is going to be attached to.
@@ -278,7 +278,7 @@ object CloudX {
     fun createNativeAdSmall(
         activity: Activity,
         placementName: String,
-        listener: AdViewListener?
+        listener: CloudXAdViewListener?
     ): CloudXAdView? {
         initializationService?.metricsTrackerNew?.trackMethodCall(MetricsType.Method.CreateNative)
         return initializationService?.adFactory?.createBanner(
@@ -296,7 +296,7 @@ object CloudX {
      *
      * _General usage guideline:_
      * 1. Create [CloudXAdView] instance via invoking this function.
-     * 2. If created successfully, consider attaching an optional [listener][AdViewListener] which is then can be used for tracking ad events (impression, click, hidden, etc)
+     * 2. If created successfully, consider attaching an optional [listener][CloudXAdViewListener] which is then can be used for tracking ad events (impression, click, hidden, etc)
      * 3. Attach [CloudXAdView] to the view hierarchy; ads start loading and displaying automatically, depending on placement's ad refresh rate (comes in init config)
      * 4. Whenever parent Activity or Fragment is destroyed; or when ads are not required anymore - release ad instance resources via calling [destroy()][io.cloudx.sdk.Destroyable.destroy]
      * @param activity activity instance to which [CloudXAdView] instance is going to be attached to.
@@ -311,7 +311,7 @@ object CloudX {
     fun createNativeAdMedium(
         activity: Activity,
         placementName: String,
-        listener: AdViewListener?
+        listener: CloudXAdViewListener?
     ): CloudXAdView? {
         initializationService?.metricsTrackerNew?.trackMethodCall(MetricsType.Method.CreateNative)
         return initializationService?.adFactory?.createBanner(

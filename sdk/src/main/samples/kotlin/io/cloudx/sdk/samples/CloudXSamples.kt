@@ -3,7 +3,7 @@ package io.cloudx.sdk.samples
 import android.app.Activity
 import android.util.Log
 import android.widget.FrameLayout
-import io.cloudx.sdk.AdViewListener
+import io.cloudx.sdk.CloudXAdViewListener
 import io.cloudx.sdk.CloudX
 import io.cloudx.sdk.CloudXAd
 import io.cloudx.sdk.CloudXAdError
@@ -55,8 +55,8 @@ internal fun cloudXCreateAdView(activity: Activity, frameLayout: FrameLayout) {
         activity,
         placementName = "CLOUDX_PLACEMENT_NAME",
         // Track events if necessary.
-        listener = object : AdViewListener {
-            override fun onAdLoadSuccess(cloudXAd: CloudXAd) {
+        listener = object : CloudXAdViewListener {
+            override fun onAdLoaded(cloudXAd: CloudXAd) {
                 // ..
             }
 
@@ -64,11 +64,11 @@ internal fun cloudXCreateAdView(activity: Activity, frameLayout: FrameLayout) {
                 // ..
             }
 
-            override fun onAdShowSuccess(cloudXAd: CloudXAd) {
+            override fun onAdDisplayed(cloudXAd: CloudXAd) {
                 // ..
             }
 
-            override fun onAdShowFailed(cloudXAdError: CloudXAdError) {
+            override fun onAdDisplayFailed(cloudXAdError: CloudXAdError) {
                 // ..
             }
 
@@ -80,7 +80,11 @@ internal fun cloudXCreateAdView(activity: Activity, frameLayout: FrameLayout) {
                 // ..
             }
 
-            override fun onAdClosedByUser(placementName: String) {
+            override fun onAdExpanded(placementName: String) {
+                // ..
+            }
+
+            override fun onAdCollapsed(placementName: String) {
                 // ..
             }
         }
@@ -110,7 +114,7 @@ internal fun createInterstitial(activity: Activity, placementName: String) {
         placementName,
         // Track events if necessary.
         object : InterstitialListener {
-            override fun onAdLoadSuccess(cloudXAd: CloudXAd) {
+            override fun onAdLoaded(cloudXAd: CloudXAd) {
                 // ..
                 // Ad is loaded, now you can show ad.
                 // Operation result will be returned in onAdShowSuccess() or onAdShowFailed() callbacks.
@@ -121,11 +125,11 @@ internal fun createInterstitial(activity: Activity, placementName: String) {
                 // ..
             }
 
-            override fun onAdShowSuccess(cloudXAd: CloudXAd) {
+            override fun onAdDisplayed(cloudXAd: CloudXAd) {
                 // ..
             }
 
-            override fun onAdShowFailed(cloudXAdError: CloudXAdError) {
+            override fun onAdDisplayFailed(cloudXAdError: CloudXAdError) {
                 // ..
                 // Ad failed to show due to internal error or it hasn't loaded yet.
             }
@@ -179,7 +183,7 @@ internal fun createRewarded(activity: Activity, placementName: String) {
                 // Track ad reward here.
             }
 
-            override fun onAdLoadSuccess(cloudXAd: CloudXAd) {
+            override fun onAdLoaded(cloudXAd: CloudXAd) {
                 // ..
                 // Ad is loaded, now you can show ad.
                 // Operation result will be returned in onAdShowSuccess() or onAdShowFailed() callbacks.
@@ -190,11 +194,11 @@ internal fun createRewarded(activity: Activity, placementName: String) {
                 // ..
             }
 
-            override fun onAdShowSuccess(cloudXAd: CloudXAd) {
+            override fun onAdDisplayed(cloudXAd: CloudXAd) {
                 // ..
             }
 
-            override fun onAdShowFailed(cloudXAdError: CloudXAdError) {
+            override fun onAdDisplayFailed(cloudXAdError: CloudXAdError) {
                 // ..
                 // Ad failed to show due to internal error or it hasn't loaded yet.
             }

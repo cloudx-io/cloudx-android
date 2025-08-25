@@ -25,12 +25,16 @@ import io.cloudx.sdk.internal.common.dpToPx
 import io.cloudx.sdk.internal.core.ad.suspendable.SuspendableBanner
 import io.cloudx.sdk.internal.PlacementLoopIndexTracker
 
-interface AdViewListener : BasePublisherListener{
+interface CloudXAdViewListener : CloudXAdListener{
+    /**
+     * User manually expanded the ad banner.
+     */
+    fun onAdExpanded(placementName: String)
 
     /**
      * User manually closed the ad banner. It is the responsibility of the publisher to reload it again.
      */
-    fun onAdClosedByUser(placementName: String)
+    fun onAdCollapsed(placementName: String)
 }
 
 @SuppressLint("ViewConstructor")
@@ -102,7 +106,7 @@ class CloudXAdView internal constructor(
         }
     }
 
-    var listener: AdViewListener? = null
+    var listener: CloudXAdViewListener? = null
         set(value) {
             field = value
             updateBannerListener()
@@ -175,7 +179,7 @@ class CloudXAdView internal constructor(
                                 listener?.onAdHidden(CloudXAd(adNetwork))
                             }
 
-                            listener?.onAdClosedByUser(placementName)
+                            listener?.onAdCollapsed(placementName)
                             PlacementLoopIndexTracker.reset(placementName)
                             destroy()
                         }

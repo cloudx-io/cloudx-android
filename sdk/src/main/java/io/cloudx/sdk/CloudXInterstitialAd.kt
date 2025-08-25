@@ -18,7 +18,7 @@ import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTrackerNew
 // TODO. Refactor. This should do for now.
 interface CloudXInterstitialAd : BaseFullscreenAd
 
-interface InterstitialListener : BasePublisherListener
+interface InterstitialListener : CloudXAdListener
 
 internal fun Interstitial(
     activity: Activity,

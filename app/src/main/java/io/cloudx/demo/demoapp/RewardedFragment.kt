@@ -1,6 +1,6 @@
 package io.cloudx.demo.demoapp
 
-import io.cloudx.sdk.BasePublisherListener
+import io.cloudx.sdk.CloudXAdListener
 import io.cloudx.sdk.CloudX
 import io.cloudx.sdk.CloudXAd
 import io.cloudx.sdk.RewardedInterstitialListener
@@ -8,10 +8,10 @@ import io.cloudx.sdk.internal.CloudXLogger
 
 class RewardedFragment : FullPageAdFragment() {
 
-    override fun createAd(listener: BasePublisherListener) = CloudX.createRewardedInterstitial(
+    override fun createAd(listener: CloudXAdListener) = CloudX.createRewardedInterstitial(
         requireActivity(),
         placementName,
-        object : RewardedInterstitialListener, BasePublisherListener by listener {
+        object : RewardedInterstitialListener, CloudXAdListener by listener {
             override fun onUserRewarded(cloudXAd: CloudXAd) {
                 CloudXLogger.info(
                     logTag,

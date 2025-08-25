@@ -1,16 +1,16 @@
 package io.cloudx.demo.demoapp
 
-import io.cloudx.sdk.BasePublisherListener
+import io.cloudx.sdk.CloudXAdListener
 import io.cloudx.sdk.CloudXAd
 import io.cloudx.sdk.CloudXAdError
 import io.cloudx.sdk.internal.CloudXLogger
 
-class LoggedBasePublisherListener(
+class LoggedCloudXAdListener(
     private val logTag: String,
     private val placementName: String
-) : BasePublisherListener {
+) : CloudXAdListener {
 
-    override fun onAdLoadSuccess(cloudXAd: CloudXAd) {
+    override fun onAdLoaded(cloudXAd: CloudXAd) {
         CloudXLogger.info(
             logTag,
             "Load Success; placement: $placementName; network: ${cloudXAd.networkName}"
@@ -21,14 +21,14 @@ class LoggedBasePublisherListener(
         CloudXLogger.info(logTag, "LOAD FAILED; placement: $placementName;")
     }
 
-    override fun onAdShowSuccess(cloudXAd: CloudXAd) {
+    override fun onAdDisplayed(cloudXAd: CloudXAd) {
 //        CloudXLogger.info(
 //            logTag,
 //            "Ad shown — placement: $placementName, network: ${cloudXAd.networkName}"
 //        )
     }
 
-    override fun onAdShowFailed(cloudXAdError: CloudXAdError) {
+    override fun onAdDisplayFailed(cloudXAdError: CloudXAdError) {
         CloudXLogger.info(logTag, "SHOW FAILED; placement: $placementName;")
     }
 

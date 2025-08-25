@@ -1,7 +1,7 @@
 package io.cloudx.sdk.internal
 
 import android.app.Activity
-import io.cloudx.sdk.AdViewListener
+import io.cloudx.sdk.CloudXAdViewListener
 import io.cloudx.sdk.CloudXAd
 import io.cloudx.sdk.Destroyable
 import io.cloudx.sdk.internal.adapter.BannerContainer
@@ -44,7 +44,7 @@ import kotlinx.coroutines.withTimeout
 
 internal interface Banner : Destroyable {
 
-    var listener: AdViewListener?
+    var listener: CloudXAdViewListener?
 }
 
 internal fun Banner(
@@ -134,7 +134,7 @@ private class BannerImpl(
 
     private val bidBackoffMechanism = BidBackoffMechanism()
 
-    override var listener: AdViewListener? = null
+    override var listener: CloudXAdViewListener? = null
         set(listener) {
             field = listener?.decorate()
         }
@@ -370,7 +370,7 @@ private class BannerImpl(
     private var currentBannerEventHandlerJob: Job? = null
 
     private suspend fun showNewBanner(banner: SuspendableBanner) {
-        listener?.onAdShowSuccess(CloudXAd(banner.adNetwork))
+        listener?.onAdDisplayed(CloudXAd(banner.adNetwork))
 
         currentBanner = banner
 

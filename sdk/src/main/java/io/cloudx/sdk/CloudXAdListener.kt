@@ -1,28 +1,17 @@
 package io.cloudx.sdk
 
-interface BasePublisherListener {
-
+interface CloudXAdListener {
     /**
      * Ad was loaded.
      * The [cloudXAd] object, will tell you which network it was.
      */
-    fun onAdLoadSuccess(cloudXAd: CloudXAd)
+    fun onAdLoaded(cloudXAd: CloudXAd)
 
     /**
-     * Ad was not loaded. An error happened. You can check details using the [cloudXAdError] object
-     */
-    fun onAdLoadFailed(cloudXAdError: CloudXAdError)
-
-    /**
-     * Ad was shown.
+     * Ad was displayed.
      * The [cloudXAd] object, will tell you which network it was.
      */
-    fun onAdShowSuccess(cloudXAd: CloudXAd)
-
-    /**
-     * Ad was not shown. An error happened. You can check details using the [cloudXAdError] object
-     */
-    fun onAdShowFailed(cloudXAdError: CloudXAdError)
+    fun onAdDisplayed(cloudXAd: CloudXAd)
 
     /**
      * Ad was hidden.
@@ -35,4 +24,14 @@ interface BasePublisherListener {
      * The [cloudXAd] object, will tell you which network it was.
      */
     fun onAdClicked(cloudXAd: CloudXAd)
+
+    /**
+     * Ad was not loaded. An error happened. You can check details using the [cloudXAdError] object
+     */
+    fun onAdLoadFailed(cloudXAdError: CloudXAdError)
+
+    /**
+     * Ad was not shown. An error happened. You can check details using the [cloudXAdError] object
+     */
+    fun onAdDisplayFailed(cloudXAdError: CloudXAdError)
 }

@@ -8,7 +8,7 @@ import com.google.android.material.color.MaterialColors
 import io.cloudx.demo.demoapp.loglistview.commonLogTagListRules
 import io.cloudx.demo.demoapp.loglistview.setupLogListView
 import io.cloudx.sdk.BaseFullscreenAd
-import io.cloudx.sdk.BasePublisherListener
+import io.cloudx.sdk.CloudXAdListener
 import io.cloudx.sdk.CloudXIsAdLoadedListener
 import io.cloudx.sdk.internal.CloudXLogger
 import kotlinx.coroutines.flow.first
@@ -38,7 +38,7 @@ abstract class FullPageAdFragment : Fragment(R.layout.fragment_fullscreen_ad) {
 
             CloudXInitializer.initState.first { it == InitializationState.Initialized }
 
-            ad = createAd(LoggedBasePublisherListener(logTag, placementName))
+            ad = createAd(LoggedCloudXAdListener(logTag, placementName))
             if (ad == null) {
                 CloudXLogger.error(
                     logTag,
@@ -69,7 +69,7 @@ abstract class FullPageAdFragment : Fragment(R.layout.fragment_fullscreen_ad) {
     }
 
     // TODO. Quick workaround to support both int and rew ads + all their callbacks.
-    abstract fun createAd(listener: BasePublisherListener): BaseFullscreenAd?
+    abstract fun createAd(listener: CloudXAdListener): BaseFullscreenAd?
 
     protected val placementName: String by lazy {
         requireArguments().getPlacements().firstOrNull() ?: ""

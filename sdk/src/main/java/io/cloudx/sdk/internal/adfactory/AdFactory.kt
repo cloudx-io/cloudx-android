@@ -1,7 +1,7 @@
 package io.cloudx.sdk.internal.adfactory
 
 import android.app.Activity
-import io.cloudx.sdk.AdViewListener
+import io.cloudx.sdk.CloudXAdViewListener
 import io.cloudx.sdk.CloudXAdView
 import io.cloudx.sdk.CloudXInterstitialAd
 import io.cloudx.sdk.CloudXRewardedAd
@@ -34,8 +34,8 @@ internal interface AdFactory {
         val adType: AdType,
         activity: Activity,
         placementName: String,
-        listener: AdViewListener?,
-    ) : CreateAdParams<AdViewListener>(
+        listener: CloudXAdViewListener?,
+    ) : CreateAdParams<CloudXAdViewListener>(
         activity, placementName, listener
     )
 }

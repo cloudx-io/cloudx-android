@@ -1,10 +1,8 @@
 package io.cloudx.sdk
 
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.CloudXLogger
 import io.cloudx.sdk.internal.adToDisplayInfo
-import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.common.service.AppLifecycleService
 import io.cloudx.sdk.internal.common.utcNowEpochMillis
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
@@ -12,6 +10,18 @@ import io.cloudx.sdk.internal.core.ad.baseinterstitial.CacheableAd
 import io.cloudx.sdk.internal.core.ad.baseinterstitial.CachedAdRepository
 import io.cloudx.sdk.internal.core.ad.source.bid.BidAdSource
 import io.cloudx.sdk.internal.core.ad.suspendable.SuspendableBaseFullscreenAd
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Base fullscreen ad interface
@@ -29,13 +39,13 @@ interface BaseFullscreenAd : CloudXAdToDisplayInfoApi, Destroyable {
     fun setIsAdLoadedListener(listener: CloudXIsAdLoadedListener?)
 
     /**
-     * Shows ad; if show is successful listener's [onAdShowSuccess()][BasePublisherListener.onAdShowSuccess] will be invoked; [onAdShowFailed()][BasePublisherListener.onAdShowFailed] otherwise;
+     * Shows ad; if show is successful listener's [onAdShowSuccess()][CloudXAdListener.onAdDisplayed] will be invoked; [onAdShowFailed()][CloudXAdListener.onAdDisplayFailed] otherwise;
      * Ad fail can happen when ad is not [loaded][load] yet or due to internal ad display error.
      */
     fun show()
 
     /**
-     * Loads ad; if ad is loaded, successful listener's [onAdLoadSuccess()][BasePublisherListener.onAdLoadSuccess] will be invoked; [onAdLoadFailed()][BasePublisherListener.onAdLoadFailed] otherwise.
+     * Loads ad; if ad is loaded, successful listener's [onAdLoadSuccess()][CloudXAdListener.onAdLoaded] will be invoked; [onAdLoadFailed()][CloudXAdListener.onAdLoadFailed] otherwise.
      */
     fun load()
 }
@@ -44,7 +54,7 @@ interface BaseFullscreenAd : CloudXAdToDisplayInfoApi, Destroyable {
 internal class BaseFullscreenAdImpl<
         SuspendableFullscreenAd : SuspendableBaseFullscreenAd<SuspendableFullscreenAdEvent>,
         SuspendableFullscreenAdEvent,
-        PublisherListener : BasePublisherListener,
+        PublisherListener : CloudXAdListener,
         >(
     bidAdSource: BidAdSource<SuspendableFullscreenAd>,
     bidMaxBackOffTimeMillis: Long,
@@ -101,7 +111,7 @@ internal class BaseFullscreenAdImpl<
 
             if (hasAds == true) {
                 val topAdMetaData = cachedAdRepository.topAdMetaData
-                listener.onAdLoadSuccess(CloudXAd(topAdMetaData?.adNetwork))
+                listener.onAdLoaded(CloudXAd(topAdMetaData?.adNetwork))
             } else {
                 listener.onAdLoadFailed(CloudXAdError(description = "No ads loaded yet"))
             }
@@ -123,7 +133,7 @@ internal class BaseFullscreenAdImpl<
             if (job.isActive) {
                 val timeToWaitForHideEventMillis = 90 * 1000
                 if (utcNowEpochMillis() <= (lastShowJobStartedTimeMillis + timeToWaitForHideEventMillis)) {
-                    listener.onAdShowFailed((CloudXAdError(description = "Ad is already displaying")))
+                    listener.onAdDisplayFailed(CloudXAdError(description = "Ad is already displaying"))
                     return
                 } else {
                     job.cancel("No adHidden or adError event received. Cancelling job")
@@ -139,7 +149,7 @@ internal class BaseFullscreenAdImpl<
 
             val ad = popAdAndSetLastShown()
             if (ad == null) {
-                listener.onAdShowFailed(CloudXAdError(description = "No ads loaded yet"))
+                listener.onAdDisplayFailed(CloudXAdError(description = "No ads loaded yet"))
                 return@launch
             }
 
@@ -236,7 +246,7 @@ internal class BaseFullscreenAdImpl<
                     val cloudXAd = CloudXAd(network)
                     when (it.tryHandleCurrentEvent(cloudXAd)) {
                         BaseSuspendableFullscreenAdEvent.Show -> {
-                            listener.onAdShowSuccess(cloudXAd)
+                            listener.onAdDisplayed(cloudXAd)
                         }
 
                         BaseSuspendableFullscreenAdEvent.Click -> {

@@ -38,9 +38,11 @@ import java.util.UUID
 import kotlin.system.measureTimeMillis
 import androidx.core.content.edit
 import com.xor.XorEncryption
+import io.cloudx.sdk.internal.CloudXErrorCodes
 import io.cloudx.sdk.internal.imp_tracker.ClickCounterTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTrackerNew
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsType
+import io.cloudx.sdk.internal.kill_switch.KillSwitch
 
 /**
  * Initialization service impl - initializes CloudX SDK; ignores all the following init calls after successful initialization.
@@ -67,7 +69,6 @@ internal class InitializationServiceImpl(
     private var basePayload: String = ""
 
     private val mutex = Mutex()
-
 
     fun isSdkRelatedError(throwable: Throwable): Boolean {
         return throwable.stackTrace.any { it.className.startsWith("io.cloudx.sdk") }
@@ -148,6 +149,17 @@ internal class InitializationServiceImpl(
 
             registerSdkCrashHandler()
 
+            // If we already saw SDK_DISABLED this session, fail fast
+            if (KillSwitch.sdkDisabledForSession) {
+                CloudXLogger.warn("InitializationServiceImpl", "Init skipped: SDK disabled for session.")
+                return Result.Failure(
+                    Error(
+                        description = "SDK disabled by server (traffic control)",
+                        errorCode = CloudXErrorCodes.INIT_SDK_DISABLED
+                    )
+                )
+            }
+
             val config = this.config
             if (config != null) {
                 return Result.Success(config)
@@ -215,6 +227,9 @@ internal class InitializationServiceImpl(
                 initializeAdapterNetworks(cfg, context)
 
                 metricsTrackerNew.trackNetworkCall(MetricsType.Network.GeoApi, geoRequestMillis)
+            } else if (configApiResult is Result.Failure && configApiResult.value.errorCode == CloudXErrorCodes.INIT_SDK_DISABLED) {
+                KillSwitch.sdkDisabledForSession = true
+                CloudXLogger.warn("InitializationServiceImpl", "SDK disabled for session by server.")
             }
 
             metricsTrackerNew.trackNetworkCall(MetricsType.Network.SdkInit, configApiRequestMillis)

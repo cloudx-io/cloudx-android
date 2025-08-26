@@ -1,8 +1,12 @@
 package io.cloudx.sdk.internal.config
 
 import io.cloudx.sdk.Result
+import io.cloudx.sdk.internal.CloudXErrorCodes
+import io.cloudx.sdk.internal.ERROR_CODE_GENERAL
 import io.cloudx.sdk.internal.Error
 import io.cloudx.sdk.internal.Logger
+import io.cloudx.sdk.internal.httpclient.HDR_X_CLOUDX_STATUS
+import io.cloudx.sdk.internal.httpclient.STATUS_SDK_DISABLED
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.retry
 import io.ktor.client.plugins.timeout
@@ -82,6 +86,26 @@ internal class ConfigApiImpl(
                                     httpResponse.status == HttpStatusCode.NotFound
                         }
                     }
+                }
+            }
+
+            if (response.status == HttpStatusCode.NoContent) {
+                val xStatus = response.headers[HDR_X_CLOUDX_STATUS]
+                if (xStatus == STATUS_SDK_DISABLED) {
+                    Logger.e(tag, "Init disabled by server (traffic control).")
+                    return Result.Failure(
+                        Error(
+                            description = "SDK disabled by server (traffic control)",
+                            errorCode = CloudXErrorCodes.INIT_SDK_DISABLED
+                        )
+                    )
+                } else {
+                    return Result.Failure(
+                        Error(
+                            description = "Init returned unexpected 204 No Content",
+                            errorCode = ERROR_CODE_GENERAL
+                        )
+                    )
                 }
             }
 

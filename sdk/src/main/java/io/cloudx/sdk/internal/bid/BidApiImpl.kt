@@ -1,9 +1,13 @@
 package io.cloudx.sdk.internal.bid
 
+import io.cloudx.sdk.CloudXErrorCodes
 import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.Error
 import io.cloudx.sdk.internal.Logger
+import io.cloudx.sdk.internal.httpclient.HDR_X_CLOUDX_STATUS
+import io.cloudx.sdk.internal.httpclient.STATUS_ADS_DISABLED
 import io.cloudx.sdk.internal.imp_tracker.TrackingFieldResolver
+import io.cloudx.sdk.internal.kill_switch.KillSwitch
 import io.cloudx.sdk.internal.requestTimeoutMillis
 import io.ktor.client.HttpClient
 import io.ktor.client.request.headers
@@ -22,6 +26,7 @@ private sealed class BidAttemptResult {
     data class Success(val bidResponse: BidResponse, val raw: String) : BidAttemptResult()
     data class SoftError(val raw: String) : BidAttemptResult()
     data class HardError(val status: Int, val raw: String) : BidAttemptResult()
+    data object TrafficControlAdsDisabled : BidAttemptResult()
 }
 
 internal class BidApiImpl(
@@ -47,7 +52,7 @@ internal class BidApiImpl(
             delayBetweenAttemptsMs = 10_000,
             delayBetweenGroupsMs = 300_000,
             isHardError = { it is BidAttemptResult.HardError },
-            isSoftError = { it is BidAttemptResult.SoftError }) { attempt, group ->
+            isSoftError = { it is BidAttemptResult.SoftError || it is BidAttemptResult.TrafficControlAdsDisabled }) { attempt, group ->
             val response = httpClient.post(endpointUrl) {
                 headers { append("Authorization", "Bearer $appKey") }
                 contentType(ContentType.Application.Json)
@@ -85,6 +90,20 @@ internal class BidApiImpl(
                     }
                 }
 
+                response.status == HttpStatusCode.NoContent -> {
+                    val xStatus = response.headers[HDR_X_CLOUDX_STATUS]
+                    if (xStatus == STATUS_ADS_DISABLED) {
+                        Logger.w(tag, "Ads disabled by traffic control (ADS_DISABLED)")
+                        KillSwitch.sdkDisabledForSession = false
+                        KillSwitch.causedErrorCode = CloudXErrorCodes.ADS_DISABLED
+                        BidAttemptResult.TrafficControlAdsDisabled
+                    } else {
+                        // Regular no-bid response
+                        println("No bid available (204)")
+                        BidAttemptResult.SoftError(responseBody)
+                    }
+                }
+
                 else -> {
                     println("Unexpected response status, retrying: ${response.status.value}")
                     Logger.e("MainActivity", "Unexpected response status: ${response.status.value}")
@@ -103,10 +122,20 @@ internal class BidApiImpl(
             }
 
             is CyclingRetryResult.SoftError -> {
-                println("Soft error encountered, no bid")
-                val raw = (cyclingResult.value as BidAttemptResult.SoftError).raw
-                Logger.e(tag, "Soft error, no bid: $raw")
-                Result.Failure(Error("Soft error (no bid)"))
+                when (val softErrorValue = cyclingResult.value) {
+                    is BidAttemptResult.TrafficControlAdsDisabled -> {
+                        Logger.w(tag, "Bid request (ADS_DISABLED)")
+                        Result.Failure(Error("Bid request disabled by server-side traffic control", CloudXErrorCodes.ADS_DISABLED))
+                    }
+                    is BidAttemptResult.SoftError -> {
+                        Result.Failure(Error("Soft error (no bid)"))
+                    }
+                    else -> {
+                        println("Unknown soft error")
+                        Logger.e(tag, "Unknown soft error type: ${softErrorValue::class.simpleName}")
+                        Result.Failure(Error("Unknown soft error"))
+                    }
+                }
             }
 
             is CyclingRetryResult.HardError -> {

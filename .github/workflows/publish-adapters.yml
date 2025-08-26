@@ -99,6 +99,60 @@ jobs:
           name: ${{ needs.determine-module.outputs.artifactName }}
           path: ${{ needs.determine-module.outputs.path }}/build/outputs/aar/${{ needs.determine-module.outputs.artifactName }}
 
+      - name: 📢 Slack Notification
+        uses: 8398a7/action-slack@v3
+        if: always()
+        with:
+          status: custom
+          custom_payload: |
+            {
+              "text": "🚀 CloudX Adapter Publishing #${{ github.run_number }} finished",
+              "attachments": [{
+                "author_name": "cloudexchange.android.sdk/publish-adapters",
+                "fallback": "Adapter publishing pipeline finished",
+                "color": "${{ job.status == 'success' && 'good' || 'danger' }}",
+                "fields": [
+                  {
+                    "title": "Status",
+                    "value": "${{ job.status == 'success' && '✅ Success' || '❌ Failed' }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Adapter",
+                    "value": "`${{ needs.determine-module.outputs.module }}`",
+                    "short": true
+                  },
+                  {
+                    "title": "Version",
+                    "value": "`${{ needs.determine-module.outputs.version }}`",
+                    "short": true
+                  },
+                  {
+                    "title": "Tag",
+                    "value": "`${{ github.ref_name }}`",
+                    "short": true
+                  },
+                  {
+                    "title": "Maven Central",
+                    "value": "${{ job.status == 'success' && '📤 Uploaded to Maven Central (~30 min to publish)' || '❌ Upload failed' }}",
+                    "short": false
+                  },
+                  {
+                    "title": "Pipeline Log",
+                    "value": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Pipeline Log>",
+                    "short": true
+                  },
+                  {
+                    "title": "Artifacts",
+                    "value": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Download AAR>",
+                    "short": true
+                  }
+                ]
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.CLOUDX_ALERTS_MOBILE_SLACK }}
+
 #      - name: 🚀 Create GitHub Release with AAR
 #        uses: softprops/action-gh-release@v1
 #        with:
@@ -158,3 +212,57 @@ jobs:
             adapter-meta/build/outputs/aar/adapter-meta-release.aar
             adapter-mintegral/build/outputs/aar/adapter-mintegral-release.aar
             adapter-testbidder/build/outputs/aar/adapter-testbidder-release.aar
+
+      - name: 📢 Slack Notification
+        uses: 8398a7/action-slack@v3
+        if: always()
+        with:
+          status: custom
+          custom_payload: |
+            {
+              "text": "🚀 CloudX All Adapters Publishing #${{ github.run_number }} finished",
+              "attachments": [{
+                "author_name": "cloudexchange.android.sdk/publish-adapters",
+                "fallback": "All adapters publishing pipeline finished",
+                "color": "${{ job.status == 'success' && 'good' || 'danger' }}",
+                "fields": [
+                  {
+                    "title": "Status",
+                    "value": "${{ job.status == 'success' && '✅ Success' || '❌ Failed' }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Adapters",
+                    "value": "All CloudX Adapters (cloudx, google, meta, mintegral, testbidder)",
+                    "short": true
+                  },
+                  {
+                    "title": "Version",
+                    "value": "`${{ needs.determine-module.outputs.version }}`",
+                    "short": true
+                  },
+                  {
+                    "title": "Tag",
+                    "value": "`${{ github.ref_name }}`",
+                    "short": true
+                  },
+                  {
+                    "title": "Maven Central",
+                    "value": "${{ job.status == 'success' && '📤 All adapters uploaded to Maven Central (~30 min to publish)' || '❌ Upload failed' }}",
+                    "short": false
+                  },
+                  {
+                    "title": "Pipeline Log",
+                    "value": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Pipeline Log>",
+                    "short": true
+                  },
+                  {
+                    "title": "Artifacts",
+                    "value": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Download All AARs>",
+                    "short": true
+                  }
+                ]
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.CLOUDX_ALERTS_MOBILE_SLACK }}

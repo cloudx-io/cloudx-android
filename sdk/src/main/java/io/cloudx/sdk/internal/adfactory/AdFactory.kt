@@ -5,7 +5,7 @@ import io.cloudx.sdk.CloudXAdViewListener
 import io.cloudx.sdk.CloudXAdView
 import io.cloudx.sdk.CloudXInterstitialAd
 import io.cloudx.sdk.CloudXRewardedAd
-import io.cloudx.sdk.InterstitialListener
+import io.cloudx.sdk.CloudXInterstitialListener
 import io.cloudx.sdk.RewardedInterstitialListener
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.common.service.ActivityLifecycleService
@@ -17,7 +17,7 @@ import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTrackerNew
 
 internal interface AdFactory {
-    fun createInterstitial(params: CreateAdParams<InterstitialListener>): CloudXInterstitialAd?
+    fun createInterstitial(params: CreateAdParams<CloudXInterstitialListener>): CloudXInterstitialAd?
     fun createRewarded(params: CreateAdParams<RewardedInterstitialListener>): CloudXRewardedAd?
 
     // TODO. Refactor.

@@ -4,7 +4,7 @@ import io.cloudx.sdk.CloudXAdView
 import io.cloudx.sdk.CloudXInterstitialAd
 import io.cloudx.sdk.CloudXRewardedAd
 import io.cloudx.sdk.Interstitial
-import io.cloudx.sdk.InterstitialListener
+import io.cloudx.sdk.CloudXInterstitialListener
 import io.cloudx.sdk.RewardedInterstitial
 import io.cloudx.sdk.RewardedInterstitialListener
 import io.cloudx.sdk.internal.AdType
@@ -37,7 +37,7 @@ internal class AdFactoryImpl(
 
     private val TAG = "AdFactoryImpl"
 
-    override fun createInterstitial(params: AdFactory.CreateAdParams<InterstitialListener>): CloudXInterstitialAd? {
+    override fun createInterstitial(params: AdFactory.CreateAdParams<CloudXInterstitialListener>): CloudXInterstitialAd? {
         val placementName = params.placementName
         val placement = config.placements[placementName] as? Config.Placement.Interstitial
         if (placement == null) {

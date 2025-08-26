@@ -3,7 +3,7 @@ package io.cloudx.sdk.internal
 import io.cloudx.sdk.CloudXAdViewListener
 import io.cloudx.sdk.CloudXAd
 import io.cloudx.sdk.CloudXAdError
-import io.cloudx.sdk.InterstitialListener
+import io.cloudx.sdk.CloudXInterstitialListener
 import io.cloudx.sdk.RewardedInterstitialListener
 
 // TODO. Refactor. Ugly Naming is ugh. Functionality isn't better.
@@ -27,8 +27,8 @@ internal fun CloudXAdViewListener?.decorate(): CloudXAdViewListener =
         override fun onAdCollapsed(placementName: String) {}
     }
 
-internal fun InterstitialListener?.decorate(): InterstitialListener =
-    this ?: object : InterstitialListener {
+internal fun CloudXInterstitialListener?.decorate(): CloudXInterstitialListener =
+    this ?: object : CloudXInterstitialListener {
         override fun onAdLoaded(cloudXAd: CloudXAd) {}
 
         override fun onAdLoadFailed(cloudXAdError: CloudXAdError) {}

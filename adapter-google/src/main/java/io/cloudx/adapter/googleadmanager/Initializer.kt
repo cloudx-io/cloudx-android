@@ -6,7 +6,7 @@ import com.google.android.gms.ads.RequestConfiguration
 import io.cloudx.sdk.CloudXPrivacy
 import io.cloudx.sdk.internal.CloudXLogger
 import io.cloudx.sdk.internal.adapter.CloudXAdapterInitializer
-import io.cloudx.sdk.internal.adapter.InitializationResult
+import io.cloudx.sdk.internal.adapter.CloudXAdapterInitializationResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -19,11 +19,11 @@ internal object Initializer: CloudXAdapterInitializer {
         context: Context,
         config: Map<String, String>,
         privacy: StateFlow<CloudXPrivacy>
-    ): InitializationResult =
+    ): CloudXAdapterInitializationResult =
         withContext(Dispatchers.Main) {
             if (isInitialized) {
                 CloudXLogger.debug(TAG, "already initialized")
-                InitializationResult.Success
+                CloudXAdapterInitializationResult.Success
             } else {
                 privacy.updateAdManagerPrivacy()
 
@@ -34,7 +34,7 @@ internal object Initializer: CloudXAdapterInitializer {
                         // Sometimes adapters call [Continuation.resume] twice which they shouldn't.
                         // So we have a try catch block around it.
                         try {
-                            continuation.resume(InitializationResult.Success)
+                            continuation.resume(CloudXAdapterInitializationResult.Success)
                         } catch (e: Exception) {
                             CloudXLogger.error(TAG, e.toString())
                         }

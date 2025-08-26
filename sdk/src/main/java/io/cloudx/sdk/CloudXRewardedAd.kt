@@ -3,8 +3,8 @@ package io.cloudx.sdk
 import android.app.Activity
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.AdType
-import io.cloudx.sdk.internal.adapter.BidRequestExtrasProvider
-import io.cloudx.sdk.internal.adapter.BidRewardedInterstitialFactory
+import io.cloudx.sdk.internal.adapter.CloudXAdapterBidRequestExtrasProvider
+import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapterFactory
 import io.cloudx.sdk.internal.bid.BidApi
 import io.cloudx.sdk.internal.bid.BidRequestProvider
 import io.cloudx.sdk.internal.cdp.CdpApi
@@ -34,8 +34,8 @@ internal fun RewardedInterstitial(
     placementId: String,
     placementName: String,
     cacheSize: Int,
-    bidFactories: Map<AdNetwork, BidRewardedInterstitialFactory>,
-    bidRequestExtrasProviders: Map<AdNetwork, BidRequestExtrasProvider>,
+    bidFactories: Map<AdNetwork, CloudXRewardedInterstitialAdapterFactory>,
+    bidRequestExtrasProviders: Map<AdNetwork, CloudXAdapterBidRequestExtrasProvider>,
     bidMaxBackOffTimeMillis: Long,
     bidAdLoadTimeoutMillis: Long,
     bidApi: BidApi,

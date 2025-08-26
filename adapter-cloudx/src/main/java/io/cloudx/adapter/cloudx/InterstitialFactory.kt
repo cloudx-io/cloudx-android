@@ -5,8 +5,8 @@ import io.cloudx.sdk.internal.adapter.*
 import io.cloudx.sdk.Result
 
 internal object InterstitialFactory :
-    BidInterstitialFactory,
-    MetaData by MetaData("cloudxdsp-version") {
+    CloudXInterstitialAdapterFactory,
+    CloudXAdapterMetaData by CloudXAdapterMetaData("cloudxdsp-version") {
 
     override fun create(
         activity: Activity,

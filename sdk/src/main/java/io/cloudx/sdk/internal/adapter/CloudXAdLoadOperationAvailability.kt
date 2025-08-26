@@ -7,12 +7,12 @@ package io.cloudx.sdk.internal.adapter
 // but then we might fire "load ad" tracking event which shouldn't be called in that case.
 // So the use of this property is:
 // if (isAdLoadOperationAvailable) load()
-interface AdLoadOperationAvailability {
+interface CloudXAdLoadOperationAvailability {
 
     val isAdLoadOperationAvailable: Boolean
 }
 
-object AlwaysReadyToLoadAd : AdLoadOperationAvailability {
+object AlwaysReadyToLoadAd : CloudXAdLoadOperationAvailability {
 
     override val isAdLoadOperationAvailable = true
 }

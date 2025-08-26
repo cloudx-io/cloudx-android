@@ -5,8 +5,8 @@ import io.cloudx.sdk.internal.adapter.*
 import io.cloudx.sdk.Result
 
 internal object RewardedInterstitialFactory :
-    BidRewardedInterstitialFactory,
-    MetaData by MetaData(AdManagerVersion) {
+    CloudXRewardedInterstitialAdapterFactory,
+    CloudXAdapterMetaData by CloudXAdapterMetaData(AdManagerVersion) {
 
     override fun create(
         activity: Activity,
@@ -14,8 +14,8 @@ internal object RewardedInterstitialFactory :
         bidId: String,
         adm: String,
         params: Map<String, String>?,
-        listener: RewardedInterstitialListener
-    ): Result<RewardedInterstitial, String> = Result.Success(
+        listener: CloudXRewardedInterstitialListener
+    ): Result<CloudXRewardedInterstitial, String> = Result.Success(
         RewardedInterstitialAdapter(
             activity,
             adUnitId = adm,

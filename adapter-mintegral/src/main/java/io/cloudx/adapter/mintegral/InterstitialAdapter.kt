@@ -5,9 +5,9 @@ import com.mbridge.msdk.newinterstitial.out.MBBidNewInterstitialHandler
 import com.mbridge.msdk.newinterstitial.out.NewInterstitialListener
 import com.mbridge.msdk.out.MBridgeIds
 import com.mbridge.msdk.out.RewardInfo
-import io.cloudx.sdk.internal.adapter.AdLoadOperationAvailability
+import io.cloudx.sdk.internal.adapter.CloudXAdLoadOperationAvailability
 import io.cloudx.sdk.internal.adapter.AlwaysReadyToLoadAd
-import io.cloudx.sdk.internal.adapter.CloudXAdError
+import io.cloudx.sdk.internal.adapter.CloudXAdapterError
 import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapter
 import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapterListener
 
@@ -17,13 +17,13 @@ internal class InterstitialAdapter(
     private val adUnitId: String,
     private val bidId: String?,
     private var listener: CloudXInterstitialAdapterListener?
-) : CloudXInterstitialAdapter, AdLoadOperationAvailability by AlwaysReadyToLoadAd {
+) : CloudXInterstitialAdapter, CloudXAdLoadOperationAvailability by AlwaysReadyToLoadAd {
 
     private var adHandler: MBBidNewInterstitialHandler? = null
 
     override fun load() {
         if (placementId.isNullOrBlank() || adUnitId.isBlank() || bidId.isNullOrBlank()) {
-            val error = CloudXAdError(description = "some of the ids are null or blank")
+            val error = CloudXAdapterError(description = "some of the ids are null or blank")
             listener?.onError(error)
             return
         }
@@ -41,7 +41,7 @@ internal class InterstitialAdapter(
             }
 
             override fun onResourceLoadFail(p0: MBridgeIds?, p1: String?) {
-                val error = CloudXAdError(description = p1 ?: "")
+                val error = CloudXAdapterError(description = p1 ?: "")
                 listener?.onError(error)
             }
 
@@ -51,7 +51,7 @@ internal class InterstitialAdapter(
             }
 
             override fun onShowFail(p0: MBridgeIds?, p1: String?) {
-                val error = CloudXAdError(description = p1 ?: "")
+                val error = CloudXAdapterError(description = p1 ?: "")
                 listener?.onError(error)
             }
 
@@ -83,7 +83,7 @@ internal class InterstitialAdapter(
     override fun show() {
         val adHandler = this.adHandler
         if (adHandler == null) {
-            listener?.onError(CloudXAdError(description = "can't show: ad is not loaded"))
+            listener?.onError(CloudXAdapterError(description = "can't show: ad is not loaded"))
             return
         }
 

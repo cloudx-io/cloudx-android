@@ -5,9 +5,9 @@ import com.facebook.ads.Ad
 import com.facebook.ads.AdError
 import com.facebook.ads.InterstitialAd
 import com.facebook.ads.InterstitialAdListener
-import io.cloudx.sdk.internal.adapter.AdLoadOperationAvailability
+import io.cloudx.sdk.internal.adapter.CloudXAdLoadOperationAvailability
 import io.cloudx.sdk.internal.adapter.AlwaysReadyToLoadAd
-import io.cloudx.sdk.internal.adapter.CloudXAdError
+import io.cloudx.sdk.internal.adapter.CloudXAdapterError
 import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapter
 import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapterListener
 
@@ -15,7 +15,7 @@ internal class InterstitialAdapter(
     private val activity: Activity,
     private val adUnitId: String,
     private var listener: CloudXInterstitialAdapterListener?
-) : CloudXInterstitialAdapter, AdLoadOperationAvailability by AlwaysReadyToLoadAd {
+) : CloudXInterstitialAdapter, CloudXAdLoadOperationAvailability by AlwaysReadyToLoadAd {
 
     private var interstitialAd: InterstitialAd? = null
 
@@ -49,14 +49,14 @@ internal class InterstitialAdapter(
         val ad = this.interstitialAd
         if (ad == null || !ad.isAdLoaded) {
             log(TAG, "Interstitial ad not ready to show for placement: $adUnitId (ad not loaded)")
-            listener?.onError(CloudXAdError(description = "Interstitial ad is not loaded"))
+            listener?.onError(CloudXAdapterError(description = "Interstitial ad is not loaded"))
             return
         }
 
         // Check if ad is already expired or invalidated, and do not show ad if that is the case. You will not get paid to show an invalidated ad.
         if (ad.isAdInvalidated) {
             log(TAG, "Interstitial ad invalidated for placement: $adUnitId")
-            listener?.onError(CloudXAdError(description = "Interstitial ad is invalidated"))
+            listener?.onError(CloudXAdapterError(description = "Interstitial ad is invalidated"))
             return
         }
 
@@ -80,7 +80,7 @@ internal class InterstitialAdapter(
                     "Interstitial ad failed to load for placement $adUnitId with error: ${adError?.errorMessage} (${adError?.errorCode})"
                 )
                 listener?.onError(
-                    CloudXAdError(
+                    CloudXAdapterError(
                         description = adError?.errorMessage ?: "Unknown error"
                     )
                 )

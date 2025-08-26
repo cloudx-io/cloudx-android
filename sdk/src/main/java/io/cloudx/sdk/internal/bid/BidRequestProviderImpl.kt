@@ -3,7 +3,7 @@ package io.cloudx.sdk.internal.bid
 import android.content.Context
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.AdType
-import io.cloudx.sdk.internal.adapter.BidRequestExtrasProvider
+import io.cloudx.sdk.internal.adapter.CloudXAdapterBidRequestExtrasProvider
 import io.cloudx.sdk.internal.appinfo.AppInfoProvider
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.connectionstatus.ConnectionType
@@ -37,7 +37,7 @@ internal class BidRequestProviderImpl(
     private val provideGAID: GAIDProvider,
     private val privacyService: PrivacyService,
     private val locationProvider: LocationProvider,
-    private val bidRequestExtrasProviders: Map<AdNetwork, BidRequestExtrasProvider>
+    private val bidRequestExtrasProviders: Map<AdNetwork, CloudXAdapterBidRequestExtrasProvider>
 ) : BidRequestProvider {
 
     override suspend fun invoke(params: BidRequestProvider.Params, auctionId: String): JSONObject =

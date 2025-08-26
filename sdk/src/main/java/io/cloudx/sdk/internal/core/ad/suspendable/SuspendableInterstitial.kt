@@ -25,7 +25,7 @@ sealed class SuspendableInterstitialEvent {
     object Complete : SuspendableInterstitialEvent()
     object Hide : SuspendableInterstitialEvent()
     object Click : SuspendableInterstitialEvent()
-    class Error(val error: io.cloudx.sdk.internal.adapter.CloudXAdError) : SuspendableInterstitialEvent()
+    class Error(val error: io.cloudx.sdk.internal.adapter.CloudXAdapterError) : SuspendableInterstitialEvent()
 }
 
 internal fun SuspendableInterstitial(
@@ -75,7 +75,7 @@ private class SuspendableInterstitialImpl(
             scope.launch { _event.emit(SuspendableInterstitialEvent.Click) }
         }
 
-        override fun onError(error: io.cloudx.sdk.internal.adapter.CloudXAdError) {
+        override fun onError(error: io.cloudx.sdk.internal.adapter.CloudXAdapterError) {
             scope.launch {
                 _event.emit(SuspendableInterstitialEvent.Error(error))
                 // 1 liner instead of _event.collect { /*assign error*/ }
@@ -110,8 +110,8 @@ private class SuspendableInterstitialImpl(
     private val _event = MutableSharedFlow<SuspendableInterstitialEvent>()
     override val event: SharedFlow<SuspendableInterstitialEvent> = _event
 
-    private val _lastErrorEvent = MutableStateFlow<io.cloudx.sdk.internal.adapter.CloudXAdError?>(null)
-    override val lastErrorEvent: StateFlow<io.cloudx.sdk.internal.adapter.CloudXAdError?> = _lastErrorEvent
+    private val _lastErrorEvent = MutableStateFlow<io.cloudx.sdk.internal.adapter.CloudXAdapterError?>(null)
+    override val lastErrorEvent: StateFlow<io.cloudx.sdk.internal.adapter.CloudXAdapterError?> = _lastErrorEvent
 
     override fun destroy() {
         scope.cancel()

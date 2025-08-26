@@ -6,7 +6,7 @@ import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
 import io.cloudx.sdk.internal.adapter.BannerFactoryMiscParams
-import io.cloudx.sdk.internal.adapter.BidBannerFactory
+import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterFactory
 import io.cloudx.sdk.internal.bid.BidApi
 import io.cloudx.sdk.internal.bid.BidRequestProvider
 import io.cloudx.sdk.internal.cdp.CdpApi
@@ -22,7 +22,7 @@ internal fun BidBannerSource(
     activity: Activity,
     adViewContainer: CloudXAdViewAdapterContainer,
     refreshSeconds: Int?,
-    factories: Map<AdNetwork, BidBannerFactory>,
+    factories: Map<AdNetwork, CloudXAdViewAdapterFactory>,
     placementId: String,
     placementName: String,
     placementType: AdType,

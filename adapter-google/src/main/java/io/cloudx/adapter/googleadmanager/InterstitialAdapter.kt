@@ -7,9 +7,9 @@ import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.admanager.AdManagerAdRequest
 import com.google.android.gms.ads.admanager.AdManagerInterstitialAd
 import com.google.android.gms.ads.admanager.AdManagerInterstitialAdLoadCallback
-import io.cloudx.sdk.internal.adapter.AdLoadOperationAvailability
+import io.cloudx.sdk.internal.adapter.CloudXAdLoadOperationAvailability
 import io.cloudx.sdk.internal.adapter.AlwaysReadyToLoadAd
-import io.cloudx.sdk.internal.adapter.CloudXAdError
+import io.cloudx.sdk.internal.adapter.CloudXAdapterError
 import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapter
 import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapterListener
 
@@ -17,7 +17,7 @@ internal class InterstitialAdapter(
     private val activity: Activity,
     private val adUnitId: String,
     private var listener: CloudXInterstitialAdapterListener?
-) : CloudXInterstitialAdapter, AdLoadOperationAvailability by AlwaysReadyToLoadAd {
+) : CloudXInterstitialAdapter, CloudXAdLoadOperationAvailability by AlwaysReadyToLoadAd {
 
     private var ad: AdManagerInterstitialAd? = null
 
@@ -29,7 +29,7 @@ internal class InterstitialAdapter(
             object : AdManagerInterstitialAdLoadCallback() {
                 override fun onAdFailedToLoad(p0: LoadAdError) {
                     super.onAdFailedToLoad(p0)
-                    listener?.onError(CloudXAdError(description = p0.toString()))
+                    listener?.onError(CloudXAdapterError(description = p0.toString()))
                 }
 
                 override fun onAdLoaded(p0: AdManagerInterstitialAd) {
@@ -44,14 +44,14 @@ internal class InterstitialAdapter(
     override fun show() {
         val ad = this.ad
         if (ad == null) {
-            listener?.onError(CloudXAdError(description = "can't show: ad is not loaded"))
+            listener?.onError(CloudXAdapterError(description = "can't show: ad is not loaded"))
             return
         }
 
         ad.fullScreenContentCallback = object : FullScreenContentCallback() {
 
             override fun onAdFailedToShowFullScreenContent(adError: AdError) {
-                listener?.onError(CloudXAdError(description = adError.message))
+                listener?.onError(CloudXAdapterError(description = adError.message))
             }
 
             override fun onAdShowedFullScreenContent() {

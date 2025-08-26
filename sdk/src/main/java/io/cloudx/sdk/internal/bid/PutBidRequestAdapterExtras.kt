@@ -2,12 +2,12 @@ package io.cloudx.sdk.internal.bid
 
 import android.content.Context
 import io.cloudx.sdk.internal.AdNetwork
-import io.cloudx.sdk.internal.adapter.BidRequestExtrasProvider
+import io.cloudx.sdk.internal.adapter.CloudXAdapterBidRequestExtrasProvider
 import org.json.JSONObject
 
 internal suspend fun JSONObject.putBidRequestAdapterExtras(
     context: Context,
-    bidRequestExtrasProviders: Map<AdNetwork, BidRequestExtrasProvider>
+    bidRequestExtrasProviders: Map<AdNetwork, CloudXAdapterBidRequestExtrasProvider>
 ) {
     put("adapter_extras", JSONObject().apply {
         bidRequestExtrasProviders.onEach {

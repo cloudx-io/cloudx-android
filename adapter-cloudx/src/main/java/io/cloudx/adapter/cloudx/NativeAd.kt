@@ -15,7 +15,7 @@ import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapter
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterListener
-import io.cloudx.sdk.internal.adapter.CloudXAdError
+import io.cloudx.sdk.internal.adapter.CloudXAdapterError
 import io.cloudx.sdk.internal.nativead.NativeAdSpecs
 import io.cloudx.sdk.internal.nativead.viewtemplates.CloudXNativeAdViewTemplate
 import io.cloudx.sdk.internal.nativead.viewtemplates.cloudXNativeAdTemplate
@@ -51,13 +51,13 @@ internal class NativeAd(
         scope.launch {
             when (val parsingResult = parseNativeOrtbResponse(adm)) {
                 is Result.Failure -> {
-                    listener.onError(CloudXAdError(description = parsingResult.value))
+                    listener.onError(CloudXAdapterError(description = parsingResult.value))
                 }
 
                 is Result.Success -> when (val assetsResult =
                     prepareNativeAssets(parsingResult.value.assets)) {
                     is Result.Failure -> {
-                        listener.onError(CloudXAdError(description = assetsResult.value))
+                        listener.onError(CloudXAdapterError(description = assetsResult.value))
                     }
 
                     is Result.Success -> if (
@@ -73,7 +73,7 @@ internal class NativeAd(
                         listener.onShow()
                         listener.onImpression()
                     } else {
-                        listener.onError(CloudXAdError(description = "can't bind required assets: some were missing or had wrong ids"))
+                        listener.onError(CloudXAdapterError(description = "can't bind required assets: some were missing or had wrong ids"))
                     }
                 }
             }

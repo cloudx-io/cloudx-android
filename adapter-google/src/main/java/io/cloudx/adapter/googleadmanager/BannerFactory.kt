@@ -7,11 +7,11 @@ import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapter
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
 import io.cloudx.sdk.internal.adapter.BannerFactoryMiscParams
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterListener
-import io.cloudx.sdk.internal.adapter.BidBannerFactory
-import io.cloudx.sdk.internal.adapter.MetaData
+import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterFactory
+import io.cloudx.sdk.internal.adapter.CloudXAdapterMetaData
 
-internal object BannerFactory : BidBannerFactory,
-    MetaData by MetaData(AdManagerVersion) {
+internal object BannerFactory : CloudXAdViewAdapterFactory,
+    CloudXAdapterMetaData by CloudXAdapterMetaData(AdManagerVersion) {
     // Consider suspend?
     override fun create(
         activity: Activity,

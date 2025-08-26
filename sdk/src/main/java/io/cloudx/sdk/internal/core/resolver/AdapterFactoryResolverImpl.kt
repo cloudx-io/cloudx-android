@@ -4,21 +4,21 @@ import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.AdViewSize
 import io.cloudx.sdk.internal.Logger
 import io.cloudx.sdk.internal.adapter.CloudXAdapterInitializer
-import io.cloudx.sdk.internal.adapter.BannerSizeSupport
-import io.cloudx.sdk.internal.adapter.BidBannerFactory
-import io.cloudx.sdk.internal.adapter.BidInterstitialFactory
-import io.cloudx.sdk.internal.adapter.BidRequestExtrasProvider
-import io.cloudx.sdk.internal.adapter.BidRewardedInterstitialFactory
+import io.cloudx.sdk.internal.adapter.CloudXAdViewSizeSupport
+import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterFactory
+import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapterFactory
+import io.cloudx.sdk.internal.adapter.CloudXAdapterBidRequestExtrasProvider
+import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapterFactory
 
 internal class AdapterFactoryResolverImpl: AdapterFactoryResolver {
 
     override fun resolveBidAdNetworkFactories(forTheseNetworks: Set<AdNetwork>): BidAdNetworkFactories {
         val initializers = mutableMapOf<AdNetwork, CloudXAdapterInitializer>()
-        val bidRequestExtrasProviders = mutableMapOf<AdNetwork, BidRequestExtrasProvider>()
-        val interstitials = mutableMapOf<AdNetwork, BidInterstitialFactory>()
-        val rewardedInterstitials = mutableMapOf<AdNetwork, BidRewardedInterstitialFactory>()
-        val banners = mutableMapOf<AdNetwork, BidBannerFactory>()
-        val nativeAds = mutableMapOf<AdNetwork, BidBannerFactory>()
+        val bidRequestExtrasProviders = mutableMapOf<AdNetwork, CloudXAdapterBidRequestExtrasProvider>()
+        val interstitials = mutableMapOf<AdNetwork, CloudXInterstitialAdapterFactory>()
+        val rewardedInterstitials = mutableMapOf<AdNetwork, CloudXRewardedInterstitialAdapterFactory>()
+        val banners = mutableMapOf<AdNetwork, CloudXAdViewAdapterFactory>()
+        val nativeAds = mutableMapOf<AdNetwork, CloudXAdViewAdapterFactory>()
 
         for (network in forTheseNetworks) {
             val prefix = network.toAdapterPackagePrefix()
@@ -27,29 +27,29 @@ internal class AdapterFactoryResolverImpl: AdapterFactoryResolver {
                 initializers[network] = it
             }
 
-            (instance("${prefix}BidRequestExtrasProvider") as? BidRequestExtrasProvider)?.let {
+            (instance("${prefix}BidRequestExtrasProvider") as? CloudXAdapterBidRequestExtrasProvider)?.let {
                 bidRequestExtrasProviders[network] = it
             }
 
-            (instance("${prefix}InterstitialFactory") as? BidInterstitialFactory)?.let {
+            (instance("${prefix}InterstitialFactory") as? CloudXInterstitialAdapterFactory)?.let {
                 interstitials[network] = it
             }
 
-            (instance("${prefix}RewardedInterstitialFactory") as? BidRewardedInterstitialFactory)?.let {
+            (instance("${prefix}RewardedInterstitialFactory") as? CloudXRewardedInterstitialAdapterFactory)?.let {
                 rewardedInterstitials[network] = it
             }
 
-            (instance("${prefix}BannerFactory") as? BidBannerFactory)?.let {
+            (instance("${prefix}BannerFactory") as? CloudXAdViewAdapterFactory)?.let {
                 banners[network] = it
             }
 
-            (instance("${prefix}NativeAdFactory") as? BidBannerFactory)?.let {
+            (instance("${prefix}NativeAdFactory") as? CloudXAdViewAdapterFactory)?.let {
                 nativeAds[network] = it
             }
         }
 
-        val stdBanners = mutableMapOf<AdNetwork, BidBannerFactory>()
-        val mrecBanners = mutableMapOf<AdNetwork, BidBannerFactory>()
+        val stdBanners = mutableMapOf<AdNetwork, CloudXAdViewAdapterFactory>()
+        val mrecBanners = mutableMapOf<AdNetwork, CloudXAdViewAdapterFactory>()
         populateBannersByBannerSize(banners, stdBanners, mrecBanners)
 
         return BidAdNetworkFactories(
@@ -64,7 +64,7 @@ internal class AdapterFactoryResolverImpl: AdapterFactoryResolver {
     }
 }
 
-private fun <B: BannerSizeSupport, N> populateBannersByBannerSize(
+private fun <B: CloudXAdViewSizeSupport, N> populateBannersByBannerSize(
     allBannerFactories: Map<N, B>,
     stdBanners: MutableMap<N, B>,
     mrecBanners: MutableMap<N, B>,

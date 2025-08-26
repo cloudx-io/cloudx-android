@@ -3,7 +3,7 @@ package io.cloudx.sdk.mocks
 import android.content.Context
 import io.cloudx.sdk.CloudXPrivacy
 import io.cloudx.sdk.internal.adapter.CloudXAdapterInitializer
-import io.cloudx.sdk.internal.adapter.InitializationResult
+import io.cloudx.sdk.internal.adapter.CloudXAdapterInitializationResult
 import kotlinx.coroutines.flow.StateFlow
 
 internal class MockAdapterInitializer : CloudXAdapterInitializer {
@@ -12,7 +12,7 @@ internal class MockAdapterInitializer : CloudXAdapterInitializer {
         context: Context,
         config: Map<String, String>,
         privacy: StateFlow<CloudXPrivacy>
-    ): InitializationResult {
-        return InitializationResult.Success
+    ): CloudXAdapterInitializationResult {
+        return CloudXAdapterInitializationResult.Success
     }
 }

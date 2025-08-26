@@ -4,7 +4,7 @@ import android.app.Activity
 import io.cloudx.sdk.Destroyable
 import io.cloudx.sdk.Result
 
-interface CloudXInterstitialAdapterFactory : CloudXAdapterMetaData {
+interface CloudXRewardedInterstitialAdapterFactory : CloudXAdapterMetaData {
 
     fun create(
         activity: Activity,
@@ -12,23 +12,22 @@ interface CloudXInterstitialAdapterFactory : CloudXAdapterMetaData {
         bidId: String,
         adm: String,
         params: Map<String, String>?,
-        listener: CloudXInterstitialAdapterListener
-    ): Result<CloudXInterstitialAdapter, String>
+        listener: CloudXRewardedInterstitialListener
+    ): Result<CloudXRewardedInterstitial, String>
 }
 
-interface CloudXInterstitialAdapter : CloudXAdLoadOperationAvailability, Destroyable {
+interface CloudXRewardedInterstitial : CloudXAdLoadOperationAvailability, Destroyable {
 
     fun load()
     fun show()
 }
 
-interface CloudXInterstitialAdapterListener : CloudXAdapterErrorListener {
+interface CloudXRewardedInterstitialListener : CloudXAdapterErrorListener {
 
     fun onLoad()
     fun onShow()
     fun onImpression()
-    fun onSkip()
-    fun onComplete()
+    fun onEligibleForReward()
     fun onHide()
     fun onClick()
 }

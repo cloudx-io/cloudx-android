@@ -19,7 +19,7 @@ import io.cloudx.sdk.internal.imp_tracker.ClickCounterTracker
 
 private typealias Func = (() -> Unit)
 private typealias ClickFunc = (() -> Unit)
-private typealias ErrorFunc = ((error: io.cloudx.sdk.internal.adapter.CloudXAdError) -> Unit)
+private typealias ErrorFunc = ((error: io.cloudx.sdk.internal.adapter.CloudXAdapterError) -> Unit)
 
 class AdEventDecoration(
     val onLoad: Func? = null,

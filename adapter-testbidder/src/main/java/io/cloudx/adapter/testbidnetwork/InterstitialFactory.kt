@@ -5,8 +5,8 @@ import io.cloudx.sdk.internal.adapter.*
 import io.cloudx.sdk.Result
 
 internal object InterstitialFactory :
-    BidInterstitialFactory,
-    MetaData by MetaData("test-bid-network-version") {
+    CloudXInterstitialAdapterFactory,
+    CloudXAdapterMetaData by CloudXAdapterMetaData("test-bid-network-version") {
 
     override fun create(
         activity: Activity,

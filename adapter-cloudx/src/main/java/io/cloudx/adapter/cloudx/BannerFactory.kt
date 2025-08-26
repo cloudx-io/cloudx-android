@@ -5,8 +5,8 @@ import io.cloudx.sdk.internal.AdViewSize
 import io.cloudx.sdk.internal.adapter.*
 import io.cloudx.sdk.Result
 
-internal object BannerFactory : BidBannerFactory,
-    MetaData by MetaData("cloudx-version") {
+internal object BannerFactory : CloudXAdViewAdapterFactory,
+    CloudXAdapterMetaData by CloudXAdapterMetaData("cloudx-version") {
     // Consider suspend?
     override fun create(
         activity: Activity,

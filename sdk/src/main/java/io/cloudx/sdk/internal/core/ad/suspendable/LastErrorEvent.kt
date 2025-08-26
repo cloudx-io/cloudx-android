@@ -4,5 +4,5 @@ import kotlinx.coroutines.flow.StateFlow
 
 interface LastErrorEvent {
 
-    val lastErrorEvent: StateFlow<io.cloudx.sdk.internal.adapter.CloudXAdError?>
+    val lastErrorEvent: StateFlow<io.cloudx.sdk.internal.adapter.CloudXAdapterError?>
 }

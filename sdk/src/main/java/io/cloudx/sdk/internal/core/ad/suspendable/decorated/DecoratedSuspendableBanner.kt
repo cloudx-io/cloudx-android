@@ -8,7 +8,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 private typealias BannerFunc = (() -> Unit)?
-private typealias ErrorBannerFunc = ((error: io.cloudx.sdk.internal.adapter.CloudXAdError) -> Unit)?
+private typealias ErrorBannerFunc = ((error: io.cloudx.sdk.internal.adapter.CloudXAdapterError) -> Unit)?
 
 internal class DecoratedSuspendableBanner(
     onLoad: BannerFunc = null,

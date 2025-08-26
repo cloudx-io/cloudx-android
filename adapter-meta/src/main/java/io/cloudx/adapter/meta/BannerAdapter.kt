@@ -10,7 +10,7 @@ import io.cloudx.sdk.internal.AdViewSize
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapter
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterListener
-import io.cloudx.sdk.internal.adapter.CloudXAdError
+import io.cloudx.sdk.internal.adapter.CloudXAdapterError
 
 internal class BannerAdapter(
     private val activity: Activity,
@@ -61,7 +61,7 @@ internal class BannerAdapter(
                 TAG,
                 "Banner ad failed to load for placement $adUnitId with error: ${adError?.errorMessage} (${adError?.errorCode})"
             )
-            listener?.onError(CloudXAdError(description = adError?.errorMessage ?: "Unknown error"))
+            listener?.onError(CloudXAdapterError(description = adError?.errorMessage ?: "Unknown error"))
         }
 
         override fun onAdLoaded(ad: Ad?) {

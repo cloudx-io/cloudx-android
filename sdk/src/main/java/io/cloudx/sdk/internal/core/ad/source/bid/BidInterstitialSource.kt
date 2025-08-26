@@ -4,7 +4,7 @@ import android.app.Activity
 import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.AdType
-import io.cloudx.sdk.internal.adapter.BidInterstitialFactory
+import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapterFactory
 import io.cloudx.sdk.internal.bid.BidApi
 import io.cloudx.sdk.internal.bid.BidRequestProvider
 import io.cloudx.sdk.internal.cdp.CdpApi
@@ -18,7 +18,7 @@ import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTrackerNew
 
 internal fun BidInterstitialSource(
     activity: Activity,
-    factories: Map<AdNetwork, BidInterstitialFactory>,
+    factories: Map<AdNetwork, CloudXInterstitialAdapterFactory>,
     placementId: String,
     placementName: String,
     requestBid: BidApi,

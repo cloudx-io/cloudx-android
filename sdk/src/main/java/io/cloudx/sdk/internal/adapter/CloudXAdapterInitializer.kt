@@ -10,10 +10,10 @@ interface CloudXAdapterInitializer {
         context: Context,
         config: Map<String, String>,
         privacy: StateFlow<CloudXPrivacy>
-    ): InitializationResult
+    ): CloudXAdapterInitializationResult
 }
 
-sealed class InitializationResult {
-    data object Success : InitializationResult()
-    class Error(val error: String = "") : InitializationResult()
+sealed class CloudXAdapterInitializationResult {
+    data object Success : CloudXAdapterInitializationResult()
+    class Error(val error: String = "") : CloudXAdapterInitializationResult()
 }

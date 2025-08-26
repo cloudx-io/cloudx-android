@@ -6,8 +6,8 @@ import io.cloudx.sdk.CloudXAd
 import io.cloudx.sdk.Destroyable
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
 import io.cloudx.sdk.internal.adapter.BannerFactoryMiscParams
-import io.cloudx.sdk.internal.adapter.BidBannerFactory
-import io.cloudx.sdk.internal.adapter.BidRequestExtrasProvider
+import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterFactory
+import io.cloudx.sdk.internal.adapter.CloudXAdapterBidRequestExtrasProvider
 import io.cloudx.sdk.internal.bid.BidApi
 import io.cloudx.sdk.internal.bid.BidRequestProvider
 import io.cloudx.sdk.internal.bid.LoadResult
@@ -56,8 +56,8 @@ internal fun Banner(
     refreshSeconds: Int,
     adType: AdType,
     preloadTimeMillis: Long,
-    bidFactories: Map<AdNetwork, BidBannerFactory>,
-    bidRequestExtrasProviders: Map<AdNetwork, BidRequestExtrasProvider>,
+    bidFactories: Map<AdNetwork, CloudXAdViewAdapterFactory>,
+    bidRequestExtrasProviders: Map<AdNetwork, CloudXAdapterBidRequestExtrasProvider>,
     bidMaxBackOffTimeMillis: Long,
     bidAdLoadTimeoutMillis: Long,
     miscParams: BannerFactoryMiscParams,

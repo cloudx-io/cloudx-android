@@ -11,7 +11,7 @@ import io.cloudx.sdk.internal.AdViewSize
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapter
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterListener
-import io.cloudx.sdk.internal.adapter.CloudXAdError
+import io.cloudx.sdk.internal.adapter.CloudXAdapterError
 
 internal class BannerAdapter(
     private val activity: Activity,
@@ -50,7 +50,7 @@ internal class BannerAdapter(
 
         override fun onAdFailedToLoad(p0: LoadAdError) {
             super.onAdFailedToLoad(p0)
-            listener?.onError(CloudXAdError(description = p0.toString()))
+            listener?.onError(CloudXAdapterError(description = p0.toString()))
         }
 
         override fun onAdImpression() {

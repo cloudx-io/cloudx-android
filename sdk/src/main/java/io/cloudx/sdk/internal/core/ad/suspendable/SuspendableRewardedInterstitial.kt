@@ -25,7 +25,7 @@ sealed class SuspendableRewardedInterstitialEvent {
     object Hide : SuspendableRewardedInterstitialEvent()
     object Click : SuspendableRewardedInterstitialEvent()
 
-    class Error(val error: io.cloudx.sdk.internal.adapter.CloudXAdError) :
+    class Error(val error: io.cloudx.sdk.internal.adapter.CloudXAdapterError) :
         SuspendableRewardedInterstitialEvent()
 }
 
@@ -33,7 +33,7 @@ internal fun SuspendableRewardedInterstitial(
     price: Double?,
     adNetwork: AdNetwork,
     adUnitId: String,
-    createRewardedInterstitial: (listener: io.cloudx.sdk.internal.adapter.RewardedInterstitialListener) -> io.cloudx.sdk.internal.adapter.RewardedInterstitial
+    createRewardedInterstitial: (listener: io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialListener) -> io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitial
 ): SuspendableRewardedInterstitial =
     SuspendableRewardedInterstitialImpl(
         price,
@@ -46,14 +46,14 @@ private class SuspendableRewardedInterstitialImpl(
     override val price: Double?,
     override val adNetwork: AdNetwork,
     override val adUnitId: String,
-    createRewardedInterstitial: (listener: io.cloudx.sdk.internal.adapter.RewardedInterstitialListener) -> io.cloudx.sdk.internal.adapter.RewardedInterstitial,
+    createRewardedInterstitial: (listener: io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialListener) -> io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitial,
 ) : SuspendableRewardedInterstitial {
 
     private val scope = CoroutineScope(Dispatchers.Main)
 
     private val rewardedInterstitial =
         createRewardedInterstitial(object :
-            io.cloudx.sdk.internal.adapter.RewardedInterstitialListener {
+            io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialListener {
             override fun onLoad() {
                 scope.launch { _event.emit(SuspendableRewardedInterstitialEvent.Load) }
             }
@@ -78,7 +78,7 @@ private class SuspendableRewardedInterstitialImpl(
                 scope.launch { _event.emit(SuspendableRewardedInterstitialEvent.Click) }
             }
 
-            override fun onError(error: io.cloudx.sdk.internal.adapter.CloudXAdError) {
+            override fun onError(error: io.cloudx.sdk.internal.adapter.CloudXAdapterError) {
                 scope.launch {
                     _event.emit(SuspendableRewardedInterstitialEvent.Error(error))
                     // 1 liner instead of _event.collect { /*assign error*/ }
@@ -114,8 +114,8 @@ private class SuspendableRewardedInterstitialImpl(
     override val event: SharedFlow<SuspendableRewardedInterstitialEvent> = _event
 
     private val _lastErrorEvent =
-        MutableStateFlow<io.cloudx.sdk.internal.adapter.CloudXAdError?>(null)
-    override val lastErrorEvent: StateFlow<io.cloudx.sdk.internal.adapter.CloudXAdError?> =
+        MutableStateFlow<io.cloudx.sdk.internal.adapter.CloudXAdapterError?>(null)
+    override val lastErrorEvent: StateFlow<io.cloudx.sdk.internal.adapter.CloudXAdapterError?> =
         _lastErrorEvent
 
     override fun destroy() {

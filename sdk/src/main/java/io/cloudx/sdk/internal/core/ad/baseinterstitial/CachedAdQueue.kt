@@ -3,7 +3,7 @@ package io.cloudx.sdk.internal.core.ad.baseinterstitial
 import io.cloudx.sdk.Destroyable
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.Logger
-import io.cloudx.sdk.internal.adapter.AdLoadOperationAvailability
+import io.cloudx.sdk.internal.adapter.CloudXAdLoadOperationAvailability
 import io.cloudx.sdk.internal.common.service.AppLifecycleService
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.core.ad.AdMetaData
@@ -228,7 +228,7 @@ internal class CachedAdQueue<T : CacheableAd>(
     }
 }
 
-internal interface CacheableAd : AdTimeoutEvent, AdLoadOperationAvailability, LastErrorEvent,
+internal interface CacheableAd : AdTimeoutEvent, CloudXAdLoadOperationAvailability, LastErrorEvent,
     Destroyable, AdMetaData {
 
     suspend fun load(): Boolean

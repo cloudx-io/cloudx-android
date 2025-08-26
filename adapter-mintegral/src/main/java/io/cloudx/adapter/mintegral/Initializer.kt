@@ -9,7 +9,7 @@ import com.mbridge.msdk.out.SDKInitStatusListener
 import io.cloudx.sdk.CloudXPrivacy
 import io.cloudx.sdk.internal.CloudXLogger
 import io.cloudx.sdk.internal.adapter.CloudXAdapterInitializer
-import io.cloudx.sdk.internal.adapter.InitializationResult
+import io.cloudx.sdk.internal.adapter.CloudXAdapterInitializationResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -22,19 +22,19 @@ internal object Initializer : CloudXAdapterInitializer {
         context: Context,
         config: Map<String, String>,
         privacy: StateFlow<CloudXPrivacy>
-    ): InitializationResult =
+    ): CloudXAdapterInitializationResult =
         withContext(Dispatchers.Main) {
             if (isInitialized) {
                 CloudXLogger.debug(TAG, "already initialized")
-                InitializationResult.Success
+                CloudXAdapterInitializationResult.Success
             } else {
                 privacy.updateMintegralPrivacy(context)
 
                 if (!trySetMintegralChannelCode()) {
-                    return@withContext InitializationResult.Error()
+                    return@withContext CloudXAdapterInitializationResult.Error()
                 }
 
-                suspendCancellableCoroutine<InitializationResult> { continuation ->
+                suspendCancellableCoroutine<CloudXAdapterInitializationResult> { continuation ->
                     val sdk = MBridgeSDKFactory.getMBridgeSDK()
                     val map = sdk.getMBConfigurationMap(
                         config["appID"] ?: "",
@@ -47,7 +47,7 @@ internal object Initializer : CloudXAdapterInitializer {
                             // Sometimes adapters call [Continuation.resume] twice which they shouldn't.
                             // So we have a try catch block around it.
                             try {
-                                continuation.resume(InitializationResult.Error(p0 ?: ""))
+                                continuation.resume(CloudXAdapterInitializationResult.Error(p0 ?: ""))
                             } catch (e: Exception) {
                                 CloudXLogger.error(TAG, e.toString())
                             }
@@ -59,7 +59,7 @@ internal object Initializer : CloudXAdapterInitializer {
                             // Sometimes adapters call [Continuation.resume] twice which they shouldn't.
                             // So we have a try catch block around it.
                             try {
-                                continuation.resume(InitializationResult.Success)
+                                continuation.resume(CloudXAdapterInitializationResult.Success)
                             } catch (e: Exception) {
                                 CloudXLogger.error(TAG, e.toString())
                             }

@@ -4,7 +4,7 @@ import android.content.Context
 import io.cloudx.sdk.BuildConfig
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.AdType
-import io.cloudx.sdk.internal.adapter.BidRequestExtrasProvider
+import io.cloudx.sdk.internal.adapter.CloudXAdapterBidRequestExtrasProvider
 import io.cloudx.sdk.internal.appinfo.AppInfoProvider
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.deviceinfo.DeviceInfoProvider
@@ -46,7 +46,7 @@ internal fun BidRequestProvider.Params.withEffectiveAdId(): String {
 
 internal fun BidRequestProvider(
     context: Context,
-    bidRequestExtrasProviders: Map<AdNetwork, BidRequestExtrasProvider>
+    bidRequestExtrasProviders: Map<AdNetwork, CloudXAdapterBidRequestExtrasProvider>
 ) = BidRequestProviderImpl(
     context.applicationContext,
     BuildConfig.SDK_VERSION_NAME,

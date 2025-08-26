@@ -1,17 +1,34 @@
 package io.cloudx.sdk.internal.adapter
 
+import android.app.Activity
 import android.view.View
 import android.view.ViewGroup
 import io.cloudx.sdk.Destroyable
+import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.AdViewSize
+
+interface CloudXAdViewAdapterFactory : CloudXAdapterMetaData, CloudXAdViewSizeSupport {
+
+    fun create(
+        activity: Activity,
+        adViewContainer: CloudXAdViewAdapterContainer,
+        refreshSeconds: Int?,
+        adId: String,
+        bidId: String,
+        adm: String,
+        params: Map<String, String>?,
+        miscParams: BannerFactoryMiscParams,
+        listener: CloudXAdViewAdapterListener
+    ): Result<CloudXAdViewAdapter, String>
+}
 
 interface CloudXAdViewAdapter : Destroyable {
 
     fun load()
 }
 
-interface CloudXAdViewAdapterListener : AdErrorListener {
+interface CloudXAdViewAdapterListener : CloudXAdapterErrorListener {
 
     fun onLoad()
     fun onShow()
@@ -27,7 +44,7 @@ interface CloudXAdViewAdapterContainer {
     fun releaseBannerContainer(bannerContainer: ViewGroup)
 }
 
-interface BannerSizeSupport {
+interface CloudXAdViewSizeSupport {
 
     val sizeSupport: List<AdViewSize>
 }

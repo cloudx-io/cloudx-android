@@ -8,7 +8,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 private typealias RewardedInterstitialFunc = (() -> Unit)?
-private typealias ErrorRewardedInterstitialFunc = ((error: io.cloudx.sdk.internal.adapter.CloudXAdError) -> Unit)?
+private typealias ErrorRewardedInterstitialFunc = ((error: io.cloudx.sdk.internal.adapter.CloudXAdapterError) -> Unit)?
 private typealias ClickRewardedInterstitialFunc = (() -> Unit)?
 
 internal class DecoratedSuspendableRewardedInterstitial(

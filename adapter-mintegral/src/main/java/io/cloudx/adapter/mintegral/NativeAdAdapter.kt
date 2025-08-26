@@ -11,7 +11,7 @@ import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapter
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterListener
-import io.cloudx.sdk.internal.adapter.CloudXAdError
+import io.cloudx.sdk.internal.adapter.CloudXAdapterError
 
 
 internal class NativeAdAdapter(
@@ -29,7 +29,7 @@ internal class NativeAdAdapter(
 
     override fun load() {
         if (placementId.isNullOrBlank() || adUnitId.isBlank() || bidId.isNullOrBlank()) {
-            val error = CloudXAdError(description = "some of the ids are null or blank")
+            val error = CloudXAdapterError(description = "some of the ids are null or blank")
             listener?.onError(error)
             return
         }
@@ -53,21 +53,21 @@ internal class NativeAdAdapter(
         }
 
         override fun onAdLoadError(p0: String?) {
-            val error = CloudXAdError(description = p0.toString())
+            val error = CloudXAdapterError(description = p0.toString())
             listener?.onError(error)
         }
 
         override fun onAdLoaded(p0: MutableList<Campaign>?, p1: Int) {
             val campaign = p0?.firstOrNull()
             if (campaign == null) {
-                val error = CloudXAdError(description = "no campaigns")
+                val error = CloudXAdapterError(description = "no campaigns")
                 listener?.onError(error)
                 return
             }
 
             val adHandler = this@NativeAdAdapter.adHandler
             if (adHandler == null) {
-                val error = CloudXAdError(description = "Ad handler is unavailable")
+                val error = CloudXAdapterError(description = "Ad handler is unavailable")
                 listener?.onError(error)
                 return
             }

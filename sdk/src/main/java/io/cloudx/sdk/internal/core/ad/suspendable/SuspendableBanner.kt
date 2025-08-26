@@ -32,7 +32,7 @@ sealed class SuspendableBannerEvent {
     object Show: SuspendableBannerEvent()
     object Impression: SuspendableBannerEvent()
     object Click: SuspendableBannerEvent()
-    class Error(val error: io.cloudx.sdk.internal.adapter.CloudXAdError): SuspendableBannerEvent()
+    class Error(val error: io.cloudx.sdk.internal.adapter.CloudXAdapterError): SuspendableBannerEvent()
 }
 
 internal fun SuspendableBanner(
@@ -94,7 +94,7 @@ private class SuspendableBannerImpl(
             scope.launch { _event.emit(SuspendableBannerEvent.Click) }
         }
 
-        override fun onError(error: io.cloudx.sdk.internal.adapter.CloudXAdError) {
+        override fun onError(error: io.cloudx.sdk.internal.adapter.CloudXAdapterError) {
             scope.launch {
                 _event.emit(SuspendableBannerEvent.Error(error))
                 // 1 liner instead of _event.collect { /*assign error*/ }
@@ -122,8 +122,8 @@ private class SuspendableBannerImpl(
     private val _event = MutableSharedFlow<SuspendableBannerEvent>()
     override val event: SharedFlow<SuspendableBannerEvent> = _event
 
-    private val _lastErrorEvent = MutableStateFlow<io.cloudx.sdk.internal.adapter.CloudXAdError?>(null)
-    override val lastErrorEvent: StateFlow<io.cloudx.sdk.internal.adapter.CloudXAdError?> = _lastErrorEvent
+    private val _lastErrorEvent = MutableStateFlow<io.cloudx.sdk.internal.adapter.CloudXAdapterError?>(null)
+    override val lastErrorEvent: StateFlow<io.cloudx.sdk.internal.adapter.CloudXAdapterError?> = _lastErrorEvent
 
     override fun destroy() {
         scope.cancel()

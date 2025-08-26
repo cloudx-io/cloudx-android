@@ -15,7 +15,7 @@ import io.cloudx.sdk.internal.AdViewSize
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapter
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterListener
-import io.cloudx.sdk.internal.adapter.CloudXAdError
+import io.cloudx.sdk.internal.adapter.CloudXAdapterError
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -34,7 +34,7 @@ internal class BannerAdapter(
 
     override fun load() {
         if (placementId.isNullOrBlank() || adUnitId.isBlank() || bidId.isNullOrBlank()) {
-            val error = CloudXAdError(description = "some of the ids are null or blank")
+            val error = CloudXAdapterError(description = "some of the ids are null or blank")
             listener?.onError(error)
             return
         }
@@ -75,7 +75,7 @@ internal class BannerAdapter(
         }
 
         override fun onLoadFailed(p0: MBridgeIds?, p1: String?) {
-            val error = CloudXAdError(description = p1 ?: "")
+            val error = CloudXAdapterError(description = p1 ?: "")
             listener?.onError(error)
         }
 

@@ -7,18 +7,18 @@ import com.facebook.ads.AdListener
 import com.facebook.ads.AdSize
 import com.facebook.ads.AdView
 import io.cloudx.sdk.internal.AdViewSize
-import io.cloudx.sdk.internal.adapter.Banner
-import io.cloudx.sdk.internal.adapter.BannerContainer
-import io.cloudx.sdk.internal.adapter.BannerListener
+import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapter
+import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
+import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterListener
 import io.cloudx.sdk.internal.adapter.CloudXAdError
 
 internal class BannerAdapter(
     private val activity: Activity,
-    private val container: BannerContainer,
+    private val adViewContainer: CloudXAdViewAdapterContainer,
     private val adUnitId: String,
     private val adViewSize: AdViewSize,
-    private var listener: BannerListener?
-) : Banner {
+    private var listener: CloudXAdViewAdapterListener?
+) : CloudXAdViewAdapter {
 
     private var adView: AdView? = null
 
@@ -32,7 +32,7 @@ internal class BannerAdapter(
         this.adView = adView
 
         with(adView) {
-            container.onAdd(this)
+            adViewContainer.onAdd(this)
             log(TAG, "Starting to load banner ad for placement: $adUnitId")
 
             loadAd(
@@ -47,14 +47,14 @@ internal class BannerAdapter(
         log(TAG, "Destroying banner ad for placement: $adUnitId")
         adView?.let {
             it.destroy()
-            container.onRemove(it)
+            adViewContainer.onRemove(it)
         }
         adView = null
 
         listener = null
     }
 
-    private fun createAdListener(listener: BannerListener?) = object : AdListener {
+    private fun createAdListener(listener: CloudXAdViewAdapterListener?) = object : AdListener {
 
         override fun onError(ad: Ad?, adError: AdError?) {
             log(

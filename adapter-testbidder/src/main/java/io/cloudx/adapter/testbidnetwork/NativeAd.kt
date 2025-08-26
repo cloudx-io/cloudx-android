@@ -12,9 +12,9 @@ import io.cloudx.ts.nativead.parseNativeOrtbResponse
 import io.cloudx.ts.nativead.prepareNativeAssets
 import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.AdType
-import io.cloudx.sdk.internal.adapter.Banner
-import io.cloudx.sdk.internal.adapter.BannerContainer
-import io.cloudx.sdk.internal.adapter.BannerListener
+import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapter
+import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
+import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterListener
 import io.cloudx.sdk.internal.adapter.CloudXAdError
 import io.cloudx.sdk.internal.nativead.NativeAdSpecs
 import io.cloudx.sdk.internal.nativead.viewtemplates.CloudXNativeAdViewTemplate
@@ -32,11 +32,11 @@ import java.net.URL
 
 internal class NativeAd(
     private val activity: Activity,
-    private val container: BannerContainer,
+    private val adViewContainer: CloudXAdViewAdapterContainer,
     private val adm: String,
     private val adType: AdType.Native,
-    private val listener: BannerListener
-) : Banner {
+    private val listener: CloudXAdViewAdapterListener
+) : CloudXAdViewAdapter {
 
     private val scope = CoroutineScope(Dispatchers.Main)
 
@@ -68,7 +68,7 @@ internal class NativeAd(
                     ) {
                         listener.onLoad()
 
-                        container.onAdd(nativeAdTemplate.rootView)
+                        adViewContainer.onAdd(nativeAdTemplate.rootView)
 
                         listener.onShow()
                         listener.onImpression()
@@ -170,7 +170,7 @@ internal class NativeAd(
     override fun destroy() {
         scope.cancel()
         cloudXNativeAdViewTemplate?.rootView?.let {
-            container.onRemove(it)
+            adViewContainer.onRemove(it)
         }
         cloudXNativeAdViewTemplate = null
     }

@@ -5,7 +5,7 @@ import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.RequestConfiguration
 import io.cloudx.sdk.CloudXPrivacy
 import io.cloudx.sdk.internal.CloudXLogger
-import io.cloudx.sdk.internal.adapter.AdNetworkInitializer
+import io.cloudx.sdk.internal.adapter.AdapterInitializer
 import io.cloudx.sdk.internal.adapter.InitializationResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
@@ -13,7 +13,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.resume
 
-internal object Initializer: AdNetworkInitializer {
+internal object Initializer: AdapterInitializer {
 
     override suspend fun initialize(
         context: Context,

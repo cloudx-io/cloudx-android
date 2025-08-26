@@ -10,18 +10,18 @@ internal object BannerFactory : BidBannerFactory,
     // Consider suspend?
     override fun create(
         activity: Activity,
-        bannerContainer: BannerContainer,
+        adViewContainer: CloudXAdViewAdapterContainer,
         refreshSeconds: Int?,
         adId: String,
         bidId: String,
         adm: String,
         params: Map<String, String>?,
         miscParams: BannerFactoryMiscParams,
-        listener: BannerListener,
-    ): Result<Banner, String> {
+        listener: CloudXAdViewAdapterListener,
+    ): Result<CloudXAdViewAdapter, String> {
 
         val banner = StaticBidBanner(
-            activity, bannerContainer, adm, listener
+            activity, adViewContainer, adm, listener
         )
 
         return banner.let { Result.Success(it) }

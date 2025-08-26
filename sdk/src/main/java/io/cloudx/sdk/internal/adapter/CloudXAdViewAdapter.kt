@@ -6,12 +6,12 @@ import io.cloudx.sdk.Destroyable
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.AdViewSize
 
-interface Banner : Destroyable {
+interface CloudXAdViewAdapter : Destroyable {
 
     fun load()
 }
 
-interface BannerListener : AdErrorListener {
+interface CloudXAdViewAdapterListener : AdErrorListener {
 
     fun onLoad()
     fun onShow()
@@ -19,7 +19,7 @@ interface BannerListener : AdErrorListener {
     fun onClick()
 }
 
-interface BannerContainer {
+interface CloudXAdViewAdapterContainer {
 
     fun onAdd(bannerView: View)
     fun onRemove(bannerView: View)

@@ -11,8 +11,8 @@ interface BidInterstitialFactory : MetaData {
         bidId: String,
         adm: String,
         params: Map<String, String>?,
-        listener: InterstitialListener
-    ): Result<Interstitial, String>
+        listener: CloudXInterstitialAdapterListener
+    ): Result<CloudXInterstitialAdapter, String>
 }
 
 interface BidRewardedInterstitialFactory : MetaData {
@@ -31,13 +31,13 @@ interface BidBannerFactory : MetaData, BannerSizeSupport {
 
     fun create(
         activity: Activity,
-        bannerContainer: BannerContainer,
+        adViewContainer: CloudXAdViewAdapterContainer,
         refreshSeconds: Int?,
         adId: String,
         bidId: String,
         adm: String,
         params: Map<String, String>?,
         miscParams: BannerFactoryMiscParams,
-        listener: BannerListener
-    ): Result<Banner, String>
+        listener: CloudXAdViewAdapterListener
+    ): Result<CloudXAdViewAdapter, String>
 }

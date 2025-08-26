@@ -32,7 +32,7 @@ internal fun SuspendableInterstitial(
     price: Double?,
     adNetwork: AdNetwork,
     adUnitId: String,
-    createInterstitial: (listener: io.cloudx.sdk.internal.adapter.InterstitialListener) -> io.cloudx.sdk.internal.adapter.Interstitial
+    createInterstitial: (listener: io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapterListener) -> io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapter
 ): SuspendableInterstitial =
     SuspendableInterstitialImpl(price, adNetwork, adUnitId, createInterstitial)
 
@@ -40,13 +40,13 @@ private class SuspendableInterstitialImpl(
     override val price: Double?,
     override val adNetwork: AdNetwork,
     override val adUnitId: String,
-    createInterstitial: (listener: io.cloudx.sdk.internal.adapter.InterstitialListener) -> io.cloudx.sdk.internal.adapter.Interstitial,
+    createInterstitial: (listener: io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapterListener) -> io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapter,
 ) : SuspendableInterstitial {
 
     private val scope = CoroutineScope(Dispatchers.Main)
 
     private val interstitial = createInterstitial(object :
-        io.cloudx.sdk.internal.adapter.InterstitialListener {
+        io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapterListener {
         override fun onLoad() {
             scope.launch { _event.emit(SuspendableInterstitialEvent.Load) }
         }

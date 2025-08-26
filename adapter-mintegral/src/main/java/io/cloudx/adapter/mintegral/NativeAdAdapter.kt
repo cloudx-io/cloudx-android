@@ -8,21 +8,21 @@ import com.mbridge.msdk.out.MBBidNativeHandler
 import com.mbridge.msdk.out.NativeListener
 import com.mbridge.msdk.out.NativeListener.NativeTrackingListener
 import io.cloudx.sdk.internal.AdType
-import io.cloudx.sdk.internal.adapter.Banner
-import io.cloudx.sdk.internal.adapter.BannerContainer
-import io.cloudx.sdk.internal.adapter.BannerListener
+import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapter
+import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
+import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterListener
 import io.cloudx.sdk.internal.adapter.CloudXAdError
 
 
 internal class NativeAdAdapter(
     private val activity: Activity,
-    private val container: BannerContainer,
+    private val adViewContainer: CloudXAdViewAdapterContainer,
     private val placementId: String?,
     private val adUnitId: String,
     private val bidId: String?,
     private val adType: AdType.Native,
-    private var listener: BannerListener?
-) : Banner {
+    private var listener: CloudXAdViewAdapterListener?
+) : CloudXAdViewAdapter {
 
     private var adHandler: MBBidNativeHandler? = null
     private var adView: ViewGroup? = null
@@ -75,7 +75,7 @@ internal class NativeAdAdapter(
             val adView = activity.createNativeAdView(adHandler, adType, campaign, ::onClick)
             this@NativeAdAdapter.adView = adView
 
-            container.onAdd(adView)
+            adViewContainer.onAdd(adView)
 
             listener?.onLoad()
         }
@@ -131,7 +131,7 @@ internal class NativeAdAdapter(
         adHandler = null
 
         adView?.let {
-            container.onRemove(it)
+            adViewContainer.onRemove(it)
         }
         adView = null
     }

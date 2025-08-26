@@ -4,7 +4,7 @@ import android.app.Activity
 import io.cloudx.sdk.CloudXAdViewListener
 import io.cloudx.sdk.CloudXAd
 import io.cloudx.sdk.Destroyable
-import io.cloudx.sdk.internal.adapter.BannerContainer
+import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
 import io.cloudx.sdk.internal.adapter.BannerFactoryMiscParams
 import io.cloudx.sdk.internal.adapter.BidBannerFactory
 import io.cloudx.sdk.internal.adapter.BidRequestExtrasProvider
@@ -51,7 +51,7 @@ internal fun Banner(
     activity: Activity,
     placementId: String,
     placementName: String,
-    bannerContainer: BannerContainer,
+    adViewContainer: CloudXAdViewAdapterContainer,
     bannerVisibility: StateFlow<Boolean>,
     refreshSeconds: Int,
     adType: AdType,
@@ -80,7 +80,7 @@ internal fun Banner(
     val bidSource =
         BidBannerSource(
             activity,
-            bannerContainer,
+            adViewContainer,
             refreshSeconds,
             bidFactories,
             placementId,

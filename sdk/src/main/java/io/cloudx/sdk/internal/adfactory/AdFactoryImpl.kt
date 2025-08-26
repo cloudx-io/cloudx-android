@@ -150,12 +150,12 @@ internal class AdFactoryImpl(
             activity,
             suspendPreloadWhenInvisible = true,
             adViewSize = size,
-            createBanner = { bannerContainer, bannerVisibility, suspendPreloadWhenInvisible ->
+            createBanner = { adViewContainer, bannerVisibility, suspendPreloadWhenInvisible ->
                 Banner(
                     activity,
                     placementId = placement.id,
                     placementName = placement.name,
-                    bannerContainer,
+                    adViewContainer,
                     bannerVisibility,
                     refreshSeconds = (refreshRateMillis / 1000),
                     adType = adType,

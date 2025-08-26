@@ -9,18 +9,18 @@ import com.google.android.gms.ads.nativead.NativeAd
 import com.google.android.gms.ads.nativead.NativeAdOptions
 import com.google.android.gms.ads.nativead.NativeAdView
 import io.cloudx.sdk.internal.AdType
-import io.cloudx.sdk.internal.adapter.Banner
-import io.cloudx.sdk.internal.adapter.BannerContainer
-import io.cloudx.sdk.internal.adapter.BannerListener
+import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapter
+import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
+import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterListener
 import io.cloudx.sdk.internal.adapter.CloudXAdError
 
 internal class NativeAdAdapter(
     private val activity: Activity,
-    private val container: BannerContainer,
+    private val adViewContainer: CloudXAdViewAdapterContainer,
     private val adUnitId: String,
     private val adType: AdType.Native,
-    private val listener: BannerListener
-) : Banner {
+    private val listener: CloudXAdViewAdapterListener
+) : CloudXAdViewAdapter {
 
     private var ad: NativeAd? = null
     private var adView: NativeAdView? = null
@@ -34,7 +34,7 @@ internal class NativeAdAdapter(
                 val adView = activity.createNativeAdView(adType, ad)
                 this@NativeAdAdapter.adView = adView
 
-                container.onAdd(adView)
+                adViewContainer.onAdd(adView)
             }
             .withAdListener(object : AdListener() {
 
@@ -72,7 +72,7 @@ internal class NativeAdAdapter(
 
     override fun destroy() {
         adView?.let {
-            container.onRemove(it)
+            adViewContainer.onRemove(it)
             it.destroy()
         }
         adView = null

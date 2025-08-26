@@ -8,14 +8,14 @@ import com.facebook.ads.InterstitialAdListener
 import io.cloudx.sdk.internal.adapter.AdLoadOperationAvailability
 import io.cloudx.sdk.internal.adapter.AlwaysReadyToLoadAd
 import io.cloudx.sdk.internal.adapter.CloudXAdError
-import io.cloudx.sdk.internal.adapter.Interstitial
-import io.cloudx.sdk.internal.adapter.InterstitialListener
+import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapter
+import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapterListener
 
 internal class InterstitialAdapter(
     private val activity: Activity,
     private val adUnitId: String,
-    private var listener: InterstitialListener?
-) : Interstitial, AdLoadOperationAvailability by AlwaysReadyToLoadAd {
+    private var listener: CloudXInterstitialAdapterListener?
+) : CloudXInterstitialAdapter, AdLoadOperationAvailability by AlwaysReadyToLoadAd {
 
     private var interstitialAd: InterstitialAd? = null
 
@@ -72,7 +72,7 @@ internal class InterstitialAdapter(
         listener = null
     }
 
-    private fun createAdListener(listener: InterstitialListener?) =
+    private fun createAdListener(listener: CloudXInterstitialAdapterListener?) =
         object : InterstitialAdListener {
             override fun onError(ad: Ad?, adError: AdError?) {
                 log(

@@ -4,15 +4,15 @@ import android.app.Activity
 import io.cloudx.sdk.internal.FullscreenAd
 import io.cloudx.sdk.internal.adapter.AdLoadOperationAvailability
 import io.cloudx.sdk.internal.adapter.AlwaysReadyToLoadAd
-import io.cloudx.sdk.internal.adapter.Interstitial
-import io.cloudx.sdk.internal.adapter.InterstitialListener
+import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapter
+import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapterListener
 import io.cloudx.cd.staticrenderer.StaticFullscreenAd
 
 internal class StaticBidInterstitial(
     activity: Activity,
     adm: String,
-    listener: InterstitialListener
-) : Interstitial,
+    listener: CloudXInterstitialAdapterListener
+) : CloudXInterstitialAdapter,
     AdLoadOperationAvailability by AlwaysReadyToLoadAd {
 
     private val staticFullscreenAd = StaticFullscreenAd(

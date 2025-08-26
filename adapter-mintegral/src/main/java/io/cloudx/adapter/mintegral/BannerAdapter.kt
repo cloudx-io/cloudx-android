@@ -12,9 +12,9 @@ import com.mbridge.msdk.out.BannerSize.STANDARD_TYPE
 import com.mbridge.msdk.out.MBBannerView
 import com.mbridge.msdk.out.MBridgeIds
 import io.cloudx.sdk.internal.AdViewSize
-import io.cloudx.sdk.internal.adapter.Banner
-import io.cloudx.sdk.internal.adapter.BannerContainer
-import io.cloudx.sdk.internal.adapter.BannerListener
+import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapter
+import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
+import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterListener
 import io.cloudx.sdk.internal.adapter.CloudXAdError
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.launchIn
@@ -22,13 +22,13 @@ import kotlinx.coroutines.flow.onEach
 
 internal class BannerAdapter(
     private val activity: Activity,
-    private val container: BannerContainer,
+    private val adViewContainer: CloudXAdViewAdapterContainer,
     private val placementId: String?,
     private val adUnitId: String,
     private val bidId: String?,
     private val adViewSize: AdViewSize,
-    private var listener: BannerListener?
-) : Banner {
+    private var listener: CloudXAdViewAdapterListener?
+) : CloudXAdViewAdapter {
 
     private var banner: MBBannerView? = null
 
@@ -61,7 +61,7 @@ internal class BannerAdapter(
 
             setBannerAdListener(createListener())
 
-            container.onAdd(banner)
+            adViewContainer.onAdd(banner)
             attachLifecycleEventHandler()
 
             loadFromBid(bidId)
@@ -130,7 +130,7 @@ internal class BannerAdapter(
 
         banner?.let {
             it.release()
-            container.onRemove(it)
+            adViewContainer.onRemove(it)
         }
         banner = null
     }

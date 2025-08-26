@@ -4,7 +4,7 @@ import android.app.Activity
 import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.AdType
-import io.cloudx.sdk.internal.adapter.BannerContainer
+import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
 import io.cloudx.sdk.internal.adapter.BannerFactoryMiscParams
 import io.cloudx.sdk.internal.adapter.BidBannerFactory
 import io.cloudx.sdk.internal.bid.BidApi
@@ -20,7 +20,7 @@ import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTrackerNew
 
 internal fun BidBannerSource(
     activity: Activity,
-    bannerContainer: BannerContainer,
+    adViewContainer: CloudXAdViewAdapterContainer,
     refreshSeconds: Int?,
     factories: Map<AdNetwork, BidBannerFactory>,
     placementId: String,
@@ -64,7 +64,7 @@ internal fun BidBannerSource(
         SuspendableBanner(price, network, adId, nurl, lurl) { listener ->
             // TODO. Explicit Result cast isn't "cool", even though there's try catch somewhere.
             (factories[network]?.create(
-                activity, bannerContainer, refreshSeconds, adId, bidId,
+                activity, adViewContainer, refreshSeconds, adId, bidId,
                 adm, params, miscParams, listener
             ) as Result.Success).value
         }.decorate(

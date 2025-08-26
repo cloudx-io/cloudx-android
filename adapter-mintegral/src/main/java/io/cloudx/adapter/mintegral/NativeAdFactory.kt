@@ -4,10 +4,10 @@ import android.app.Activity
 import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.AdViewSize
-import io.cloudx.sdk.internal.adapter.Banner
-import io.cloudx.sdk.internal.adapter.BannerContainer
+import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapter
+import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
 import io.cloudx.sdk.internal.adapter.BannerFactoryMiscParams
-import io.cloudx.sdk.internal.adapter.BannerListener
+import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterListener
 import io.cloudx.sdk.internal.adapter.BidBannerFactory
 import io.cloudx.sdk.internal.adapter.MetaData
 
@@ -16,18 +16,18 @@ internal object NativeAdFactory : BidBannerFactory,
     // Consider suspend?
     override fun create(
         activity: Activity,
-        bannerContainer: BannerContainer,
+        adViewContainer: CloudXAdViewAdapterContainer,
         refreshSeconds: Int?,
         adId: String,
         bidId: String,
         adm: String,
         params: Map<String, String>?,
         miscParams: BannerFactoryMiscParams,
-        listener: BannerListener,
-    ): Result<Banner, String> = Result.Success(
+        listener: CloudXAdViewAdapterListener,
+    ): Result<CloudXAdViewAdapter, String> = Result.Success(
         NativeAdAdapter(
             activity,
-            bannerContainer,
+            adViewContainer,
             placementId = params?.placementId(),
             adUnitId = adm,
             bidId = params?.bidId(),

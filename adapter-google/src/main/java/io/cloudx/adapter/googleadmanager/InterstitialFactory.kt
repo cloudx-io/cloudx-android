@@ -14,8 +14,8 @@ internal object InterstitialFactory :
         bidId: String,
         adm: String,
         params: Map<String, String>?,
-        listener: InterstitialListener,
-    ): Result<Interstitial, String> = Result.Success(
+        listener: CloudXInterstitialAdapterListener,
+    ): Result<CloudXInterstitialAdapter, String> = Result.Success(
         InterstitialAdapter(
             activity,
             adUnitId = adm,

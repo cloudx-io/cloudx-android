@@ -19,7 +19,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import io.cloudx.sdk.internal.CloudXLogger
 import io.cloudx.sdk.internal.Banner
-import io.cloudx.sdk.internal.adapter.BannerContainer
+import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
 import io.cloudx.sdk.internal.common.createViewabilityTracker
 import io.cloudx.sdk.internal.common.dpToPx
 import io.cloudx.sdk.internal.core.ad.suspendable.SuspendableBanner
@@ -43,7 +43,7 @@ class CloudXAdView internal constructor(
     private var suspendPreloadWhenInvisible: Boolean,
     private var adViewSize: AdViewSize,
     internal val createBanner: (
-        bannerContainer: BannerContainer,
+        adViewContainer: CloudXAdViewAdapterContainer,
         bannerVisibility: StateFlow<Boolean>,
         suspendPreloadWhenInvisible: Boolean,
     ) -> Banner,
@@ -120,7 +120,7 @@ class CloudXAdView internal constructor(
     // and put the created invisible container with the banner view inside and put it to the "back" of the view.
     // So that we can have some sort of a banner collection / precaching kind of thing
     // without sharing a single viewgroup with only foreground banner visible.
-    private fun createBannerContainer() = object : BannerContainer {
+    private fun createBannerContainer() = object : CloudXAdViewAdapterContainer {
         override fun onAdd(bannerView: View) {
             insertBannerContainerToTheBackground(bannerView)
         }

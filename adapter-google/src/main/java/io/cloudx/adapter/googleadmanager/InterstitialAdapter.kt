@@ -10,14 +10,14 @@ import com.google.android.gms.ads.admanager.AdManagerInterstitialAdLoadCallback
 import io.cloudx.sdk.internal.adapter.AdLoadOperationAvailability
 import io.cloudx.sdk.internal.adapter.AlwaysReadyToLoadAd
 import io.cloudx.sdk.internal.adapter.CloudXAdError
-import io.cloudx.sdk.internal.adapter.Interstitial
-import io.cloudx.sdk.internal.adapter.InterstitialListener
+import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapter
+import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapterListener
 
 internal class InterstitialAdapter(
     private val activity: Activity,
     private val adUnitId: String,
-    private var listener: InterstitialListener?
-) : Interstitial, AdLoadOperationAvailability by AlwaysReadyToLoadAd {
+    private var listener: CloudXInterstitialAdapterListener?
+) : CloudXInterstitialAdapter, AdLoadOperationAvailability by AlwaysReadyToLoadAd {
 
     private var ad: AdManagerInterstitialAd? = null
 

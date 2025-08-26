@@ -2,13 +2,13 @@ package io.cloudx.sdk.internal.adapter
 
 import io.cloudx.sdk.Destroyable
 
-interface Interstitial : AdLoadOperationAvailability, Destroyable {
+interface CloudXInterstitialAdapter : AdLoadOperationAvailability, Destroyable {
 
     fun load()
     fun show()
 }
 
-interface InterstitialListener : AdErrorListener {
+interface CloudXInterstitialAdapterListener : AdErrorListener {
 
     fun onLoad()
     fun onShow()

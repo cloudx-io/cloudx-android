@@ -3,7 +3,7 @@ package io.cloudx.sdk.internal.core.resolver
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.AdViewSize
 import io.cloudx.sdk.internal.Logger
-import io.cloudx.sdk.internal.adapter.AdNetworkInitializer
+import io.cloudx.sdk.internal.adapter.AdapterInitializer
 import io.cloudx.sdk.internal.adapter.BannerSizeSupport
 import io.cloudx.sdk.internal.adapter.BidBannerFactory
 import io.cloudx.sdk.internal.adapter.BidInterstitialFactory
@@ -13,7 +13,7 @@ import io.cloudx.sdk.internal.adapter.BidRewardedInterstitialFactory
 internal class AdapterFactoryResolverImpl: AdapterFactoryResolver {
 
     override fun resolveBidAdNetworkFactories(forTheseNetworks: Set<AdNetwork>): BidAdNetworkFactories {
-        val initializers = mutableMapOf<AdNetwork, AdNetworkInitializer>()
+        val initializers = mutableMapOf<AdNetwork, AdapterInitializer>()
         val bidRequestExtrasProviders = mutableMapOf<AdNetwork, BidRequestExtrasProvider>()
         val interstitials = mutableMapOf<AdNetwork, BidInterstitialFactory>()
         val rewardedInterstitials = mutableMapOf<AdNetwork, BidRewardedInterstitialFactory>()
@@ -23,7 +23,7 @@ internal class AdapterFactoryResolverImpl: AdapterFactoryResolver {
         for (network in forTheseNetworks) {
             val prefix = network.toAdapterPackagePrefix()
 
-            (instance("${prefix}Initializer") as? AdNetworkInitializer)?.let {
+            (instance("${prefix}Initializer") as? AdapterInitializer)?.let {
                 initializers[network] = it
             }
 

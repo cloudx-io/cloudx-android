@@ -41,7 +41,7 @@ internal fun SuspendableBanner(
     adUnitId: String,
     nurl: String?,
     lurl: String?,
-    createBanner: (listener: io.cloudx.sdk.internal.adapter.BannerListener) -> io.cloudx.sdk.internal.adapter.Banner
+    createBanner: (listener: io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterListener) -> io.cloudx.sdk.internal.adapter.CloudXAdViewAdapter
 ): SuspendableBanner =
     SuspendableBannerImpl(price, adNetwork, adUnitId, nurl, lurl, createBanner)
 
@@ -51,12 +51,12 @@ private class SuspendableBannerImpl(
     override val adUnitId: String,
     private val nurl: String?,
     private val lurl: String?,
-    createBanner: (listener: io.cloudx.sdk.internal.adapter.BannerListener) -> io.cloudx.sdk.internal.adapter.Banner,
+    createBanner: (listener: io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterListener) -> io.cloudx.sdk.internal.adapter.CloudXAdViewAdapter,
 ): SuspendableBanner {
 
     private val scope = CoroutineScope(Dispatchers.Main)
 
-    private val banner = createBanner(object: io.cloudx.sdk.internal.adapter.BannerListener {
+    private val banner = createBanner(object: io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterListener {
         override fun onLoad() {
             scope.launch { _event.emit(SuspendableBannerEvent.Load) }
         }

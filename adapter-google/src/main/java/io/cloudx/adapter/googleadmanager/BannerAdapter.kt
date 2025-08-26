@@ -8,18 +8,18 @@ import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.admanager.AdManagerAdRequest
 import com.google.android.gms.ads.admanager.AdManagerAdView
 import io.cloudx.sdk.internal.AdViewSize
-import io.cloudx.sdk.internal.adapter.Banner
-import io.cloudx.sdk.internal.adapter.BannerContainer
-import io.cloudx.sdk.internal.adapter.BannerListener
+import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapter
+import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
+import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterListener
 import io.cloudx.sdk.internal.adapter.CloudXAdError
 
 internal class BannerAdapter(
     private val activity: Activity,
-    private val container: BannerContainer,
+    private val adViewContainer: CloudXAdViewAdapterContainer,
     private val adUnitId: String,
     private val adViewSize: AdViewSize,
-    private val listener: BannerListener
-) : Banner {
+    private val listener: CloudXAdViewAdapterListener
+) : CloudXAdViewAdapter {
 
     private var ad: BaseAdView? = null
 
@@ -35,13 +35,13 @@ internal class BannerAdapter(
             adUnitId = this@BannerAdapter.adUnitId
             adListener = createListener(listener)
 
-            container.onAdd(this)
+            adViewContainer.onAdd(this)
 
             loadAd(AdManagerAdRequest.Builder().build())
         }
     }
 
-    private fun createListener(listener: BannerListener?) = object : AdListener() {
+    private fun createListener(listener: CloudXAdViewAdapterListener?) = object : AdListener() {
 
         override fun onAdLoaded() {
             super.onAdLoaded()
@@ -70,7 +70,7 @@ internal class BannerAdapter(
             it.adListener = createListener(null)
             it.destroy()
 
-            container.onRemove(it)
+            adViewContainer.onRemove(it)
         }
 
         ad = null

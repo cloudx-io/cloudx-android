@@ -113,7 +113,7 @@ internal class BaseFullscreenAdImpl<
                 val topAdMetaData = cachedAdRepository.topAdMetaData
                 listener.onAdLoaded(CloudXAd(topAdMetaData?.adNetwork))
             } else {
-                listener.onAdLoadFailed(CloudXAdError(description = "No ads loaded yet"))
+                listener.onAdLoadFailed(CloudXAdError(description = "No ads loaded yet", errorCode = CloudXErrorCodes.HYPOTHETICAL_NO_ADS_LOADED_YET))
             }
         }
     }
@@ -133,7 +133,7 @@ internal class BaseFullscreenAdImpl<
             if (job.isActive) {
                 val timeToWaitForHideEventMillis = 90 * 1000
                 if (utcNowEpochMillis() <= (lastShowJobStartedTimeMillis + timeToWaitForHideEventMillis)) {
-                    listener.onAdDisplayFailed(CloudXAdError(description = "Ad is already displaying"))
+                    listener.onAdDisplayFailed(CloudXAdError(description = "Ad is already displaying", errorCode = CloudXErrorCodes.HYPOTHETICAL_AD_ALREADY_DISPLAYING))
                     return
                 } else {
                     job.cancel("No adHidden or adError event received. Cancelling job")
@@ -149,7 +149,7 @@ internal class BaseFullscreenAdImpl<
 
             val ad = popAdAndSetLastShown()
             if (ad == null) {
-                listener.onAdDisplayFailed(CloudXAdError(description = "No ads loaded yet"))
+                listener.onAdDisplayFailed(CloudXAdError(description = "No ads loaded yet", errorCode = CloudXErrorCodes.HYPOTHETICAL_NO_ADS_LOADED_YET))
                 return@launch
             }
 

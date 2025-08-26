@@ -11,7 +11,6 @@ import io.cloudx.sdk.internal.appinfo.AppInfoProvider
 import io.cloudx.sdk.internal.bid.BidRequestProvider
 import io.cloudx.sdk.internal.common.service.ActivityLifecycleService
 import io.cloudx.sdk.internal.common.service.AppLifecycleService
-import io.cloudx.sdk.internal.common.utcNowEpochMillis
 import io.cloudx.sdk.internal.config.Config
 import io.cloudx.sdk.internal.config.ConfigApi
 import io.cloudx.sdk.internal.config.ConfigRequestProvider
@@ -38,7 +37,7 @@ import java.util.UUID
 import kotlin.system.measureTimeMillis
 import androidx.core.content.edit
 import com.xor.XorEncryption
-import io.cloudx.sdk.internal.CloudXErrorCodes
+import io.cloudx.sdk.CloudXErrorCodes
 import io.cloudx.sdk.internal.imp_tracker.ClickCounterTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTrackerNew
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsType
@@ -229,6 +228,7 @@ internal class InitializationServiceImpl(
                 metricsTrackerNew.trackNetworkCall(MetricsType.Network.GeoApi, geoRequestMillis)
             } else if (configApiResult is Result.Failure && configApiResult.value.errorCode == CloudXErrorCodes.INIT_SDK_DISABLED) {
                 KillSwitch.sdkDisabledForSession = true
+                KillSwitch.causedErrorCode = configApiResult.value.errorCode
                 CloudXLogger.warn("InitializationServiceImpl", "SDK disabled for session by server.")
             }
 

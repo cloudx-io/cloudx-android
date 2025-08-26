@@ -8,6 +8,7 @@ import io.cloudx.sdk.internal.adfactory.AdFactory
 import io.cloudx.sdk.internal.config.ConfigApi
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsType
 import io.cloudx.sdk.internal.initialization.InitializationService
+import io.cloudx.sdk.internal.kill_switch.KillSwitch
 import io.cloudx.sdk.internal.privacy.PrivacyService
 import io.cloudx.sdk.internal.state.SdkKeyValueState
 import kotlinx.coroutines.Job
@@ -73,7 +74,7 @@ object CloudX {
         if (initJob?.isActive == true) {
             listener?.onCloudXInitializationStatus(
                 CloudXInitializationStatus(
-                    initialized = false, "Initialization is already in progress"
+                    initialized = false, "Initialization is already in progress",
                 )
             )
             return
@@ -102,7 +103,7 @@ object CloudX {
             val initStatus =
                 when (val result = initializationService.initialize(initializationParams.appKey)) {
                     is Result.Failure -> CloudXInitializationStatus(
-                        initialized = false, result.value.description
+                        initialized = false, result.value.description, result.value.errorCode
                     )
 
                     is Result.Success -> CloudXInitializationStatus(
@@ -139,6 +140,12 @@ object CloudX {
         placementName: String,
         listener: CloudXAdViewListener?
     ): CloudXAdView? {
+        // Check kill switch first
+        if (KillSwitch.sdkDisabledForSession) {
+            listener?.onAdLoadFailed(CloudXAdError("SDK disabled by server-side traffic control", KillSwitch.causedErrorCode))
+            return null
+        }
+
         initializationService?.metricsTrackerNew?.trackMethodCall(MetricsType.Method.CreateBanner)
 
         val bannerParams = AdFactory.CreateBannerParams(
@@ -173,6 +180,12 @@ object CloudX {
         placementName: String,
         listener: CloudXAdViewListener?
     ): CloudXAdView? {
+        // Check kill switch first
+        if (KillSwitch.sdkDisabledForSession) {
+            listener?.onAdLoadFailed(CloudXAdError("SDK disabled by server-side traffic control", KillSwitch.causedErrorCode))
+            return null
+        }
+
         initializationService?.metricsTrackerNew?.trackMethodCall(MetricsType.Method.CreateMrec)
         return initializationService?.adFactory?.createBanner(
             AdFactory.CreateBannerParams(
@@ -213,6 +226,12 @@ object CloudX {
         placementName: String,
         listener: InterstitialListener?
     ): CloudXInterstitialAd? {
+        // Check kill switch first
+        if (KillSwitch.sdkDisabledForSession) {
+            listener?.onAdLoadFailed(CloudXAdError("SDK disabled by server-side traffic control", KillSwitch.causedErrorCode))
+            return null
+        }
+
         initializationService?.metricsTrackerNew?.trackMethodCall(MetricsType.Method.CreateInterstitial)
         return initializationService?.adFactory?.createInterstitial(
             AdFactory.CreateAdParams(
@@ -250,6 +269,12 @@ object CloudX {
         placementName: String,
         listener: RewardedInterstitialListener?
     ): CloudXRewardedAd? {
+        // Check kill switch first
+        if (KillSwitch.sdkDisabledForSession) {
+            listener?.onAdLoadFailed(CloudXAdError("SDK disabled by server-side traffic control", KillSwitch.causedErrorCode))
+            return null
+        }
+
         initializationService?.metricsTrackerNew?.trackMethodCall(MetricsType.Method.CreateRewarded)
         return initializationService?.adFactory?.createRewarded(
             AdFactory.CreateAdParams(
@@ -280,6 +305,12 @@ object CloudX {
         placementName: String,
         listener: CloudXAdViewListener?
     ): CloudXAdView? {
+        // Check kill switch first
+        if (KillSwitch.sdkDisabledForSession) {
+            listener?.onAdLoadFailed(CloudXAdError("SDK disabled by server-side traffic control", KillSwitch.causedErrorCode))
+            return null
+        }
+
         initializationService?.metricsTrackerNew?.trackMethodCall(MetricsType.Method.CreateNative)
         return initializationService?.adFactory?.createBanner(
             AdFactory.CreateBannerParams(
@@ -313,6 +344,12 @@ object CloudX {
         placementName: String,
         listener: CloudXAdViewListener?
     ): CloudXAdView? {
+        // Check kill switch first
+        if (KillSwitch.sdkDisabledForSession) {
+            listener?.onAdLoadFailed(CloudXAdError("SDK disabled by server-side traffic control", KillSwitch.causedErrorCode))
+            return null
+        }
+
         initializationService?.metricsTrackerNew?.trackMethodCall(MetricsType.Method.CreateNative)
         return initializationService?.adFactory?.createBanner(
             AdFactory.CreateBannerParams(
@@ -332,6 +369,11 @@ object CloudX {
      */
     @JvmStatic
     fun setHashedUserId(hashedEmail: String) {
+        // Check kill switch first
+        if (KillSwitch.sdkDisabledForSession) {
+            return
+        }
+
         initializationService?.metricsTrackerNew?.trackMethodCall(MetricsType.Method.SetHashedUserId)
         SdkKeyValueState.hashedUserId = hashedEmail
     }
@@ -342,6 +384,11 @@ object CloudX {
      */
     @JvmStatic
     fun setUserKeyValue(key: String, value: String) {
+        // Check kill switch first
+        if (KillSwitch.sdkDisabledForSession) {
+            return
+        }
+
         initializationService?.metricsTrackerNew?.trackMethodCall(MetricsType.Method.SetUserKeyValues)
         SdkKeyValueState.userKeyValues[key] = value
     }
@@ -351,6 +398,11 @@ object CloudX {
      */
     @JvmStatic
     fun setAppKeyValue(key: String, value: String) {
+        // Check kill switch first
+        if (KillSwitch.sdkDisabledForSession) {
+            return
+        }
+
         initializationService?.metricsTrackerNew?.trackMethodCall(MetricsType.Method.SetAppKeyValues)
         SdkKeyValueState.appKeyValues[key] = value
     }

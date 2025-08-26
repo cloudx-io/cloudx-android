@@ -1,7 +1,7 @@
 package io.cloudx.sdk.internal.config
 
 import io.cloudx.sdk.Result
-import io.cloudx.sdk.internal.CloudXErrorCodes
+import io.cloudx.sdk.CloudXErrorCodes
 import io.cloudx.sdk.internal.ERROR_CODE_GENERAL
 import io.cloudx.sdk.internal.Error
 import io.cloudx.sdk.internal.Logger

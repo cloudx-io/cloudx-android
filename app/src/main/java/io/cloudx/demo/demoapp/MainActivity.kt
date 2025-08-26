@@ -42,6 +42,13 @@ class MainActivity : AppCompatActivity(R.layout.activity_main),
         toolbar = findViewById(R.id.toolbar)
 
         setSupportActionBar(toolbar)
+        
+        val versionName = try {
+            packageManager.getPackageInfo(packageName, 0).versionName
+        } catch (e: Exception) {
+            "Unknown"
+        }
+        supportActionBar?.subtitle = "Demo App v$versionName"
 
         ViewCompat.setOnApplyWindowInsetsListener(toolbar) { view, insets ->
             view.setPadding(

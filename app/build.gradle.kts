@@ -12,6 +12,10 @@ android {
         versionName = libs.versions.sdkVersionName.get()
     }
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     applicationVariants.all {
         outputs.all {
             val outputImpl = this as com.android.build.gradle.internal.api.BaseVariantOutputImpl

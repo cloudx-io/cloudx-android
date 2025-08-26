@@ -154,7 +154,6 @@ internal class InitializationServiceImpl(
             }
 
             val configApiResult: Result<Config, Error>
-            val configRequestStartedAtMillis = utcNowEpochMillis()
             val configApiRequestMillis = measureTimeMillis {
                 configApiResult = configApi.invoke(appKey, provideConfigRequest())
             }

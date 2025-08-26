@@ -9,8 +9,8 @@ import io.cloudx.ts.staticrenderer.StaticFullscreenAd
 internal class StaticBidRewardedInterstitial(
     activity: Activity,
     adm: String,
-    listener: CloudXRewardedInterstitialListener
-) : CloudXRewardedInterstitial,
+    listener: CloudXRewardedInterstitialAdapterListener
+) : CloudXRewardedInterstitialAdapter,
     CloudXAdLoadOperationAvailability by AlwaysReadyToLoadAd {
 
     private val staticFullscreenAd = StaticFullscreenAd(

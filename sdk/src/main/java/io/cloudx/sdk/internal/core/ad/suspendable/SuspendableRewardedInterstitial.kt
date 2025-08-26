@@ -33,7 +33,7 @@ internal fun SuspendableRewardedInterstitial(
     price: Double?,
     adNetwork: AdNetwork,
     adUnitId: String,
-    createRewardedInterstitial: (listener: io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialListener) -> io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitial
+    createRewardedInterstitial: (listener: io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapterListener) -> io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapter
 ): SuspendableRewardedInterstitial =
     SuspendableRewardedInterstitialImpl(
         price,
@@ -46,14 +46,14 @@ private class SuspendableRewardedInterstitialImpl(
     override val price: Double?,
     override val adNetwork: AdNetwork,
     override val adUnitId: String,
-    createRewardedInterstitial: (listener: io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialListener) -> io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitial,
+    createRewardedInterstitial: (listener: io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapterListener) -> io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapter,
 ) : SuspendableRewardedInterstitial {
 
     private val scope = CoroutineScope(Dispatchers.Main)
 
     private val rewardedInterstitial =
         createRewardedInterstitial(object :
-            io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialListener {
+            io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapterListener {
             override fun onLoad() {
                 scope.launch { _event.emit(SuspendableRewardedInterstitialEvent.Load) }
             }

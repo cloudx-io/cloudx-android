@@ -12,17 +12,17 @@ interface CloudXRewardedInterstitialAdapterFactory : CloudXAdapterMetaData {
         bidId: String,
         adm: String,
         params: Map<String, String>?,
-        listener: CloudXRewardedInterstitialListener
-    ): Result<CloudXRewardedInterstitial, String>
+        listener: CloudXRewardedInterstitialAdapterListener
+    ): Result<CloudXRewardedInterstitialAdapter, String>
 }
 
-interface CloudXRewardedInterstitial : CloudXAdLoadOperationAvailability, Destroyable {
+interface CloudXRewardedInterstitialAdapter : CloudXAdLoadOperationAvailability, Destroyable {
 
     fun load()
     fun show()
 }
 
-interface CloudXRewardedInterstitialListener : CloudXAdapterErrorListener {
+interface CloudXRewardedInterstitialAdapterListener : CloudXAdapterErrorListener {
 
     fun onLoad()
     fun onShow()

@@ -14,8 +14,8 @@ internal object RewardedInterstitialFactory :
         bidId: String,
         adm: String,
         params: Map<String, String>?,
-        listener: CloudXRewardedInterstitialListener
-    ): Result<CloudXRewardedInterstitial, String> = Result.Success(
+        listener: CloudXRewardedInterstitialAdapterListener
+    ): Result<CloudXRewardedInterstitialAdapter, String> = Result.Success(
         StaticBidRewardedInterstitial(
             activity,
             adm,

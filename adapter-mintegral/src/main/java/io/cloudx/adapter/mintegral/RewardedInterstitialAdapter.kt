@@ -8,16 +8,16 @@ import com.mbridge.msdk.out.RewardInfo
 import io.cloudx.sdk.internal.adapter.CloudXAdLoadOperationAvailability
 import io.cloudx.sdk.internal.adapter.AlwaysReadyToLoadAd
 import io.cloudx.sdk.internal.adapter.CloudXAdapterError
-import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitial
-import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialListener
+import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapter
+import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapterListener
 
 internal class RewardedInterstitialAdapter(
     private val activity: Activity,
     private val placementId: String?,
     private val adUnitId: String,
     private val bidId: String?,
-    private var listener: CloudXRewardedInterstitialListener?
-) : CloudXRewardedInterstitial, CloudXAdLoadOperationAvailability by AlwaysReadyToLoadAd {
+    private var listener: CloudXRewardedInterstitialAdapterListener?
+) : CloudXRewardedInterstitialAdapter, CloudXAdLoadOperationAvailability by AlwaysReadyToLoadAd {
 
     private var adHandler: MBBidRewardVideoHandler? = null
 

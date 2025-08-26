@@ -11,7 +11,6 @@ import io.cloudx.sdk.internal.appinfo.AppInfoProvider
 import io.cloudx.sdk.internal.bid.BidRequestProvider
 import io.cloudx.sdk.internal.common.service.ActivityLifecycleService
 import io.cloudx.sdk.internal.common.service.AppLifecycleService
-import io.cloudx.sdk.internal.common.utcNowEpochMillis
 import io.cloudx.sdk.internal.config.Config
 import io.cloudx.sdk.internal.config.ConfigApi
 import io.cloudx.sdk.internal.config.ConfigRequestProvider
@@ -304,7 +303,7 @@ internal class InitializationServiceImpl(
 
         val eventId = UUID.randomUUID().toString()
         val bidRequestParams = BidRequestProvider.Params(
-            adId = "",
+            placementId = "",
             adType = AdType.Banner.Standard,
             placementName = "",
             accountId = cfg.accountId ?: "",

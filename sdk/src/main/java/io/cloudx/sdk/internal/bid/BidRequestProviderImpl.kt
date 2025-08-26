@@ -122,10 +122,10 @@ internal class BidRequestProviderImpl(
                 put("imp", JSONArray().apply {
                     put(JSONObject().apply {
 
-                        val effectiveAdId = params.withEffectiveAdId()
+                        val effectivePlacementId = params.withEffectivePlacementId()
 
                         put("id", "1")
-                        put("tagid", params.adId)
+                        put("tagid", params.placementId)
 
                         put("secure", 1)
 
@@ -159,7 +159,7 @@ internal class BidRequestProviderImpl(
 
                             put("prebid", JSONObject().apply {
                                 put("storedimpression", JSONObject().apply {
-                                    put("id", effectiveAdId)
+                                    put("id", effectivePlacementId)
                                 })
                             })
                         })

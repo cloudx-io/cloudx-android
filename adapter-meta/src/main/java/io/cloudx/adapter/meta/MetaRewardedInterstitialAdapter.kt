@@ -22,7 +22,7 @@ internal object RewardedInterstitialFactory :
 
     override fun create(
         activity: Activity,
-        adId: String,
+        placementId: String,
         bidId: String,
         adm: String,
         params: Map<String, String>?,

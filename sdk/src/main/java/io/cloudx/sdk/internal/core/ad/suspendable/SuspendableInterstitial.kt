@@ -34,15 +34,15 @@ sealed class SuspendableInterstitialEvent {
 internal fun SuspendableInterstitial(
     price: Double?,
     adNetwork: AdNetwork,
-    adUnitId: String,
+    placementId: String,
     createInterstitial: (listener: CloudXInterstitialAdapterListener) -> CloudXInterstitialAdapter
 ): SuspendableInterstitial =
-    SuspendableInterstitialImpl(price, adNetwork, adUnitId, createInterstitial)
+    SuspendableInterstitialImpl(price, adNetwork, placementId, createInterstitial)
 
 private class SuspendableInterstitialImpl(
     override val price: Double?,
     override val adNetwork: AdNetwork,
-    override val adUnitId: String,
+    override val placementId: String,
     createInterstitial: (listener: CloudXInterstitialAdapterListener) -> CloudXInterstitialAdapter,
 ) : SuspendableInterstitial {
 

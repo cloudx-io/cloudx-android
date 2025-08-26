@@ -187,7 +187,7 @@ internal fun bidAdDecoration(
 )
 
 internal fun adapterLoggingDecoration(
-    adUnitId: String,
+    placementId: String,
     adNetwork: AdNetwork,
     networkTimeoutMillis: Long,
     type: AdType,
@@ -200,25 +200,25 @@ internal fun adapterLoggingDecoration(
         onTimeout = {
             CloudXLogger.debug(
                 tag,
-                "LOAD TIMEOUT placement: $placementName, id: $adUnitId, price: $price"
+                "LOAD TIMEOUT placement: $placementName, id: $placementId, price: $price"
             )
         },
         onLoad = {
             CloudXLogger.debug(
                 tag,
-                "LOAD SUCCESS placement: $placementName, id: $adUnitId, price: $price"
+                "LOAD SUCCESS placement: $placementName, id: $placementId, price: $price"
             )
         },
         onError = {
             CloudXLogger.error(
                 tag,
-                "ERROR placement: $placementName, id: $adUnitId, price: $price, error: ${it.description}"
+                "ERROR placement: $placementName, id: $placementId, price: $price, error: ${it.description}"
             )
         },
         onImpression = {
             CloudXLogger.debug(
                 tag,
-                "IMPRESSION placement: $placementName, id: $adUnitId, price: $price"
+                "IMPRESSION placement: $placementName, id: $placementId, price: $price"
             )
         },
     )

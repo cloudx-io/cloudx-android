@@ -39,7 +39,7 @@ internal fun BidBannerSource(
     BidAdSource(
         generateBidRequest,
         BidRequestProvider.Params(
-            adId = placementId,
+            placementId = placementId,
             adType = placementType,
             placementName = placementName,
             accountId = accountId,
@@ -53,7 +53,7 @@ internal fun BidBannerSource(
 
         val price = it.price
         val network = it.adNetwork
-        val adId = it.adId
+        val placementId = it.placementId
         val bidId = it.bidId
         val adm = it.adm
         val nurl = it.nurl
@@ -61,17 +61,17 @@ internal fun BidBannerSource(
         val params = it.params
         val auctionId = it.auctionId
 
-        SuspendableBanner(price, network, adId, nurl, lurl) { listener ->
+        SuspendableBanner(price, network, placementId, nurl, lurl) { listener ->
             // TODO. Explicit Result cast isn't "cool", even though there's try catch somewhere.
             (factories[network]?.create(
-                activity, adViewContainer, refreshSeconds, adId, bidId,
+                activity, adViewContainer, refreshSeconds, placementId, bidId,
                 adm, params, miscParams, listener
             ) as Result.Success).value
         }.decorate(
             baseAdDecoration() +
                     bidAdDecoration(bidId, auctionId, eventTracker) +
                     adapterLoggingDecoration(
-                        adUnitId = adId,
+                        placementId = placementId,
                         adNetwork = network,
                         networkTimeoutMillis = bidRequestTimeoutMillis,
                         type = placementType,

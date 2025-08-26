@@ -35,20 +35,20 @@ sealed class SuspendableRewardedInterstitialEvent {
 internal fun SuspendableRewardedInterstitial(
     price: Double?,
     adNetwork: AdNetwork,
-    adUnitId: String,
+    placementId: String,
     createRewardedInterstitial: (listener: CloudXRewardedInterstitialAdapterListener) -> CloudXRewardedInterstitialAdapter
 ): SuspendableRewardedInterstitial =
     SuspendableRewardedInterstitialImpl(
         price,
         adNetwork,
-        adUnitId,
+        placementId,
         createRewardedInterstitial
     )
 
 private class SuspendableRewardedInterstitialImpl(
     override val price: Double?,
     override val adNetwork: AdNetwork,
-    override val adUnitId: String,
+    override val placementId: String,
     createRewardedInterstitial: (listener: CloudXRewardedInterstitialAdapterListener) -> CloudXRewardedInterstitialAdapter,
 ) : SuspendableRewardedInterstitial {
 

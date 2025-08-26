@@ -41,17 +41,17 @@ sealed class SuspendableBannerEvent {
 internal fun SuspendableBanner(
     price: Double?,
     adNetwork: AdNetwork,
-    adUnitId: String,
+    placementId: String,
     nurl: String?,
     lurl: String?,
     createBanner: (listener: CloudXAdViewAdapterListener) -> CloudXAdViewAdapter
 ): SuspendableBanner =
-    SuspendableBannerImpl(price, adNetwork, adUnitId, nurl, lurl, createBanner)
+    SuspendableBannerImpl(price, adNetwork, placementId, nurl, lurl, createBanner)
 
 private class SuspendableBannerImpl(
     override val price: Double?,
     override val adNetwork: AdNetwork,
-    override val adUnitId: String,
+    override val placementId: String,
     private val nurl: String?,
     private val lurl: String?,
     createBanner: (listener: CloudXAdViewAdapterListener) -> CloudXAdViewAdapter,

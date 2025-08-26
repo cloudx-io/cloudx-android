@@ -67,7 +67,7 @@ internal fun <T : Destroyable> BidAdSource(
     )
 
 internal class CreateBidAdParams(
-    val adId: String,
+    val placementId: String,
     val bidId: String,
     val adm: String,
     val params: Map<String, String>?,
@@ -142,7 +142,7 @@ private class BidAdSourceImpl<T : Destroyable>(
 
         CloudXLogger.debug(
             logTag,
-            "Sending BidRequest [loop-index=$currentLoopIndex] for adId: ${bidRequestParams.adId}"
+            "Sending BidRequest [loop-index=$currentLoopIndex] for placementId: ${bidRequestParams.placementId}"
         )
 
         val result: Result<BidResponse, Error>
@@ -209,8 +209,6 @@ private fun <T : Destroyable> BidResponse.toBidAdSourceResponse(
     createBidAd: suspend (CreateBidAdParams) -> T,
 ): BidAdSourceResponse<T> {
 
-    val adId = bidRequestParams.adId
-
     val items = seatBid.asSequence()
         .flatMap { it.bid }
         .map { bid ->
@@ -234,7 +232,7 @@ private fun <T : Destroyable> BidResponse.toBidAdSourceResponse(
                 createBidAd = {
                     createBidAd(
                         CreateBidAdParams(
-                            adId = adId,
+                            placementId = bidRequestParams.placementId,
                             bidId = bid.id,
                             adm = bid.adm,
                             params = bid.adapterExtras,

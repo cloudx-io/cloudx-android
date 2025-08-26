@@ -1,7 +1,7 @@
 package io.cloudx.sdk.internal.core.resolver
 
 import io.cloudx.sdk.internal.AdNetwork
-import io.cloudx.sdk.internal.adapter.AdapterInitializer
+import io.cloudx.sdk.internal.adapter.CloudXAdapterInitializer
 import io.cloudx.sdk.internal.adapter.BidBannerFactory
 import io.cloudx.sdk.internal.adapter.BidInterstitialFactory
 import io.cloudx.sdk.internal.adapter.BidRequestExtrasProvider
@@ -13,7 +13,7 @@ internal interface AdapterFactoryResolver {
 }
 
 internal class BidAdNetworkFactories(
-    val initializers: Map<AdNetwork, AdapterInitializer>,
+    val initializers: Map<AdNetwork, CloudXAdapterInitializer>,
     val bidRequestExtrasProviders: Map<AdNetwork, BidRequestExtrasProvider>,
     val interstitials: Map<AdNetwork, BidInterstitialFactory>,
     val rewardedInterstitials: Map<AdNetwork, BidRewardedInterstitialFactory>,

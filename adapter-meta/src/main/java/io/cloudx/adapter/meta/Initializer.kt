@@ -3,7 +3,7 @@ package io.cloudx.adapter.meta
 import android.content.Context
 import com.facebook.ads.AudienceNetworkAds
 import io.cloudx.sdk.CloudXPrivacy
-import io.cloudx.sdk.internal.adapter.AdapterInitializer
+import io.cloudx.sdk.internal.adapter.CloudXAdapterInitializer
 import io.cloudx.sdk.internal.adapter.InitializationResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
@@ -11,7 +11,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.resume
 
-internal object Initializer : AdapterInitializer {
+internal object Initializer : CloudXAdapterInitializer {
 
     override suspend fun initialize(
         context: Context,

@@ -4,7 +4,7 @@ import android.content.Context
 import io.cloudx.sdk.CloudXPrivacy
 import kotlinx.coroutines.flow.StateFlow
 
-interface AdapterInitializer {
+interface CloudXAdapterInitializer {
 
     suspend fun initialize(
         context: Context,

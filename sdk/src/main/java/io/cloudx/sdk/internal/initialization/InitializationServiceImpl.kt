@@ -78,6 +78,7 @@ internal class InitializationServiceImpl(
         if (current !is SdkCrashHandler) {  // <---- Only set if not already set by us
             Thread.setDefaultUncaughtExceptionHandler(
                 SdkCrashHandler { thread, throwable ->
+                    current?.uncaughtException(thread, throwable)
                     if (!isSdkRelatedError(throwable)) return@SdkCrashHandler
 
                     config?.let {

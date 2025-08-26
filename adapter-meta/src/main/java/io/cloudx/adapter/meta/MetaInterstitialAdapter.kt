@@ -1,17 +1,42 @@
 package io.cloudx.adapter.meta
 
 import android.app.Activity
+import androidx.annotation.Keep
 import com.facebook.ads.Ad
 import com.facebook.ads.AdError
 import com.facebook.ads.InterstitialAd
 import com.facebook.ads.InterstitialAdListener
-import io.cloudx.sdk.internal.adapter.CloudXAdLoadOperationAvailability
+import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.adapter.AlwaysReadyToLoadAd
+import io.cloudx.sdk.internal.adapter.CloudXAdLoadOperationAvailability
 import io.cloudx.sdk.internal.adapter.CloudXAdapterError
+import io.cloudx.sdk.internal.adapter.CloudXAdapterMetaData
 import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapter
+import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapterFactory
 import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapterListener
 
-internal class InterstitialAdapter(
+@Keep
+internal object InterstitialFactory :
+    CloudXInterstitialAdapterFactory,
+    CloudXAdapterMetaData by CloudXAdapterMetaData(AudienceNetworkAdsVersion) {
+
+    override fun create(
+        activity: Activity,
+        adId: String,
+        bidId: String,
+        adm: String,
+        params: Map<String, String>?,
+        listener: CloudXInterstitialAdapterListener,
+    ): Result<CloudXInterstitialAdapter, String> = Result.Success(
+        MetaInterstitialAdapter(
+            activity,
+            adUnitId = adm,
+            listener
+        )
+    )
+}
+
+internal class MetaInterstitialAdapter(
     private val activity: Activity,
     private val adUnitId: String,
     private var listener: CloudXInterstitialAdapterListener?

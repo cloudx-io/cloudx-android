@@ -1,17 +1,42 @@
 package io.cloudx.adapter.meta
 
 import android.app.Activity
+import androidx.annotation.Keep
 import com.facebook.ads.Ad
 import com.facebook.ads.AdError
 import com.facebook.ads.RewardedInterstitialAd
 import com.facebook.ads.RewardedInterstitialAdListener
-import io.cloudx.sdk.internal.adapter.CloudXAdLoadOperationAvailability
+import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.adapter.AlwaysReadyToLoadAd
+import io.cloudx.sdk.internal.adapter.CloudXAdLoadOperationAvailability
 import io.cloudx.sdk.internal.adapter.CloudXAdapterError
+import io.cloudx.sdk.internal.adapter.CloudXAdapterMetaData
 import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapter
+import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapterFactory
 import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapterListener
 
-internal class RewardedInterstitialAdapter(
+@Keep
+internal object RewardedInterstitialFactory :
+    CloudXRewardedInterstitialAdapterFactory,
+    CloudXAdapterMetaData by CloudXAdapterMetaData(AudienceNetworkAdsVersion) {
+
+    override fun create(
+        activity: Activity,
+        adId: String,
+        bidId: String,
+        adm: String,
+        params: Map<String, String>?,
+        listener: CloudXRewardedInterstitialAdapterListener,
+    ): io.cloudx.sdk.Result<CloudXRewardedInterstitialAdapter, String> = Result.Success(
+        MetaRewardedInterstitialAdapter(
+            activity,
+            adUnitId = adm,
+            listener
+        )
+    )
+}
+
+internal class MetaRewardedInterstitialAdapter(
     private val activity: Activity,
     private val adUnitId: String,
     private var listener: CloudXRewardedInterstitialAdapterListener?
@@ -24,19 +49,19 @@ internal class RewardedInterstitialAdapter(
         this.ad = ad
 
         ad.loadAd(ad.buildLoadAdConfig().withAdListener(object : RewardedInterstitialAdListener {
-            override fun onError(p0: Ad?, p1: AdError?) {
-                listener?.onError(CloudXAdapterError(description = p1?.errorMessage ?: ""))
+            override fun onError(ad: Ad?, adError: AdError?) {
+                listener?.onError(CloudXAdapterError(description = adError?.errorMessage ?: ""))
             }
 
-            override fun onAdLoaded(p0: Ad?) {
+            override fun onAdLoaded(ad: Ad?) {
                 listener?.onLoad()
             }
 
-            override fun onAdClicked(p0: Ad?) {
+            override fun onAdClicked(ad: Ad?) {
                 listener?.onClick()
             }
 
-            override fun onLoggingImpression(p0: Ad?) {
+            override fun onLoggingImpression(ad: Ad?) {
                 listener?.onImpression()
             }
 

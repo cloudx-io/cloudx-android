@@ -1,5 +1,6 @@
 package io.cloudx.sdk.internal.core.ad.suspendable.decorated
 
+import io.cloudx.sdk.internal.adapter.CloudXAdapterError
 import io.cloudx.sdk.internal.core.ad.suspendable.SuspendableBanner
 import io.cloudx.sdk.internal.core.ad.suspendable.SuspendableBannerEvent
 import kotlinx.coroutines.CoroutineScope
@@ -8,7 +9,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 private typealias BannerFunc = (() -> Unit)?
-private typealias ErrorBannerFunc = ((error: io.cloudx.sdk.internal.adapter.CloudXAdapterError) -> Unit)?
+private typealias ErrorBannerFunc = ((error: CloudXAdapterError) -> Unit)?
 
 internal class DecoratedSuspendableBanner(
     onLoad: BannerFunc = null,

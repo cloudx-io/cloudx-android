@@ -15,11 +15,12 @@ import io.cloudx.sdk.internal.imp_tracker.EventType
 import io.cloudx.sdk.internal.imp_tracker.TrackingFieldResolver
 import kotlinx.coroutines.launch
 import com.xor.XorEncryption
+import io.cloudx.sdk.internal.adapter.CloudXAdapterError
 import io.cloudx.sdk.internal.imp_tracker.ClickCounterTracker
 
 private typealias Func = (() -> Unit)
 private typealias ClickFunc = (() -> Unit)
-private typealias ErrorFunc = ((error: io.cloudx.sdk.internal.adapter.CloudXAdapterError) -> Unit)
+private typealias ErrorFunc = ((error: CloudXAdapterError) -> Unit)
 
 class AdEventDecoration(
     val onLoad: Func? = null,

@@ -1,5 +1,6 @@
 package io.cloudx.sdk.internal.core.ad.suspendable.decorated
 
+import io.cloudx.sdk.internal.adapter.CloudXAdapterError
 import io.cloudx.sdk.internal.core.ad.suspendable.SuspendableRewardedInterstitial
 import io.cloudx.sdk.internal.core.ad.suspendable.SuspendableRewardedInterstitialEvent
 import kotlinx.coroutines.CoroutineScope
@@ -8,7 +9,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 private typealias RewardedInterstitialFunc = (() -> Unit)?
-private typealias ErrorRewardedInterstitialFunc = ((error: io.cloudx.sdk.internal.adapter.CloudXAdapterError) -> Unit)?
+private typealias ErrorRewardedInterstitialFunc = ((error: CloudXAdapterError) -> Unit)?
 private typealias ClickRewardedInterstitialFunc = (() -> Unit)?
 
 internal class DecoratedSuspendableRewardedInterstitial(

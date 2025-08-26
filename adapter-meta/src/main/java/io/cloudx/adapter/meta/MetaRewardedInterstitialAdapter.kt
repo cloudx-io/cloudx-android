@@ -27,7 +27,7 @@ internal object RewardedInterstitialFactory :
         adm: String,
         params: Map<String, String>?,
         listener: CloudXRewardedInterstitialAdapterListener,
-    ): io.cloudx.sdk.Result<CloudXRewardedInterstitialAdapter, String> = Result.Success(
+    ): Result<CloudXRewardedInterstitialAdapter, String> = Result.Success(
         MetaRewardedInterstitialAdapter(
             activity,
             adUnitId = adm,

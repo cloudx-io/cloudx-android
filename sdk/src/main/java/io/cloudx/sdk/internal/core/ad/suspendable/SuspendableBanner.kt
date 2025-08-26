@@ -2,6 +2,9 @@ package io.cloudx.sdk.internal.core.ad.suspendable
 
 import io.cloudx.sdk.Destroyable
 import io.cloudx.sdk.internal.AdNetwork
+import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapter
+import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterListener
+import io.cloudx.sdk.internal.adapter.CloudXAdapterError
 import io.cloudx.sdk.internal.core.ad.AdMetaData
 import io.cloudx.sdk.internal.httpclient.CloudXHttpClient
 import io.ktor.client.request.get
@@ -32,7 +35,7 @@ sealed class SuspendableBannerEvent {
     object Show: SuspendableBannerEvent()
     object Impression: SuspendableBannerEvent()
     object Click: SuspendableBannerEvent()
-    class Error(val error: io.cloudx.sdk.internal.adapter.CloudXAdapterError): SuspendableBannerEvent()
+    class Error(val error: CloudXAdapterError): SuspendableBannerEvent()
 }
 
 internal fun SuspendableBanner(
@@ -41,7 +44,7 @@ internal fun SuspendableBanner(
     adUnitId: String,
     nurl: String?,
     lurl: String?,
-    createBanner: (listener: io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterListener) -> io.cloudx.sdk.internal.adapter.CloudXAdViewAdapter
+    createBanner: (listener: CloudXAdViewAdapterListener) -> CloudXAdViewAdapter
 ): SuspendableBanner =
     SuspendableBannerImpl(price, adNetwork, adUnitId, nurl, lurl, createBanner)
 
@@ -51,12 +54,12 @@ private class SuspendableBannerImpl(
     override val adUnitId: String,
     private val nurl: String?,
     private val lurl: String?,
-    createBanner: (listener: io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterListener) -> io.cloudx.sdk.internal.adapter.CloudXAdViewAdapter,
+    createBanner: (listener: CloudXAdViewAdapterListener) -> CloudXAdViewAdapter,
 ): SuspendableBanner {
 
     private val scope = CoroutineScope(Dispatchers.Main)
 
-    private val banner = createBanner(object: io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterListener {
+    private val banner = createBanner(object: CloudXAdViewAdapterListener {
         override fun onLoad() {
             scope.launch { _event.emit(SuspendableBannerEvent.Load) }
         }
@@ -94,7 +97,7 @@ private class SuspendableBannerImpl(
             scope.launch { _event.emit(SuspendableBannerEvent.Click) }
         }
 
-        override fun onError(error: io.cloudx.sdk.internal.adapter.CloudXAdapterError) {
+        override fun onError(error: CloudXAdapterError) {
             scope.launch {
                 _event.emit(SuspendableBannerEvent.Error(error))
                 // 1 liner instead of _event.collect { /*assign error*/ }
@@ -122,8 +125,8 @@ private class SuspendableBannerImpl(
     private val _event = MutableSharedFlow<SuspendableBannerEvent>()
     override val event: SharedFlow<SuspendableBannerEvent> = _event
 
-    private val _lastErrorEvent = MutableStateFlow<io.cloudx.sdk.internal.adapter.CloudXAdapterError?>(null)
-    override val lastErrorEvent: StateFlow<io.cloudx.sdk.internal.adapter.CloudXAdapterError?> = _lastErrorEvent
+    private val _lastErrorEvent = MutableStateFlow<CloudXAdapterError?>(null)
+    override val lastErrorEvent: StateFlow<CloudXAdapterError?> = _lastErrorEvent
 
     override fun destroy() {
         scope.cancel()

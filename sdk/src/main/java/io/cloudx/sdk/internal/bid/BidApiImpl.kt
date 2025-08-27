@@ -21,14 +21,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 
-// A sealed class representing the outcome of a single HTTP request + parse
-private sealed class BidAttemptResult {
-    data class Success(val bidResponse: BidResponse, val raw: String) : BidAttemptResult()
-    data class SoftError(val raw: String) : BidAttemptResult()
-    data class HardError(val status: Int, val raw: String) : BidAttemptResult()
-    data object TrafficControlAdsDisabled : BidAttemptResult()
-}
-
 internal class BidApiImpl(
     private val endpointUrl: String,
     private val timeoutMillis: Long,
@@ -45,14 +37,8 @@ internal class BidApiImpl(
         Logger.d(
             tag, "Attempting bid request:\n  Endpoint: $endpointUrl\n  Request Body: $requestBody"
         )
-        println("Attempting bid request:\n  Endpoint: $endpointUrl\n  Request Body: $requestBody")
 
-        val cyclingResult = cyclingBarrierRetry(
-            maxAttemptsPerGroup = 3,
-            delayBetweenAttemptsMs = 10_000,
-            delayBetweenGroupsMs = 300_000,
-            isHardError = { it is BidAttemptResult.HardError },
-            isSoftError = { it is BidAttemptResult.SoftError || it is BidAttemptResult.TrafficControlAdsDisabled }) { attempt, group ->
+        return try {
             val response = httpClient.post(endpointUrl) {
                 headers { append("Authorization", "Bearer $appKey") }
                 contentType(ContentType.Application.Json)
@@ -62,86 +48,50 @@ internal class BidApiImpl(
             val responseBody = response.bodyAsText()
             Logger.d(
                 tag,
-                msg = "Bid request attempt " +
-                        "$attempt (group $group): " +
-                        "HTTP ${response.status}\n$responseBody"
+                "Received bid response: HTTP ${response.status}\n$responseBody"
             )
 
-            println("Bid request attempt $attempt (group $group): HTTP ${response.status}\n$responseBody")
-
             when {
-                response.status.value >= 500 -> {
-                    println("Server error, retrying: ${response.status.value}")
-                    BidAttemptResult.HardError(response.status.value, responseBody)
-                }
-
                 response.status == HttpStatusCode.OK -> {
-                    println("Bid request successful, parsing response")
-                    when (val parsed = jsonToBidResponse(responseBody)) {
-                        is Result.Success -> {
-                            println("Bid response parsed successfully")
-                            BidAttemptResult.Success(parsed.value, responseBody)
+                    when (val bidResponseResult = jsonToBidResponse(responseBody)) {
+                        is Result.Failure -> {
+                            val error = bidResponseResult.value
+                            Logger.e(tag, "Failed to parse bid response: ${error.description}")
+                            Result.Failure(error)
                         }
 
-                        is Result.Failure -> {
-                            println("Failed to parse bid response")
-                            BidAttemptResult.SoftError(responseBody)
+                        is Result.Success -> {
+                            val auctionId = bidResponseResult.value.auctionId
+                            TrackingFieldResolver.setResponseData(auctionId, JSONObject(responseBody))
+                            bidResponseResult
                         }
                     }
                 }
-
+                
                 response.status == HttpStatusCode.NoContent -> {
                     val xStatus = response.headers[HDR_X_CLOUDX_STATUS]
                     if (xStatus == STATUS_ADS_DISABLED) {
-                        Logger.w(tag, "Ads disabled by traffic control (ADS_DISABLED)")
+                        Logger.w(tag, "Ads disabled by traffic control (ADS_DISABLED) - no retries")
                         KillSwitch.sourceErrorCode = CloudXErrorCodes.ADS_DISABLED
-                        BidAttemptResult.TrafficControlAdsDisabled
+                        Result.Failure(Error("Bid request disabled by server-side traffic control", CloudXErrorCodes.ADS_DISABLED))
                     } else {
                         // Regular no-bid response
-                        println("No bid available (204)")
-                        BidAttemptResult.SoftError(responseBody)
+                        val errStr = "No bid available (204)"
+                        Logger.d(tag, errStr)
+                        Result.Failure(Error(errStr))
                     }
                 }
-
+                
                 else -> {
-                    println("Unexpected response status, retrying: ${response.status.value}")
-                    Logger.e("MainActivity", "Unexpected response status: ${response.status.value}")
-                    BidAttemptResult.HardError(response.status.value, responseBody)
+                    val errStr = "Bad response status: ${response.status}"
+                    Logger.e(tag, errStr)
+                    Result.Failure(Error(errStr))
                 }
             }
-        }
-
-        return when (cyclingResult) {
-            is CyclingRetryResult.Success -> {
-                println("Cycling completed successfully")
-                val bidResponse = (cyclingResult.value as BidAttemptResult.Success).bidResponse
-                val raw = cyclingResult.value.raw
-                TrackingFieldResolver.setResponseData(bidResponse.auctionId, JSONObject(raw))
-                Result.Success(bidResponse)
-            }
-
-            is CyclingRetryResult.SoftError -> {
-                when (val softErrorValue = cyclingResult.value) {
-                    is BidAttemptResult.TrafficControlAdsDisabled -> {
-                        Logger.w(tag, "Bid request (ADS_DISABLED)")
-                        Result.Failure(Error("Bid request disabled by server-side traffic control", CloudXErrorCodes.ADS_DISABLED))
-                    }
-                    is BidAttemptResult.SoftError -> {
-                        Result.Failure(Error("Soft error (no bid)"))
-                    }
-                    else -> {
-                        println("Unknown soft error")
-                        Logger.e(tag, "Unknown soft error type: ${softErrorValue::class.simpleName}")
-                        Result.Failure(Error("Unknown soft error"))
-                    }
-                }
-            }
-
-            is CyclingRetryResult.HardError -> {
-                println("All attempts failed with hard error")
-                Logger.e(tag, "All cycling attempts failed: ${cyclingResult.error.message}")
-                Result.Failure(Error(cyclingResult.error.message ?: "Unknown error"))
-            }
+        } catch (e: Exception) {
+            val errStr = "Request failed: ${e.message}"
+            Logger.e(tag, errStr)
+            Result.Failure(Error(errStr))
         }
     }
 }

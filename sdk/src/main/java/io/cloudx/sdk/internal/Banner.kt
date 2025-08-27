@@ -3,6 +3,8 @@ package io.cloudx.sdk.internal
 import android.app.Activity
 import io.cloudx.sdk.CloudXAdViewListener
 import io.cloudx.sdk.CloudXAd
+import io.cloudx.sdk.CloudXAdError
+import io.cloudx.sdk.CloudXErrorCodes
 import io.cloudx.sdk.Destroyable
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
 import io.cloudx.sdk.internal.adapter.BannerFactoryMiscParams
@@ -26,6 +28,7 @@ import io.cloudx.sdk.internal.core.ad.suspendable.SuspendableBannerEvent
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTrackerNew
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsType
+import io.cloudx.sdk.internal.kill_switch.KillSwitch
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -250,6 +253,17 @@ private class BannerImpl(
             ensureActive()
 
             val bids: BidAdSourceResponse<SuspendableBanner>? = bidAdSource.requestBid()
+
+            if (bids == null && KillSwitch.sdkDisabledForSession) {
+                // Fatal, no need to retry
+                listener?.onAdLoadFailed(
+                    CloudXAdError(
+                        "Ads disabled",
+                        CloudXErrorCodes.ADS_DISABLED,
+                    )
+                )
+                throw Exception("Ads disabled by traffic control")
+            }
 
             loadedBanner = bids?.loadOrDestroyBanner()
 

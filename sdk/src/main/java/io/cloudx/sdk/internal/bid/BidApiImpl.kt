@@ -94,8 +94,7 @@ internal class BidApiImpl(
                     val xStatus = response.headers[HDR_X_CLOUDX_STATUS]
                     if (xStatus == STATUS_ADS_DISABLED) {
                         Logger.w(tag, "Ads disabled by traffic control (ADS_DISABLED)")
-                        KillSwitch.sdkDisabledForSession = false
-                        KillSwitch.causedErrorCode = CloudXErrorCodes.ADS_DISABLED
+                        KillSwitch.sourceErrorCode = CloudXErrorCodes.ADS_DISABLED
                         BidAttemptResult.TrafficControlAdsDisabled
                     } else {
                         // Regular no-bid response

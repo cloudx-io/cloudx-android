@@ -1,6 +1,7 @@
 package io.cloudx.sdk.internal.core.ad.source.bid
 
 import com.xor.XorEncryption
+import io.cloudx.sdk.CloudXErrorCodes
 import io.cloudx.sdk.Destroyable
 import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.AdNetwork
@@ -14,7 +15,6 @@ import io.cloudx.sdk.internal.config.ResolvedEndpoints
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.EventType
 import io.cloudx.sdk.internal.imp_tracker.TrackingFieldResolver
-import io.cloudx.sdk.internal.imp_tracker.TrackingFieldResolver.SDK_PARAM_RESPONSE_IN_MILLIS
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTrackerNew
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsType
 import io.cloudx.sdk.internal.PlacementLoopIndexTracker
@@ -28,7 +28,7 @@ internal interface BidAdSource<T : Destroyable> {
     /**
      * @return the bid or null if no bid
      */
-    suspend fun requestBid(): BidAdSourceResponse<T>?
+    suspend fun requestBid(): BidSourceResult<T>
 }
 
 internal open class BidAdSourceResponse<T : Destroyable>(
@@ -91,7 +91,7 @@ private class BidAdSourceImpl<T : Destroyable>(
 
     private val logTag = "BidAdSourceImpl"
 
-    override suspend fun requestBid(): BidAdSourceResponse<T>? {
+    override suspend fun requestBid(): BidSourceResult<T> {
         val auctionId = UUID.randomUUID().toString()
         val bidRequestParamsJson = provideBidRequest.invoke(bidRequestParams, auctionId)
 
@@ -104,7 +104,7 @@ private class BidAdSourceImpl<T : Destroyable>(
         val userParams = SdkKeyValueState.userKeyValues
         CloudXLogger.debug(logTag, "user params: $userParams")
 
-        val appParams = SdkKeyValueState.userKeyValues
+        val appParams = SdkKeyValueState.appKeyValues
         CloudXLogger.debug(logTag, "app params: $appParams")
 
         val isCdpDisabled = ResolvedEndpoints.cdpEndpoint.isBlank()
@@ -145,9 +145,9 @@ private class BidAdSourceImpl<T : Destroyable>(
             "Sending BidRequest [loop-index=$currentLoopIndex] for adId: ${bidRequestParams.adId}"
         )
 
-        val result: Result<BidResponse, Error>
+        val apiResult: Result<BidResponse, Error>
         val bidRequestLatencyMillis = measureTimeMillis {
-            result = requestBid.invoke(bidRequestParams.appKey, enrichedPayload)
+            apiResult = requestBid.invoke(bidRequestParams.appKey, enrichedPayload)
         }
 
         metricsTrackerNew.trackNetworkCall(MetricsType.Network.BidRequest, bidRequestLatencyMillis)
@@ -171,34 +171,42 @@ private class BidAdSourceImpl<T : Destroyable>(
             eventTracking.send(impressionId, campaignId, "1", EventType.BID_REQUEST)
         }
 
-        return when (result) {
-            is Result.Failure -> {
-                CloudXLogger.error(logTag, result.value.description)
-                null
-            }
-
+        return when (apiResult) {
             is Result.Success -> {
-                val bidAdSourceResponse = result.value.toBidAdSourceResponse(bidRequestParams, createBidAd)
+                val resp = apiResult.value.toBidAdSourceResponse(bidRequestParams, createBidAd)
 
-                if (bidAdSourceResponse.bidItemsByRank.isEmpty()) {
-                    CloudXLogger.debug(logTag, "NO_BID")
+                if (resp.bidItemsByRank.isEmpty()) {
+                    // “No fill” is a valid *failure* reason, not null
+                    BidSourceResult.Failure(
+                        BidSourceError(
+                            message = "No bid available",
+                            code = CloudXErrorCodes.NO_BID_AVAILABLE,
+                            isPermanent = false,
+                            isTrafficControl = false
+                        )
+                    )
                 } else {
-                    val bidDetails = bidAdSourceResponse.bidItemsByRank.joinToString(separator = ",\n") {
-                            "\"bidder\": \"${it.adNetworkOriginal}\", cpm: ${it.priceRaw}, rank: ${it.rank}"
-                        }
-                    CloudXLogger.debug(
-                        logTag,
-                        "Bid Success — received ${bidAdSourceResponse.bidItemsByRank.size} bid(s): [$bidDetails]"
-                    )
-
-                    TrackingFieldResolver.setSdkParam(
-                        auctionId,
-                        SDK_PARAM_RESPONSE_IN_MILLIS,
-                        bidRequestLatencyMillis.toString()
-                    )
+                    // normal success
+                    BidSourceResult.Success(resp)
                 }
+            }
+            is Result.Failure -> {
+                // Convert transport-level Error -> BidSourceError with policy
+                val e = apiResult.value
+                val isPermanent = when (e.errorCode) {
+                    CloudXErrorCodes.CLIENT_ERROR -> true           // 4xx (except 429)
+                    else -> false
+                }
+                val isTrafficControl = (e.errorCode == CloudXErrorCodes.ADS_DISABLED)
 
-                bidAdSourceResponse
+                BidSourceResult.Failure(
+                    BidSourceError(
+                        message = e.description,
+                        code = e.errorCode,
+                        isPermanent = isPermanent,
+                        isTrafficControl = isTrafficControl
+                    )
+                )
             }
         }
     }

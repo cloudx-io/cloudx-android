@@ -228,7 +228,6 @@ internal class InitializationServiceImpl(
                 metricsTrackerNew.trackNetworkCall(MetricsType.Network.GeoApi, geoRequestMillis)
             } else if (configApiResult is Result.Failure && configApiResult.value.errorCode == CloudXErrorCodes.INIT_SDK_DISABLED) {
                 KillSwitch.sdkDisabledForSession = true
-                KillSwitch.sourceErrorCode = configApiResult.value.errorCode
                 CloudXLogger.warn("InitializationServiceImpl", "SDK disabled for session by server.")
             }
 

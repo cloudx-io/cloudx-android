@@ -16,13 +16,13 @@ import io.cloudx.sdk.internal.bid.LoadResult
 import io.cloudx.sdk.internal.bid.LossReason
 import io.cloudx.sdk.internal.bid.LossReporter
 import io.cloudx.sdk.internal.cdp.CdpApi
-import io.cloudx.sdk.internal.common.BidBackoffMechanism
 import io.cloudx.sdk.internal.common.service.ActivityLifecycleService
 import io.cloudx.sdk.internal.common.service.AppLifecycleService
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.core.ad.source.bid.BidAdSource
 import io.cloudx.sdk.internal.core.ad.source.bid.BidAdSourceResponse
 import io.cloudx.sdk.internal.core.ad.source.bid.BidBannerSource
+import io.cloudx.sdk.internal.core.ad.source.bid.BidSourceResult
 import io.cloudx.sdk.internal.core.ad.suspendable.SuspendableBanner
 import io.cloudx.sdk.internal.core.ad.suspendable.SuspendableBannerEvent
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
@@ -112,7 +112,8 @@ internal fun Banner(
         connectionStatusService = connectionStatusService,
         activityLifecycleService = activityLifecycleService,
         appLifecycleService = appLifecycleService,
-        metricsTrackerNew = metricsTrackerNew
+        metricsTrackerNew = metricsTrackerNew,
+        placementName = placementName
     )
 }
 
@@ -129,13 +130,12 @@ private class BannerImpl(
     private val activityLifecycleService: ActivityLifecycleService,
     private val appLifecycleService: AppLifecycleService,
     private val metricsTrackerNew: MetricsTrackerNew,
+    private val placementName: String
 ) : Banner {
 
     private val TAG = "BannerImpl"
 
     private val scope = CoroutineScope(Dispatchers.Main)
-
-    private val bidBackoffMechanism = BidBackoffMechanism()
 
     override var listener: CloudXAdViewListener? = null
         set(listener) {
@@ -237,51 +237,44 @@ private class BannerImpl(
         return banner
     }
 
-    // Note. Since I'm a douche and don't want to refactor and write a coherent and concise code
-    // here's the explanation on what's going on here:
-    // Each returned banner from this method should be already attached to the BannerContainer in CloudXAdView.
-    // If you look at the implementation of CloudXAdView::createBannerContainer()
-    // you'll see that each banner gets inserted to the "background" of the view hence can be treated as invisible/precached.
-    // So, first successful non-null tryLoadBanner() call will result in banner displayed on the screen.
-    // All the consecutive successful tryLoadBanner() calls will result in banner attached to the background and visibility set to GONE.
-    // Once the foreground visible banner is destroyed (banner.destroy())
-    // it gets removed from the screen and the next topmost banner gets displayed if available.
     private suspend fun loadNewBanner(): SuspendableBanner = coroutineScope {
         var loadedBanner: SuspendableBanner? = null
 
         while (loadedBanner == null) {
             ensureActive()
 
-            val bids: BidAdSourceResponse<SuspendableBanner>? = bidAdSource.requestBid()
-
-            if (bids == null && KillSwitch.sdkDisabledForSession) {
-                // Fatal, no need to retry
-                listener?.onAdLoadFailed(
-                    CloudXAdError(
-                        "Ads disabled",
-                        CloudXErrorCodes.ADS_DISABLED,
-                    )
-                )
-                throw Exception("Ads disabled by traffic control")
-            }
-
-            loadedBanner = bids?.loadOrDestroyBanner()
-
-            if (loadedBanner == null) {
-                bidBackoffMechanism.notifySoftError()
-
-                // Delay after each batch of 3 fails
-                CloudXLogger.debug(TAG, "Soft error delay for ${bidBackoffMechanism.getBatchDelay()}ms (batch)")
-                delay(bidBackoffMechanism.getBatchDelay())
-
-                if (bidBackoffMechanism.isBatchEnd) {
-                    CloudXLogger.debug(TAG, "Batch of 3 soft errors: Delaying for ${bidBackoffMechanism.getBarrierDelay()}ms (barrier pause)")
-
-                    // Additional barrier delay after each batch
-                    delay(bidBackoffMechanism.getBarrierDelay())
+            when (val res = bidAdSource.requestBid()){
+                is BidSourceResult.Success -> {
+                    loadedBanner = res.response.loadOrDestroyBanner()
+                    if (loadedBanner == null) {
+                        // all creative banners failed to load
+                        // TODO: Q: What happens when all the bids fail to load? Accept it as no bid? What should we tell the user?
+                        delay(refreshDelayMillis)
+                    }
                 }
-            } else {
-                bidBackoffMechanism.notifySuccess()
+                is BidSourceResult.Failure -> {
+                    val err = res.error
+                    // 1) Placement-breaking (permanent) errors: stop trying on this placement
+                    if (err.isPermanent) {
+                        listener?.onAdLoadFailed(
+                            CloudXAdError(err.message, err.code)
+                        )
+                        // break out – nothing else to do
+                        throw IllegalStateException("Permanent failure for placement: ${err.message}")
+                    }
+                    // 2) Traffic control sampled out (ADS_DISABLED): surface 308 once, then wait to next cycle
+                    if (err.isTrafficControl) {
+                        listener?.onAdLoadFailed(
+                            CloudXAdError(err.message, err.code)
+                        )
+                        // delay until next refresh cycle
+                        delay(refreshDelayMillis)
+                        continue
+                    }
+                    // 3) Generic transient (5xx, timeout, network, parse, no-bid, etc.)
+                    // V1 policy: do not spin; let refresh tick drive the next attempt
+                    delay(refreshDelayMillis)
+                }
             }
         }
 

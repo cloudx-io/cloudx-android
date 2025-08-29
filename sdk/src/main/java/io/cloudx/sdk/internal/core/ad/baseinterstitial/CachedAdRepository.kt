@@ -5,7 +5,6 @@ import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.CloudXLogger
 import io.cloudx.sdk.internal.bid.LossReason
 import io.cloudx.sdk.internal.bid.LossReporter
-import io.cloudx.sdk.internal.common.BidBackoffAlgorithm
 import io.cloudx.sdk.internal.common.service.AppLifecycleService
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.core.ad.AdMetaData
@@ -21,7 +20,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 
-// Updating + caching.
 internal class CachedAdRepository<SuspendableAd: Destroyable, C: CacheableAd>(
     private val bidAdSource: BidAdSource<SuspendableAd>,
     cacheSize: Int,
@@ -37,7 +35,7 @@ internal class CachedAdRepository<SuspendableAd: Destroyable, C: CacheableAd>(
     private val TAG = "Bid$placementType"
 
     private val scope = CoroutineScope(Dispatchers.Main)
-    private val bidBackoffAlgorithm = BidBackoffAlgorithm(bidMaxBackOffTimeMillis)
+//    private val bidBackoffAlgorithm = BidBackoffAlgorithm(bidMaxBackOffTimeMillis)
 
     private val cachedQueue = CachedAdQueue<C>(
         cacheSize,
@@ -62,7 +60,7 @@ internal class CachedAdRepository<SuspendableAd: Destroyable, C: CacheableAd>(
 
                 when (enqueueBid()) {
                     AdLoadOperationStatus.AdLoadSuccess -> {
-                        bidBackoffAlgorithm.notifyAdLoadSuccess()
+//                        bidBackoffAlgorithm.notifyAdLoadSuccess()
                     }
 
                     AdLoadOperationStatus.AdLoadOperationUnavailable -> {
@@ -71,15 +69,15 @@ internal class CachedAdRepository<SuspendableAd: Destroyable, C: CacheableAd>(
                     }
 
                     else -> {
-                        bidBackoffAlgorithm.notifyAdLoadFailed()
-                        if (bidBackoffAlgorithm.isThreshold) {
-                            val delayMillis = bidBackoffAlgorithm.calculateDelayMillis()
-                            CloudXLogger.info(
-                                TAG,
-                                "delaying for: ${delayMillis}ms as ${bidBackoffAlgorithm.bidFails} bid responses have failed to load"
-                            )
-                            delay(delayMillis)
-                        }
+//                        bidBackoffAlgorithm.notifyAdLoadFailed()
+//                        if (bidBackoffAlgorithm.isThreshold) {
+//                            val delayMillis = bidBackoffAlgorithm.calculateDelayMillis()
+//                            CloudXLogger.info(
+//                                TAG,
+//                                "delaying for: ${delayMillis}ms as ${bidBackoffAlgorithm.bidFails} bid responses have failed to load"
+//                            )
+//                            delay(delayMillis)
+//                        }
                     }
                 }
             }
@@ -92,42 +90,42 @@ internal class CachedAdRepository<SuspendableAd: Destroyable, C: CacheableAd>(
 
         val bidResponse = bidAdSource.requestBid() ?: return@coroutineScope AdLoadOperationStatus.AdLoadFailed
 
-        for ((index, bidItem) in bidResponse.bidItemsByRank.withIndex()) {
-            ensureActive()
-
-            val ad = runCatching {
-                withTimeoutOrNull(bidLoadTimeoutMillis) {
-                    createCacheableAd(bidItem.createBidAd())
-                }
-            }.getOrNull()
-
-            if (ad != null) {
-                val result = cachedQueue.enqueueBidAd(
-                    bidItem.price,
-                    bidLoadTimeoutMillis,
-                    createBidAd = { ad }
-                )
-
-                if (result == AdLoadOperationStatus.AdLoadSuccess) {
-                    // Fire LossReason.LostToHigherBid for all lower-ranked bids
-                    val lowerRanked = bidResponse.bidItemsByRank.drop(index + 1)
-                    for (loserItem in lowerRanked) {
-                        LossReporter.fireLoss(
-                            loserItem.lurl,
-                            LossReason.LostToHigherBid
-                        )
-                    }
-
-                    return@coroutineScope result
-                } else {
-                    // Ad created but failed to enqueue — technical error
-                    LossReporter.fireLoss(bidItem.lurl, LossReason.TechnicalError)
-                }
-            } else {
-                // Ad failed to create — technical error
-                LossReporter.fireLoss(bidItem.lurl, LossReason.TechnicalError)
-            }
-        }
+//        for ((index, bidItem) in bidResponse.bidItemsByRank.withIndex()) {
+//            ensureActive()
+//
+//            val ad = runCatching {
+//                withTimeoutOrNull(bidLoadTimeoutMillis) {
+//                    createCacheableAd(bidItem.createBidAd())
+//                }
+//            }.getOrNull()
+//
+//            if (ad != null) {
+//                val result = cachedQueue.enqueueBidAd(
+//                    bidItem.price,
+//                    bidLoadTimeoutMillis,
+//                    createBidAd = { ad }
+//                )
+//
+//                if (result == AdLoadOperationStatus.AdLoadSuccess) {
+//                    // Fire LossReason.LostToHigherBid for all lower-ranked bids
+//                    val lowerRanked = bidResponse.bidItemsByRank.drop(index + 1)
+//                    for (loserItem in lowerRanked) {
+//                        LossReporter.fireLoss(
+//                            loserItem.lurl,
+//                            LossReason.LostToHigherBid
+//                        )
+//                    }
+//
+//                    return@coroutineScope result
+//                } else {
+//                    // Ad created but failed to enqueue — technical error
+//                    LossReporter.fireLoss(bidItem.lurl, LossReason.TechnicalError)
+//                }
+//            } else {
+//                // Ad failed to create — technical error
+//                LossReporter.fireLoss(bidItem.lurl, LossReason.TechnicalError)
+//            }
+//        }
 
         AdLoadOperationStatus.AdLoadFailed
     }

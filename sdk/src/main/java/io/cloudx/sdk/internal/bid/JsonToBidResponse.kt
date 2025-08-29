@@ -1,5 +1,6 @@
 package io.cloudx.sdk.internal.bid
 
+import io.cloudx.sdk.CloudXErrorCodes
 import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.Error
@@ -10,6 +11,7 @@ import io.cloudx.sdk.testing.TestBids
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
+import org.json.JSONException
 import org.json.JSONObject
 
 internal suspend fun jsonToBidResponse(json: String): Result<BidResponse, Error> =
@@ -23,26 +25,27 @@ internal suspend fun jsonToBidResponse(json: String): Result<BidResponse, Error>
                     "jsonToBidResponse",
                     "No seatbid — interpreting as no-bid. Ext errors: $errorJson"
                 )
-                return@withContext Result.Failure(Error("No bid."))
+                return@withContext Result.Failure(
+                    Error(
+                        "No bid.",
+                        CloudXErrorCodes.NO_BID_AVAILABLE
+                    )
+                )
             }
 
             Result.Success(root.toBidResponse())
+        } catch (e: JSONException) {
+            // Malformed JSON or schema mismatch — classify so BidApi can apply V1 retry once (as SERVER_ERROR)
+            val errStr = "JSON parse error: ${e.message}"
+            Logger.e("jsonToBidResponse", errStr)
+            Result.Failure(Error(errStr, CloudXErrorCodes.SERVER_ERROR))
         } catch (e: Exception) {
-            val errStr = e.toString()
-            Logger.e(tag = "jsonToBidResponse", msg = errStr)
-            Result.Failure(Error(errStr))
+            // Truly unexpected; still don’t leak UNKNOWN — classify as SERVER_ERROR so caller can retry once.
+            val errStr = "Parse failure: ${e.message}"
+            Logger.e("jsonToBidResponse", errStr)
+            Result.Failure(Error(errStr, CloudXErrorCodes.SERVER_ERROR))
         }
     }
-
-private fun JSONObject.toNoBidResponse(): NoBidResponse? {
-    val nbrCode = "nbr".let { if (has(it)) getInt(it) else return null }
-
-    return NoBidResponse(
-        id = optString("id", ""),
-        noBidResponseCode = nbrCode,
-        ext = optString(EXT, "")
-    )
-}
 
 private fun JSONObject.toBidResponse(): BidResponse {
     val auctionId = getString("id")

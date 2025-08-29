@@ -142,7 +142,7 @@ object CloudX {
     ): CloudXAdView? {
         // Check kill switch first
         if (KillSwitch.sdkDisabledForSession) {
-            listener?.onAdLoadFailed(CloudXAdError("SDK disabled by server-side traffic control", KillSwitch.sourceErrorCode))
+            listener?.onAdLoadFailed(CloudXAdError("SDK disabled by server-side traffic control", CloudXErrorCodes.INIT_SDK_DISABLED))
             return null
         }
 
@@ -182,7 +182,7 @@ object CloudX {
     ): CloudXAdView? {
         // Check kill switch first
         if (KillSwitch.sdkDisabledForSession) {
-            listener?.onAdLoadFailed(CloudXAdError("SDK disabled by server-side traffic control", KillSwitch.sourceErrorCode))
+            listener?.onAdLoadFailed(CloudXAdError("SDK disabled by server-side traffic control", CloudXErrorCodes.INIT_SDK_DISABLED))
             return null
         }
 
@@ -228,7 +228,7 @@ object CloudX {
     ): CloudXInterstitialAd? {
         // Check kill switch first
         if (KillSwitch.sdkDisabledForSession) {
-            listener?.onAdLoadFailed(CloudXAdError("SDK disabled by server-side traffic control", KillSwitch.sourceErrorCode))
+            listener?.onAdLoadFailed(CloudXAdError("SDK disabled by server-side traffic control", CloudXErrorCodes.INIT_SDK_DISABLED))
             return null
         }
 
@@ -271,7 +271,7 @@ object CloudX {
     ): CloudXRewardedAd? {
         // Check kill switch first
         if (KillSwitch.sdkDisabledForSession) {
-            listener?.onAdLoadFailed(CloudXAdError("SDK disabled by server-side traffic control", KillSwitch.sourceErrorCode))
+            listener?.onAdLoadFailed(CloudXAdError("SDK disabled by server-side traffic control", CloudXErrorCodes.INIT_SDK_DISABLED))
             return null
         }
 
@@ -307,7 +307,7 @@ object CloudX {
     ): CloudXAdView? {
         // Check kill switch first
         if (KillSwitch.sdkDisabledForSession) {
-            listener?.onAdLoadFailed(CloudXAdError("SDK disabled by server-side traffic control", KillSwitch.sourceErrorCode))
+            listener?.onAdLoadFailed(CloudXAdError("SDK disabled by server-side traffic control", CloudXErrorCodes.INIT_SDK_DISABLED))
             return null
         }
 
@@ -346,7 +346,7 @@ object CloudX {
     ): CloudXAdView? {
         // Check kill switch first
         if (KillSwitch.sdkDisabledForSession) {
-            listener?.onAdLoadFailed(CloudXAdError("SDK disabled by server-side traffic control", KillSwitch.sourceErrorCode))
+            listener?.onAdLoadFailed(CloudXAdError("SDK disabled by server-side traffic control", CloudXErrorCodes.INIT_SDK_DISABLED))
             return null
         }
 

@@ -35,7 +35,7 @@ internal fun BidRewardedInterstitialSource(
     return BidAdSource(
         generateBidRequest,
         BidRequestProvider.Params(
-            adId = placementId,
+            placementId = placementId,
             adType = adType,
             placementName = placementName,
             accountId = accountId,
@@ -49,7 +49,7 @@ internal fun BidRewardedInterstitialSource(
 
         val price = it.price
         val network = it.adNetwork
-        val adId = it.adId
+        val placementId = it.placementId
         val bidId = it.bidId
         val adm = it.adm
         val nurl = it.nurl
@@ -59,12 +59,12 @@ internal fun BidRewardedInterstitialSource(
         SuspendableRewardedInterstitial(
             price,
             network,
-            adId
+            placementId
         ) { listener ->
             // TODO. IMPORTANT. Explicit Result cast isn't "cool", even though there's try catch somewhere.
             (factories[network]?.create(
                 activity,
-                adId,
+                placementId,
                 bidId,
                 adm,
                 params,
@@ -74,7 +74,7 @@ internal fun BidRewardedInterstitialSource(
             baseAdDecoration() +
                     bidAdDecoration(bidId, auctionId, eventTracker) +
                     adapterLoggingDecoration(
-                        adUnitId = adId,
+                        placementId = placementId,
                         adNetwork = network,
                         networkTimeoutMillis = bidRequestTimeoutMillis,
                         type = adType,

@@ -1,6 +1,9 @@
 package io.cloudx.sdk.internal.core.ad.suspendable
 
 import io.cloudx.sdk.internal.AdNetwork
+import io.cloudx.sdk.internal.adapter.CloudXAdapterError
+import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapter
+import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapterListener
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -25,28 +28,28 @@ sealed class SuspendableInterstitialEvent {
     object Complete : SuspendableInterstitialEvent()
     object Hide : SuspendableInterstitialEvent()
     object Click : SuspendableInterstitialEvent()
-    class Error(val error: io.cloudx.sdk.internal.adapter.CloudXAdapterError) : SuspendableInterstitialEvent()
+    class Error(val error: CloudXAdapterError) : SuspendableInterstitialEvent()
 }
 
 internal fun SuspendableInterstitial(
     price: Double?,
     adNetwork: AdNetwork,
-    adUnitId: String,
-    createInterstitial: (listener: io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapterListener) -> io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapter
+    placementId: String,
+    createInterstitial: (listener: CloudXInterstitialAdapterListener) -> CloudXInterstitialAdapter
 ): SuspendableInterstitial =
-    SuspendableInterstitialImpl(price, adNetwork, adUnitId, createInterstitial)
+    SuspendableInterstitialImpl(price, adNetwork, placementId, createInterstitial)
 
 private class SuspendableInterstitialImpl(
     override val price: Double?,
     override val adNetwork: AdNetwork,
-    override val adUnitId: String,
-    createInterstitial: (listener: io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapterListener) -> io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapter,
+    override val placementId: String,
+    createInterstitial: (listener: CloudXInterstitialAdapterListener) -> CloudXInterstitialAdapter,
 ) : SuspendableInterstitial {
 
     private val scope = CoroutineScope(Dispatchers.Main)
 
     private val interstitial = createInterstitial(object :
-        io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapterListener {
+        CloudXInterstitialAdapterListener {
         override fun onLoad() {
             scope.launch { _event.emit(SuspendableInterstitialEvent.Load) }
         }
@@ -75,7 +78,7 @@ private class SuspendableInterstitialImpl(
             scope.launch { _event.emit(SuspendableInterstitialEvent.Click) }
         }
 
-        override fun onError(error: io.cloudx.sdk.internal.adapter.CloudXAdapterError) {
+        override fun onError(error: CloudXAdapterError) {
             scope.launch {
                 _event.emit(SuspendableInterstitialEvent.Error(error))
                 // 1 liner instead of _event.collect { /*assign error*/ }
@@ -110,8 +113,8 @@ private class SuspendableInterstitialImpl(
     private val _event = MutableSharedFlow<SuspendableInterstitialEvent>()
     override val event: SharedFlow<SuspendableInterstitialEvent> = _event
 
-    private val _lastErrorEvent = MutableStateFlow<io.cloudx.sdk.internal.adapter.CloudXAdapterError?>(null)
-    override val lastErrorEvent: StateFlow<io.cloudx.sdk.internal.adapter.CloudXAdapterError?> = _lastErrorEvent
+    private val _lastErrorEvent = MutableStateFlow<CloudXAdapterError?>(null)
+    override val lastErrorEvent: StateFlow<CloudXAdapterError?> = _lastErrorEvent
 
     override fun destroy() {
         scope.cancel()

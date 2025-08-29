@@ -11,7 +11,7 @@ import io.cloudx.sdk.CloudXInterstitialAd
 import io.cloudx.sdk.CloudXIsAdLoadedListener
 import io.cloudx.sdk.CloudXPrivacy
 import io.cloudx.sdk.CloudXRewardedAd
-import io.cloudx.sdk.InterstitialListener
+import io.cloudx.sdk.CloudXInterstitialListener
 import io.cloudx.sdk.RewardedInterstitialListener
 
 internal fun cloudXSetPrivacy() {
@@ -113,7 +113,7 @@ internal fun createInterstitial(activity: Activity, placementName: String) {
         activity,
         placementName,
         // Track events if necessary.
-        object : InterstitialListener {
+        object : CloudXInterstitialListener {
             override fun onAdLoaded(cloudXAd: CloudXAd) {
                 // ..
                 // Ad is loaded, now you can show ad.

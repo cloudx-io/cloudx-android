@@ -202,15 +202,15 @@ object CloudX {
      *
      * _General usage guideline:_
      * 1. Create [CloudXInterstitialAd] instance via invoking this function.
-     * 2. If created successfully, consider attaching an optional [listener][InterstitialListener] which is then can be used for tracking ad events (impression, click, hidden, etc)
+     * 2. If created successfully, consider attaching an optional [listener][CloudXInterstitialListener] which is then can be used for tracking ad events (impression, click, hidden, etc)
      * 3. _Fullscreen ad implementations start precaching logic internally automatically in an optimised way, so you don't have to worry about any ad loading complexities.
      * We provide several APIs, use any appropriate ones for your use-cases:_
      *
-     * - call [load()][BaseFullscreenAd.load]; then wait for [onAdLoadSuccess()][CloudXAdListener.onAdLoaded] or [onAdLoadFailed()][CloudXAdListener.onAdLoadFailed] event;
-     * - alternatively, check [isAdLoaded][BaseFullscreenAd.isAdLoaded] property: if _true_ feel free to [show()][BaseFullscreenAd.show] the ad;
-     * - another option is to [setIsAdLoadedListener][BaseFullscreenAd.setIsAdLoadedListener], which then always fires event upon internal loaded ad cache size changes.
+     * - call [load()][CloudXFullscreenAd.load]; then wait for [onAdLoadSuccess()][CloudXAdListener.onAdLoaded] or [onAdLoadFailed()][CloudXAdListener.onAdLoadFailed] event;
+     * - alternatively, check [isAdLoaded][CloudXFullscreenAd.isAdLoaded] property: if _true_ feel free to [show()][CloudXFullscreenAd.show] the ad;
+     * - another option is to [setIsAdLoadedListener][CloudXFullscreenAd.setIsAdLoadedListener], which then always fires event upon internal loaded ad cache size changes.
      *
-     * 4. call [show()][BaseFullscreenAd.show] when you're ready to display an ad; then wait for [onAdShowSuccess()][CloudXAdListener.onAdDisplayed] or [onAdShowFailed()][CloudXAdListener.onAdDisplayFailed] event;
+     * 4. call [show()][CloudXFullscreenAd.show] when you're ready to display an ad; then wait for [onAdShowSuccess()][CloudXAdListener.onAdDisplayed] or [onAdShowFailed()][CloudXAdListener.onAdDisplayFailed] event;
      * 5. Whenever parent Activity or Fragment is destroyed; or when ads are not required anymore - release ad instance resources via calling [destroy()][Destroyable.destroy]
      *
      * @param activity activity instance to which [CloudXInterstitialAd] ad instance is going to be attached to.
@@ -224,7 +224,7 @@ object CloudX {
     fun createInterstitial(
         activity: Activity,
         placementName: String,
-        listener: InterstitialListener?
+        listener: CloudXInterstitialListener?
     ): CloudXInterstitialAd? {
         // Check kill switch first
         if (KillSwitch.sdkDisabledForSession) {
@@ -249,11 +249,11 @@ object CloudX {
      * 3. _Fullscreen ad implementations start precaching logic internally automatically in an optimised way, so you don't have to worry about any ad loading complexities.
      * We provide several APIs, use any appropriate ones for your use-cases:_
      *
-     * - call [load()][BaseFullscreenAd.load]; then wait for [onAdLoadSuccess()][CloudXAdListener.onAdLoaded] or [onAdLoadFailed()][CloudXAdListener.onAdLoadFailed] event;
-     * - alternatively, check [isAdLoaded][BaseFullscreenAd.isAdLoaded] property: if _true_ feel free to [show()][BaseFullscreenAd.show] the ad;
-     * - another option is to [setIsAdLoadedListener][BaseFullscreenAd.setIsAdLoadedListener], which then always fires event upon internal loaded ad cache size changes.
+     * - call [load()][CloudXFullscreenAd.load]; then wait for [onAdLoadSuccess()][CloudXAdListener.onAdLoaded] or [onAdLoadFailed()][CloudXAdListener.onAdLoadFailed] event;
+     * - alternatively, check [isAdLoaded][CloudXFullscreenAd.isAdLoaded] property: if _true_ feel free to [show()][CloudXFullscreenAd.show] the ad;
+     * - another option is to [setIsAdLoadedListener][CloudXFullscreenAd.setIsAdLoadedListener], which then always fires event upon internal loaded ad cache size changes.
      *
-     * 4. call [show()][BaseFullscreenAd.show] when you're ready to display an ad; then wait for [onAdShowSuccess()][CloudXAdListener.onAdDisplayed] or [onAdShowFailed()][CloudXAdListener.onAdDisplayFailed] event;
+     * 4. call [show()][CloudXFullscreenAd.show] when you're ready to display an ad; then wait for [onAdShowSuccess()][CloudXAdListener.onAdDisplayed] or [onAdShowFailed()][CloudXAdListener.onAdDisplayFailed] event;
      * 5. Whenever parent Activity or Fragment is destroyed; or when ads are not required anymore - release ad instance resources via calling [destroy()][Destroyable.destroy]
      *
      * @param activity activity instance to which [CloudXRewardedAd] ad instance is going to be attached to.

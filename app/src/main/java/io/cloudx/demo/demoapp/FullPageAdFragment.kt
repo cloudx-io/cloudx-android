@@ -7,7 +7,7 @@ import androidx.fragment.app.Fragment
 import com.google.android.material.color.MaterialColors
 import io.cloudx.demo.demoapp.loglistview.commonLogTagListRules
 import io.cloudx.demo.demoapp.loglistview.setupLogListView
-import io.cloudx.sdk.BaseFullscreenAd
+import io.cloudx.sdk.CloudXFullscreenAd
 import io.cloudx.sdk.CloudXAdListener
 import io.cloudx.sdk.CloudXIsAdLoadedListener
 import io.cloudx.sdk.internal.CloudXLogger
@@ -18,7 +18,7 @@ abstract class FullPageAdFragment : Fragment(R.layout.fragment_fullscreen_ad) {
     private lateinit var loadButton: Button
     private lateinit var showButton: Button
 
-    private var ad: BaseFullscreenAd? = null
+    private var ad: CloudXFullscreenAd? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -69,7 +69,7 @@ abstract class FullPageAdFragment : Fragment(R.layout.fragment_fullscreen_ad) {
     }
 
     // TODO. Quick workaround to support both int and rew ads + all their callbacks.
-    abstract fun createAd(listener: CloudXAdListener): BaseFullscreenAd?
+    abstract fun createAd(listener: CloudXAdListener): CloudXFullscreenAd?
 
     protected val placementName: String by lazy {
         requireArguments().getPlacements().firstOrNull() ?: ""

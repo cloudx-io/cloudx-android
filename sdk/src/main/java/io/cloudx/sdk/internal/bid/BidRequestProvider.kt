@@ -22,7 +22,7 @@ internal interface BidRequestProvider {
     suspend fun invoke(params: Params, auctionId: String): JSONObject
 
     class Params(
-        val adId: String,
+        val placementId: String,
         val adType: AdType,
         val placementName: String,
         val accountId: String,
@@ -31,16 +31,16 @@ internal interface BidRequestProvider {
     )
 }
 
-internal fun BidRequestProvider.Params.withEffectiveAdId(): String {
+internal fun BidRequestProvider.Params.withEffectivePlacementId(): String {
     if (placementName.isBlank()) {
-        println("❌ withEffectiveAdId: adId=$adId (no placementName)")
+        println("❌ withEffectivePlacementId: placementId=$placementId (no placementName)")
     }
 
     if (adType !is AdType.Interstitial && adType !is AdType.Rewarded) {
         PlacementLoopIndexTracker.getAndIncrement(placementName)
     }
 
-    return adId
+    return placementId
 }
 
 

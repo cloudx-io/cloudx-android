@@ -15,11 +15,12 @@ import io.cloudx.sdk.internal.imp_tracker.EventType
 import io.cloudx.sdk.internal.imp_tracker.TrackingFieldResolver
 import kotlinx.coroutines.launch
 import com.xor.XorEncryption
+import io.cloudx.sdk.internal.adapter.CloudXAdapterError
 import io.cloudx.sdk.internal.imp_tracker.ClickCounterTracker
 
 private typealias Func = (() -> Unit)
 private typealias ClickFunc = (() -> Unit)
-private typealias ErrorFunc = ((error: io.cloudx.sdk.internal.adapter.CloudXAdapterError) -> Unit)
+private typealias ErrorFunc = ((error: CloudXAdapterError) -> Unit)
 
 class AdEventDecoration(
     val onLoad: Func? = null,
@@ -186,7 +187,7 @@ internal fun bidAdDecoration(
 )
 
 internal fun adapterLoggingDecoration(
-    adUnitId: String,
+    placementId: String,
     adNetwork: AdNetwork,
     networkTimeoutMillis: Long,
     type: AdType,
@@ -199,25 +200,25 @@ internal fun adapterLoggingDecoration(
         onTimeout = {
             CloudXLogger.debug(
                 tag,
-                "LOAD TIMEOUT placement: $placementName, id: $adUnitId, price: $price"
+                "LOAD TIMEOUT placement: $placementName, id: $placementId, price: $price"
             )
         },
         onLoad = {
             CloudXLogger.debug(
                 tag,
-                "LOAD SUCCESS placement: $placementName, id: $adUnitId, price: $price"
+                "LOAD SUCCESS placement: $placementName, id: $placementId, price: $price"
             )
         },
         onError = {
             CloudXLogger.error(
                 tag,
-                "ERROR placement: $placementName, id: $adUnitId, price: $price, error: ${it.description}"
+                "ERROR placement: $placementName, id: $placementId, price: $price, error: ${it.description}"
             )
         },
         onImpression = {
             CloudXLogger.debug(
                 tag,
-                "IMPRESSION placement: $placementName, id: $adUnitId, price: $price"
+                "IMPRESSION placement: $placementName, id: $placementId, price: $price"
             )
         },
     )

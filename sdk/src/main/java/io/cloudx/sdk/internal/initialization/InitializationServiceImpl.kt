@@ -1,6 +1,8 @@
 package io.cloudx.sdk.internal.initialization
 
 import android.content.Context
+import androidx.core.content.edit
+import com.xor.XorEncryption
 import io.cloudx.sdk.BuildConfig
 import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.AdType
@@ -22,9 +24,12 @@ import io.cloudx.sdk.internal.deviceinfo.DeviceInfoProvider
 import io.cloudx.sdk.internal.exception.SdkCrashHandler
 import io.cloudx.sdk.internal.geo.GeoApi
 import io.cloudx.sdk.internal.geo.GeoInfoHolder
+import io.cloudx.sdk.internal.imp_tracker.ClickCounterTracker
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.EventType
 import io.cloudx.sdk.internal.imp_tracker.TrackingFieldResolver
+import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTrackerNew
+import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsType
 import io.cloudx.sdk.internal.privacy.PrivacyService
 import io.cloudx.sdk.internal.state.SdkKeyValueState
 import io.cloudx.sdk.internal.util.normalizeAndHash
@@ -35,12 +40,7 @@ import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.util.UUID
 import kotlin.system.measureTimeMillis
-import androidx.core.content.edit
-import com.xor.XorEncryption
 import io.cloudx.sdk.CloudXErrorCodes
-import io.cloudx.sdk.internal.imp_tracker.ClickCounterTracker
-import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTrackerNew
-import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsType
 import io.cloudx.sdk.internal.kill_switch.KillSwitch
 
 /**
@@ -74,10 +74,11 @@ internal class InitializationServiceImpl(
     }
 
     private fun registerSdkCrashHandler() {
-        val current = Thread.getDefaultUncaughtExceptionHandler()
-        if (current !is SdkCrashHandler) {  // <---- Only set if not already set by us
+        val currentHandler = Thread.getDefaultUncaughtExceptionHandler()
+        if (currentHandler !is SdkCrashHandler) {  // <---- Only set if not already set by us
             Thread.setDefaultUncaughtExceptionHandler(
                 SdkCrashHandler { thread, throwable ->
+                    currentHandler?.uncaughtException(thread, throwable)
                     if (!isSdkRelatedError(throwable)) return@SdkCrashHandler
 
                     config?.let {
@@ -317,7 +318,7 @@ internal class InitializationServiceImpl(
 
         val eventId = UUID.randomUUID().toString()
         val bidRequestParams = BidRequestProvider.Params(
-            adId = "",
+            placementId = "",
             adType = AdType.Banner.Standard,
             placementName = "",
             accountId = cfg.accountId ?: "",

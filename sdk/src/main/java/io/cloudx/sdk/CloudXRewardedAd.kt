@@ -18,7 +18,7 @@ import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTrackerNew
 
 // TODO. Refactor. This should do for now.
-interface CloudXRewardedAd : BaseFullscreenAd
+interface CloudXRewardedAd : CloudXFullscreenAd
 
 interface RewardedInterstitialListener : CloudXAdListener {
 
@@ -90,7 +90,7 @@ private class RewardedInterstitialImpl(
     appLifecycleService: AppLifecycleService,
     private val listener: RewardedInterstitialListener,
 ) : CloudXRewardedAd,
-    BaseFullscreenAd by BaseFullscreenAdImpl(
+    CloudXFullscreenAd by CloudXFullscreenAdImpl(
         bidAdSource,
         bidMaxBackOffTimeMillis,
         bidAdLoadTimeoutMillis,

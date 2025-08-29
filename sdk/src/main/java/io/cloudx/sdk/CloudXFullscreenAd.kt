@@ -26,7 +26,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 /**
  * Base fullscreen ad interface
  */
-interface BaseFullscreenAd : CloudXAdToDisplayInfoApi, Destroyable {
+interface CloudXFullscreenAd : CloudXAdToDisplayInfoApi, Destroyable {
 
     /**
      * Tells about current ad load status.
@@ -39,19 +39,19 @@ interface BaseFullscreenAd : CloudXAdToDisplayInfoApi, Destroyable {
     fun setIsAdLoadedListener(listener: CloudXIsAdLoadedListener?)
 
     /**
+     * Loads ad; if ad is loaded, successful listener's [onAdLoadSuccess()][CloudXAdListener.onAdLoaded] will be invoked; [onAdLoadFailed()][CloudXAdListener.onAdLoadFailed] otherwise.
+     */
+    fun load()
+
+    /**
      * Shows ad; if show is successful listener's [onAdShowSuccess()][CloudXAdListener.onAdDisplayed] will be invoked; [onAdShowFailed()][CloudXAdListener.onAdDisplayFailed] otherwise;
      * Ad fail can happen when ad is not [loaded][load] yet or due to internal ad display error.
      */
     fun show()
-
-    /**
-     * Loads ad; if ad is loaded, successful listener's [onAdLoadSuccess()][CloudXAdListener.onAdLoaded] will be invoked; [onAdLoadFailed()][CloudXAdListener.onAdLoadFailed] otherwise.
-     */
-    fun load()
 }
 
 // TODO. Yeah, more generics, classes, interfaces...
-internal class BaseFullscreenAdImpl<
+internal class CloudXFullscreenAdImpl<
         SuspendableFullscreenAd : SuspendableBaseFullscreenAd<SuspendableFullscreenAdEvent>,
         SuspendableFullscreenAdEvent,
         PublisherListener : CloudXAdListener,
@@ -67,7 +67,7 @@ internal class BaseFullscreenAdImpl<
     // TODO. Ahaha. stop it, please.
     // Listens to the current ad events and returns BaseSuspendableFullscreenAdEvent if similar.
     private val tryHandleCurrentEvent: SuspendableFullscreenAdEvent.(cloudXAd: CloudXAd) -> BaseSuspendableFullscreenAdEvent?
-) : BaseFullscreenAd {
+) : CloudXFullscreenAd {
 
     private val scope = CoroutineScope(Dispatchers.Main)
 

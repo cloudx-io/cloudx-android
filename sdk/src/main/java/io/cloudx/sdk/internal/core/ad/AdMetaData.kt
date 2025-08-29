@@ -6,5 +6,5 @@ internal interface AdMetaData {
 
     val price: Double?
     val adNetwork: AdNetwork
-    val adUnitId: String
+    val placementId: String
 }

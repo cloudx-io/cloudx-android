@@ -16,9 +16,9 @@ import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTrackerNew
 
 // TODO. Refactor. This should do for now.
-interface CloudXInterstitialAd : BaseFullscreenAd
+interface CloudXInterstitialAd : CloudXFullscreenAd
 
-interface InterstitialListener : CloudXAdListener
+interface CloudXInterstitialListener : CloudXAdListener
 
 internal fun Interstitial(
     activity: Activity,
@@ -35,7 +35,7 @@ internal fun Interstitial(
     metricsTrackerNew: MetricsTrackerNew,
     connectionStatusService: ConnectionStatusService,
     appLifecycleService: AppLifecycleService,
-    listener: InterstitialListener,
+    listener: CloudXInterstitialListener,
     accountId: String,
     appKey: String
 ): CloudXInterstitialAd {
@@ -79,9 +79,9 @@ private class InterstitialImpl(
     cacheSize: Int,
     connectionStatusService: ConnectionStatusService,
     appLifecycleService: AppLifecycleService,
-    private val listener: InterstitialListener,
+    private val listener: CloudXInterstitialListener,
 ) : CloudXInterstitialAd,
-    BaseFullscreenAd by BaseFullscreenAdImpl(
+    CloudXFullscreenAd by CloudXFullscreenAdImpl(
         bidAdSource,
         bidMaxBackOffTimeMillis,
         bidAdLoadTimeoutMillis,

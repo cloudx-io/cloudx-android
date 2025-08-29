@@ -59,7 +59,7 @@ class BidApiTest: RoboMockkTest() {
     @Ignore("TODO: Robolectric getApplicationContext mocking")
     fun endpointRequestResultSuccess() = runTest {
         val params = BidRequestProvider.Params(
-            adId = "mrec-300x250-538295628539",
+            placementId = "mrec-300x250-538295628539",
             adType = AdType.Banner.MREC,
             placementName = "",
             accountId = "",

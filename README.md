@@ -59,9 +59,7 @@ dependencies {
     implementation("io.cloudx:sdk:0.0.1.40")
     
     // Optional: CloudX Adapters (add as needed)
-    // implementation("io.cloudx:adapter-google:0.0.1.14")
     // implementation("io.cloudx:adapter-meta:0.0.1.00")
-    // implementation("io.cloudx:adapter-mintegral:0.0.1.00")
 }
 ```
 
@@ -69,53 +67,16 @@ dependencies {
 
 ## Quick Start
 
-### 1. Import the SDK
+### 1. Initialize the SDK
 
 **Kotlin:**
 ```kotlin
-import io.cloudx.sdk.CloudX
-import io.cloudx.sdk.CloudXPrivacy
-import io.cloudx.sdk.CloudXAdView
-import io.cloudx.sdk.CloudXAdViewListener
-import io.cloudx.sdk.CloudXInterstitialAd
-import io.cloudx.sdk.CloudXRewardedAd
-```
-
-**Java:**
-```java
-import io.cloudx.sdk.CloudX;
-import io.cloudx.sdk.CloudXPrivacy;
-import io.cloudx.sdk.CloudXAdView;
-import io.cloudx.sdk.CloudXAdViewListener;
-import io.cloudx.sdk.CloudXInterstitialAd;
-import io.cloudx.sdk.CloudXRewardedAd;
-```
-
-### 2. Initialize the SDK
-
-**Kotlin:**
-```kotlin
-// Initialize with app key only
+// Initialize with app key and optional hashed user ID
 CloudX.initialize(
     context = this,
     initializationParams = CloudX.InitializationParams(
         appKey = "your-app-key-here",
-        initEndpointUrl = "https://your-config-endpoint.com"
-    )
-) { status ->
-    if (status.initialized) {
-        Log.d("CloudX", "✅ CloudX SDK initialized successfully")
-    } else {
-        Log.e("CloudX", "❌ Failed to initialize CloudX SDK: ${status.description}")
-    }
-}
-
-// Initialize with app key and hashed user ID
-CloudX.initialize(
-    context = this,
-    initializationParams = CloudX.InitializationParams(
-        appKey = "your-app-key-here",
-        initEndpointUrl = "https://your-config-endpoint.com",
+        initEndpointUrl = "https://pro.cloudx.io/sdk",
         hashedUserId = "hashed-user-id-optional"
     )
 ) { status ->
@@ -129,28 +90,12 @@ CloudX.initialize(
 
 **Java:**
 ```java
-// Initialize with app key only
+// Initialize with app key and optional hashed user ID
 CloudX.initialize(
     this,
     new CloudX.InitializationParams(
         "your-app-key-here",
-        "https://your-config-endpoint.com"
-    ),
-    status -> {
-        if (status.getInitialized()) {
-            Log.d("CloudX", "✅ CloudX SDK initialized successfully");
-        } else {
-            Log.e("CloudX", "❌ Failed to initialize CloudX SDK: " + status.getDescription());
-        }
-    }
-);
-
-// Initialize with app key and hashed user ID
-CloudX.initialize(
-    this,
-    new CloudX.InitializationParams(
-        "your-app-key-here",
-        "https://your-config-endpoint.com",
+        "https://pro.cloudx.io/sdk",
         "hashed-user-id-optional"
     ),
     status -> {
@@ -163,7 +108,7 @@ CloudX.initialize(
 );
 ```
 
-### 3. Check SDK Status
+### 2. Check SDK Status
 
 **Kotlin:**
 ```kotlin
@@ -359,6 +304,182 @@ public class MainActivity extends AppCompatActivity implements CloudXAdViewListe
 }
 ```
 
+### MREC Ads (Medium Rectangle)
+
+MREC ads are 300x250 pixel banner ads that provide more space for rich content.
+
+**Kotlin:**
+```kotlin
+class MainActivity : AppCompatActivity(), CloudXAdViewListener {
+    private var mrecAd: CloudXAdView? = null
+    
+    private fun createMRECAd() {
+        // Create MREC ad
+        mrecAd = CloudX.createMREC(
+            activity = this,
+            placementName = "your-mrec-placement",
+            listener = this
+        )
+        
+        mrecAd?.let { ad ->
+            // Add to view hierarchy with proper sizing
+            val layoutParams = LinearLayout.LayoutParams(
+                resources.getDimensionPixelSize(R.dimen.mrec_width), // 300dp
+                resources.getDimensionPixelSize(R.dimen.mrec_height) // 250dp
+            )
+            layoutParams.gravity = Gravity.CENTER_HORIZONTAL
+            
+            findViewById<LinearLayout>(R.id.mrec_container).addView(ad, layoutParams)
+        } ?: run {
+            Log.e("CloudX", "Failed to create MREC ad - check placement name and SDK initialization")
+        }
+    }
+    
+    override fun onResume() {
+        super.onResume()
+        mrecAd?.show()
+    }
+    
+    override fun onPause() {
+        super.onPause()
+        mrecAd?.hide()
+    }
+    
+    override fun onDestroy() {
+        super.onDestroy()
+        mrecAd?.destroy()
+    }
+    
+    // CloudXAdViewListener callbacks
+    override fun onAdLoaded(cloudXAd: CloudXAd) {
+        Log.d("CloudX", "✅ MREC ad loaded successfully from ${cloudXAd.networkName}")
+    }
+    
+    override fun onAdLoadFailed(cloudXAdError: CloudXAdError) {
+        Log.e("CloudX", "❌ MREC ad failed to load: ${cloudXAdError.description}")
+    }
+    
+    override fun onAdDisplayed(cloudXAd: CloudXAd) {
+        Log.d("CloudX", "👀 MREC ad shown from ${cloudXAd.networkName}")
+    }
+    
+    override fun onAdClicked(cloudXAd: CloudXAd) {
+        Log.d("CloudX", "👆 MREC ad clicked from ${cloudXAd.networkName}")
+    }
+    
+    override fun onAdHidden(cloudXAd: CloudXAd) {
+        Log.d("CloudX", "🔚 MREC ad hidden from ${cloudXAd.networkName}")
+    }
+    
+    override fun onAdDisplayFailed(cloudXAdError: CloudXAdError) {
+        Log.e("CloudX", "❌ MREC ad failed to display: ${cloudXAdError.description}")
+    }
+    
+    override fun onAdExpanded(placementName: String) {
+        Log.d("CloudX", "📈 MREC ad expanded for placement: $placementName")
+    }
+    
+    override fun onAdCollapsed(placementName: String) {
+        Log.d("CloudX", "📉 MREC ad collapsed for placement: $placementName")
+    }
+}
+```
+
+**Java:**
+```java
+public class MainActivity extends AppCompatActivity implements CloudXAdViewListener {
+    private CloudXAdView mrecAd;
+    
+    private void createMRECAd() {
+        // Create MREC ad
+        mrecAd = CloudX.createMREC(
+            this,
+            "your-mrec-placement",
+            this
+        );
+        
+        if (mrecAd != null) {
+            // Add to view hierarchy with proper sizing
+            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
+                getResources().getDimensionPixelSize(R.dimen.mrec_width), // 300dp
+                getResources().getDimensionPixelSize(R.dimen.mrec_height) // 250dp
+            );
+            layoutParams.gravity = Gravity.CENTER_HORIZONTAL;
+            
+            LinearLayout container = findViewById(R.id.mrec_container);
+            container.addView(mrecAd, layoutParams);
+        } else {
+            Log.e("CloudX", "Failed to create MREC ad - check placement name and SDK initialization");
+        }
+    }
+    
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (mrecAd != null) {
+            mrecAd.show();
+        }
+    }
+    
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (mrecAd != null) {
+            mrecAd.hide();
+        }
+    }
+    
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mrecAd != null) {
+            mrecAd.destroy();
+        }
+    }
+    
+    // CloudXAdViewListener callbacks
+    @Override
+    public void onAdLoaded(CloudXAd cloudXAd) {
+        Log.d("CloudX", "✅ MREC ad loaded successfully from " + cloudXAd.getNetworkName());
+    }
+    
+    @Override
+    public void onAdLoadFailed(CloudXAdError cloudXAdError) {
+        Log.e("CloudX", "❌ MREC ad failed to load: " + cloudXAdError.getDescription());
+    }
+    
+    @Override
+    public void onAdDisplayed(CloudXAd cloudXAd) {
+        Log.d("CloudX", "👀 MREC ad shown from " + cloudXAd.getNetworkName());
+    }
+    
+    @Override
+    public void onAdClicked(CloudXAd cloudXAd) {
+        Log.d("CloudX", "👆 MREC ad clicked from " + cloudXAd.getNetworkName());
+    }
+    
+    @Override
+    public void onAdHidden(CloudXAd cloudXAd) {
+        Log.d("CloudX", "🔚 MREC ad hidden from " + cloudXAd.getNetworkName());
+    }
+    
+    @Override
+    public void onAdDisplayFailed(CloudXAdError cloudXAdError) {
+        Log.e("CloudX", "❌ MREC ad failed to display: " + cloudXAdError.getDescription());
+    }
+    
+    @Override
+    public void onAdExpanded(String placementName) {
+        Log.d("CloudX", "📈 MREC ad expanded for placement: " + placementName);
+    }
+    
+    @Override
+    public void onAdCollapsed(String placementName) {
+        Log.d("CloudX", "📉 MREC ad collapsed for placement: " + placementName);
+    }
+}
+```
+
 ### Interstitial Ads
 
 Interstitial ads are full-screen ads that appear between app content.
@@ -508,270 +629,6 @@ public class MainActivity extends AppCompatActivity implements CloudXInterstitia
     @Override
     public void onAdClicked(CloudXAd cloudXAd) {
         Log.d("CloudX", "👆 Interstitial ad clicked from " + cloudXAd.getNetworkName());
-    }
-}
-```
-
-### Rewarded Ads
-
-Rewarded ads are full-screen ads that provide rewards to users for watching.
-
-**Kotlin:**
-```kotlin
-class MainActivity : AppCompatActivity(), RewardedInterstitialListener {
-    private var rewardedAd: CloudXRewardedAd? = null
-    
-    private fun createRewardedAd() {
-        // Create rewarded ad
-        rewardedAd = CloudX.createRewardedInterstitial(
-            activity = this,
-            placementName = "your-rewarded-placement",
-            listener = this
-        )
-        
-        rewardedAd?.let { ad ->
-            // Load the ad
-            ad.load()
-        } ?: run {
-            Log.e("CloudX", "Failed to create rewarded ad")
-        }
-    }
-    
-    private fun showRewardedAd() {
-        rewardedAd?.let { ad ->
-            if (ad.isAdLoaded) {
-                ad.show()
-            } else {
-                Log.w("CloudX", "Rewarded ad not ready yet")
-            }
-        }
-    }
-    
-    override fun onDestroy() {
-        super.onDestroy()
-        rewardedAd?.destroy()
-    }
-    
-    // RewardedInterstitialListener callbacks
-    override fun onAdLoaded(cloudXAd: CloudXAd) {
-        Log.d("CloudX", "✅ Rewarded ad loaded successfully from ${cloudXAd.networkName}")
-    }
-    
-    override fun onAdLoadFailed(cloudXAdError: CloudXAdError) {
-        Log.e("CloudX", "❌ Rewarded ad failed to load: ${cloudXAdError.description}")
-    }
-    
-    override fun onAdDisplayed(cloudXAd: CloudXAd) {
-        Log.d("CloudX", "👀 Rewarded ad shown from ${cloudXAd.networkName}")
-    }
-    
-    override fun onAdDisplayFailed(cloudXAdError: CloudXAdError) {
-        Log.e("CloudX", "❌ Rewarded ad failed to show: ${cloudXAdError.description}")
-    }
-    
-    override fun onAdHidden(cloudXAd: CloudXAd) {
-        Log.d("CloudX", "🔚 Rewarded ad hidden from ${cloudXAd.networkName}")
-        // Reload for next use
-        createRewardedAd()
-    }
-    
-    override fun onAdClicked(cloudXAd: CloudXAd) {
-        Log.d("CloudX", "👆 Rewarded ad clicked from ${cloudXAd.networkName}")
-    }
-    
-    // Rewarded-specific callback
-    override fun onUserRewarded(cloudXAd: CloudXAd) {
-        Log.d("CloudX", "🎁 User earned reward from ${cloudXAd.networkName}!")
-        // Handle reward here
-        showRewardDialog()
-    }
-    
-    private fun showRewardDialog() {
-        AlertDialog.Builder(this)
-            .setTitle("Reward Earned!")
-            .setMessage("You earned a reward!")
-            .setPositiveButton("OK", null)
-            .show()
-    }
-}
-```
-
-**Java:**
-```java
-public class MainActivity extends AppCompatActivity implements RewardedInterstitialListener {
-    private CloudXRewardedAd rewardedAd;
-    
-    private void createRewardedAd() {
-        // Create rewarded ad
-        rewardedAd = CloudX.createRewardedInterstitial(
-            this,
-            "your-rewarded-placement",
-            this
-        );
-        
-        if (rewardedAd != null) {
-            // Load the ad
-            rewardedAd.load();
-        } else {
-            Log.e("CloudX", "Failed to create rewarded ad");
-        }
-    }
-    
-    private void showRewardedAd() {
-        if (rewardedAd != null) {
-            if (rewardedAd.getIsAdLoaded()) {
-                rewardedAd.show();
-            } else {
-                Log.w("CloudX", "Rewarded ad not ready yet");
-            }
-        }
-    }
-    
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (rewardedAd != null) {
-            rewardedAd.destroy();
-        }
-    }
-    
-    // RewardedInterstitialListener callbacks
-    @Override
-    public void onAdLoaded(CloudXAd cloudXAd) {
-        Log.d("CloudX", "✅ Rewarded ad loaded successfully from " + cloudXAd.getNetworkName());
-    }
-    
-    @Override
-    public void onAdLoadFailed(CloudXAdError cloudXAdError) {
-        Log.e("CloudX", "❌ Rewarded ad failed to load: " + cloudXAdError.getDescription());
-    }
-    
-    @Override
-    public void onAdDisplayed(CloudXAd cloudXAd) {
-        Log.d("CloudX", "👀 Rewarded ad shown from " + cloudXAd.getNetworkName());
-    }
-    
-    @Override
-    public void onAdDisplayFailed(CloudXAdError cloudXAdError) {
-        Log.e("CloudX", "❌ Rewarded ad failed to show: " + cloudXAdError.getDescription());
-    }
-    
-    @Override
-    public void onAdHidden(CloudXAd cloudXAd) {
-        Log.d("CloudX", "🔚 Rewarded ad hidden from " + cloudXAd.getNetworkName());
-        // Reload for next use
-        createRewardedAd();
-    }
-    
-    @Override
-    public void onAdClicked(CloudXAd cloudXAd) {
-        Log.d("CloudX", "👆 Rewarded ad clicked from " + cloudXAd.getNetworkName());
-    }
-    
-    // Rewarded-specific callback
-    @Override
-    public void onUserRewarded(CloudXAd cloudXAd) {
-        Log.d("CloudX", "🎁 User earned reward from " + cloudXAd.getNetworkName() + "!");
-        // Handle reward here
-        showRewardDialog();
-    }
-    
-    private void showRewardDialog() {
-        new AlertDialog.Builder(this)
-            .setTitle("Reward Earned!")
-            .setMessage("You earned a reward!")
-            .setPositiveButton("OK", null)
-            .show();
-    }
-}
-```
-
-### Native Ads
-
-Native ads are designed to match the look and feel of your app's content.
-
-**Kotlin:**
-```kotlin
-class MainActivity : AppCompatActivity(), CloudXAdViewListener {
-    private var nativeAdSmall: CloudXAdView? = null
-    private var nativeAdMedium: CloudXAdView? = null
-    
-    private fun createNativeAds() {
-        // Create small native ad
-        nativeAdSmall = CloudX.createNativeAdSmall(
-            activity = this,
-            placementName = "your-native-small-placement",
-            listener = this
-        )
-        
-        // Create medium native ad
-        nativeAdMedium = CloudX.createNativeAdMedium(
-            activity = this,
-            placementName = "your-native-medium-placement", 
-            listener = this
-        )
-        
-        // Add to view hierarchy
-        nativeAdSmall?.let { ad ->
-            findViewById<LinearLayout>(R.id.native_small_container).addView(ad)
-        }
-        
-        nativeAdMedium?.let { ad ->
-            findViewById<LinearLayout>(R.id.native_medium_container).addView(ad)
-        }
-    }
-    
-    override fun onDestroy() {
-        super.onDestroy()
-        nativeAdSmall?.destroy()
-        nativeAdMedium?.destroy()
-    }
-    
-    // CloudXAdViewListener callbacks (same as banner ads)
-    override fun onAdLoaded(cloudXAd: CloudXAd) {
-        Log.d("CloudX", "✅ Native ad loaded successfully from ${cloudXAd.networkName}")
-    }
-    
-    override fun onAdLoadFailed(cloudXAdError: CloudXAdError) {
-        Log.e("CloudX", "❌ Native ad failed to load: ${cloudXAdError.description}")
-    }
-    
-    // ... other callback implementations
-}
-```
-
-### MREC Ads (Medium Rectangle)
-
-MREC ads are 300x250 pixel banner ads that provide more space for rich content.
-
-**Kotlin:**
-```kotlin
-class MainActivity : AppCompatActivity(), CloudXAdViewListener {
-    private var mrecAd: CloudXAdView? = null
-    
-    private fun createMRECAd() {
-        // Create MREC ad
-        mrecAd = CloudX.createMREC(
-            activity = this,
-            placementName = "your-mrec-placement",
-            listener = this
-        )
-        
-        mrecAd?.let { ad ->
-            // Add to view hierarchy with proper sizing
-            val layoutParams = LinearLayout.LayoutParams(
-                resources.getDimensionPixelSize(R.dimen.mrec_width), // 300dp
-                resources.getDimensionPixelSize(R.dimen.mrec_height) // 250dp
-            )
-            layoutParams.gravity = Gravity.CENTER_HORIZONTAL
-            
-            findViewById<LinearLayout>(R.id.mrec_container).addView(ad, layoutParams)
-        }
-    }
-    
-    override fun onDestroy() {
-        super.onDestroy()
-        mrecAd?.destroy()
     }
 }
 ```

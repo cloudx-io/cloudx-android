@@ -1,20 +1,18 @@
 plugins {
-    id("com.android.library")
-    kotlin("android")
-    id("com.vanniktech.maven.publish") version "0.34.0"
+    alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.kotlinAndroid)
+    alias(libs.plugins.mavenPublish)
 }
-
-private val releaseVariant = "release"
 
 android {
     namespace = "io.cloudx.adapter.testbidnetwork"
 
-    compileSdk = 35
+    compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
-        minSdk = 21
+        minSdk = libs.versions.minSdk.get().toInt()
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = libs.versions.testInstrumentationRunner.get()
         consumerProguardFiles("consumer-rules.pro") // TODO
     }
 
@@ -44,7 +42,7 @@ android {
 
     // Inlined from setupKotlinJvmOptions
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = libs.versions.kotlinJvmTarget.get()
     }
 
     // Inlined from setupTestOptions
@@ -59,31 +57,21 @@ android {
 
 dependencies {
     implementation(project(":sdk"))
-    implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("androidx.webkit:webkit:1.10.0")
-    implementation("androidx.browser:browser:1.7.0")
+    implementation(libs.appcompat)
+    implementation(libs.webkit)
+    implementation(libs.customtabs)
 
-    // Test dependencies from test-unit
-    testImplementation("junit:junit:4.13.2")
-    testImplementation("org.robolectric:robolectric:4.10.3")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
-    testImplementation("io.ktor:ktor-client-mock:2.3.7")
-    testImplementation("io.mockk:mockk-agent:1.13.8")
-    testImplementation("io.mockk:mockk-android:1.13.8")
-
-    // Test dependencies from test-instrumentation
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
-    androidTestImplementation("io.mockk:mockk-agent:1.13.8")
-    androidTestImplementation("io.mockk:mockk-android:1.13.8")
+    // Test dependencies
+    testImplementation(libs.bundles.test.unit)
+    androidTestImplementation(libs.bundles.test.instrumentation)
     // Required for ANDROIDX_TEST_ORCHESTRATOR
-    androidTestUtil("androidx.test:orchestrator:1.4.2")
+    androidTestUtil(libs.androidx.test.orchestrator)
 }
 
 mavenPublishing {
     publishToMavenCentral(automaticRelease = true)
     signAllPublications()
-    coordinates("io.cloudx", "adapter-testbidder", project.findProperty("version") as String? ?: "0.0.1.27")
+    coordinates(libs.versions.mavenGroupId.get(), "adapter-testbidder", project.findProperty("version") as String? ?: "0.0.1.27")
 
     pom {
         name.set("CloudX Adapter - TestBidder")

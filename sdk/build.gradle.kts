@@ -1,11 +1,8 @@
 plugins {
-    id("com.android.library")
-    kotlin("android")
-
-    id("com.vanniktech.maven.publish") version "0.34.0"
-
-    id("org.jetbrains.dokka")
-
+    alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.kotlinAndroid)
+    alias(libs.plugins.mavenPublish)
+    alias(libs.plugins.dokka)
     alias(libs.plugins.ksp)
     jacoco
 }
@@ -14,7 +11,7 @@ mavenPublishing {
     // Use the new Central Publisher Portal (S01)
     publishToMavenCentral(automaticRelease = true)
     signAllPublications()
-    coordinates("io.cloudx", "sdk", project.findProperty("version") as String? ?: "0.0.1.36")
+    coordinates(libs.versions.mavenGroupId.get(), "sdk", project.findProperty("version") as String? ?: libs.versions.sdkVersionName.get())
 
     pom {
         name.set("CloudX SDK")
@@ -43,21 +40,15 @@ mavenPublishing {
     }
 }
 
-
-private val releaseVariant = "release"
-// Read version from command line -PversionName=..., fallback to libs.sdkVersionName
-val resolvedVersion = project.findProperty("versionName") as String?
-    ?: libs.versions.sdkVersionName
-
 android {
     namespace = libs.versions.sdkPackageName.get()
 
-    compileSdk = 35
+    compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
-        minSdk = 21
+        minSdk = libs.versions.minSdk.get().toInt()
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = libs.versions.testInstrumentationRunner.get()
         consumerProguardFiles("consumer-rules.pro")
 
         buildConfigField("String", "SDK_VERSION_NAME", "\"${libs.versions.sdkVersionName.get()}\"")

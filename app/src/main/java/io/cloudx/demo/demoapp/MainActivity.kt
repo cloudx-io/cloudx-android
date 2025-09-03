@@ -334,7 +334,6 @@ class MainActivity : AppCompatActivity(R.layout.activity_main),
                         Handler(Looper.getMainLooper()).postDelayed({
                             CloudX.setHashedUserId(finalHashedEmail)
                             CloudXLogger.info(TAG, "📧 Hashed Email → Registered after delay")
-                            println("hop: 📧 hashed user ID injected after delay: $finalHashedEmail")
                         }, emailInjectionDelayMS)
                     }
 

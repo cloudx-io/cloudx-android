@@ -92,8 +92,6 @@ private fun Context.updateGppSharedPrefs() {
     val gppString = prefs.getString(gppStringKey, null)
     val gppSid = prefs.getString(gppSidKey, null)
 
-    println("CloudXInitializer: gppString: $gppString, gppSid: $gppSid")
-
     prefs.edit().apply {
         if (!gppString.isNullOrBlank()) {
             putString("IABGPP_HDR_GppString", gppString)

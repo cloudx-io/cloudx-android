@@ -40,8 +40,6 @@ internal class BidApiImpl(
         Logger.d(
             tag, "Attempting bid request:\n  Endpoint: $endpointUrl\n  Request Body: $requestBody"
         )
-        println("Attempting bid request:\n  Endpoint: $endpointUrl\n  Request Body: $requestBody")
-
         val cyclingResult = cyclingBarrierRetry(
             maxAttemptsPerGroup = 3,
             delayBetweenAttemptsMs = 10_000,
@@ -62,31 +60,24 @@ internal class BidApiImpl(
                         "HTTP ${response.status}\n$responseBody"
             )
 
-            println("Bid request attempt $attempt (group $group): HTTP ${response.status}\n$responseBody")
-
             when {
                 response.status.value >= 500 -> {
-                    println("Server error, retrying: ${response.status.value}")
                     BidAttemptResult.HardError(response.status.value, responseBody)
                 }
 
                 response.status == HttpStatusCode.OK -> {
-                    println("Bid request successful, parsing response")
                     when (val parsed = jsonToBidResponse(responseBody)) {
                         is Result.Success -> {
-                            println("Bid response parsed successfully")
                             BidAttemptResult.Success(parsed.value, responseBody)
                         }
 
                         is Result.Failure -> {
-                            println("Failed to parse bid response")
                             BidAttemptResult.SoftError(responseBody)
                         }
                     }
                 }
 
                 else -> {
-                    println("Unexpected response status, retrying: ${response.status.value}")
                     Logger.e("MainActivity", "Unexpected response status: ${response.status.value}")
                     BidAttemptResult.HardError(response.status.value, responseBody)
                 }
@@ -95,7 +86,6 @@ internal class BidApiImpl(
 
         return when (cyclingResult) {
             is CyclingRetryResult.Success -> {
-                println("Cycling completed successfully")
                 val bidResponse = (cyclingResult.value as BidAttemptResult.Success).bidResponse
                 val raw = cyclingResult.value.raw
                 TrackingFieldResolver.setResponseData(bidResponse.auctionId, JSONObject(raw))
@@ -103,14 +93,12 @@ internal class BidApiImpl(
             }
 
             is CyclingRetryResult.SoftError -> {
-                println("Soft error encountered, no bid")
                 val raw = (cyclingResult.value as BidAttemptResult.SoftError).raw
                 Logger.e(tag, "Soft error, no bid: $raw")
                 Result.Failure(Error("Soft error (no bid)"))
             }
 
             is CyclingRetryResult.HardError -> {
-                println("All attempts failed with hard error")
                 Logger.e(tag, "All cycling attempts failed: ${cyclingResult.error.message}")
                 Result.Failure(Error(cyclingResult.error.message ?: "Unknown error"))
             }

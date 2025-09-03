@@ -35,7 +35,6 @@ internal class EventTrackerBulkApiImpl(
 
         return try {
             val requestJson = items.toJson()
-            println("EventTrackingBulk Request JSON: $requestJson")
             val response = httpClient.post(endpointUrl) {
                 timeout { requestTimeoutMillis = timeoutMillis }
                 setBody(requestJson)

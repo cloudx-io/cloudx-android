@@ -32,10 +32,6 @@ internal interface BidRequestProvider {
 }
 
 internal fun BidRequestProvider.Params.withEffectivePlacementId(): String {
-    if (placementName.isBlank()) {
-        println("❌ withEffectivePlacementId: placementId=$placementId (no placementName)")
-    }
-
     if (adType !is AdType.Interstitial && adType !is AdType.Rewarded) {
         PlacementLoopIndexTracker.getAndIncrement(placementName)
     }

@@ -312,12 +312,9 @@ private class BannerImpl(
                     val reason = lossReasons[bidItem.id] ?: return@forEachIndexed
 
                     if (!bidItem.lurl.isNullOrBlank()) {
-                        println("📤 Sending resolved lurl for index=$index, adNetwork=${bidItem.adNetwork}, rank=${bidItem.rank}, reason=${reason.name}")
                         CloudXLogger.debug(TAG, "Calling LURL for ${bidItem.adNetwork}, reason=${reason.name}, rank=${bidItem.rank}")
 
                         LossReporter.fireLoss(bidItem.lurl, reason)
-                    } else {
-                        println("ℹ️ No lurl to send for index=$index, adNetwork=${bidItem.adNetwork}")
                     }
                 }
             }
@@ -357,7 +354,6 @@ private class BannerImpl(
             banner.timeout()
             return LoadResult(null, LossReason.TechnicalError)
         } catch (e: Exception) {
-            println("⚠️ Failed to load banner: ${e.message}")
             return LoadResult(null, LossReason.TechnicalError)
         } finally {
             if (!isBannerLoaded) banner.destroy()

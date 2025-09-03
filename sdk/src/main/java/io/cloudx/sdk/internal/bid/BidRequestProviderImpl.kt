@@ -44,8 +44,6 @@ internal class BidRequestProviderImpl(
         withContext(Dispatchers.IO) {
 
             val piiRemove = privacyService.shouldClearPersonalData()
-            println("hop: piiRemove = $piiRemove for device object")
-
             val requestJson = JSONObject().apply {
 
                 put("id", auctionId)
@@ -298,9 +296,6 @@ fun JSONObject.putAtDynamicPath(path: String, value: Any) {
 }
 
 private suspend fun JSONObject.putRegsObject(privacyService: PrivacyService) {
-    val shouldClear = privacyService.shouldClearPersonalData()
-    println("hop: shouldClear = $shouldClear")
-
     put("regs", JSONObject().apply {
         val cloudXPrivacy = privacyService.cloudXPrivacy.value
 

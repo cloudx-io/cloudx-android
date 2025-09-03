@@ -84,9 +84,7 @@ internal object TrackingFieldResolver {
             resolveField(auctionId, field)?.toString().orEmpty()
         }
 
-        val payload = values.joinToString(";")
-        println("hop: payload = $payload, for CLICK event, auctionI-clickCount")
-        return payload
+        return values.joinToString(";")
     }
 
     fun setHashedGeoIp(hashedGeoIp: String) {

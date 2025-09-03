@@ -10,7 +10,6 @@ object PlacementLoopIndexTracker {
     fun getAndIncrement(placementName: String): Int {
         val current = loopIndexMap.getOrElse(placementName) { 0 }
         loopIndexMap[placementName] = current + 1
-        println("hop: markAndGet() → placement=$placementName, returning=$current, next=${current+1}")
         return current
     }
 
@@ -25,7 +24,6 @@ object PlacementLoopIndexTracker {
     }
 
     fun reset(placementName: String) {
-        println("hop: reset($placementName) → removed")
         loopIndexMap.remove(placementName)
     }
 

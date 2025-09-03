@@ -18,7 +18,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import io.cloudx.sdk.internal.CloudXLogger
-import io.cloudx.sdk.internal.Banner
+import io.cloudx.sdk.internal.ad_banner.Banner
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
 import io.cloudx.sdk.internal.common.createViewabilityTracker
 import io.cloudx.sdk.internal.common.dpToPx

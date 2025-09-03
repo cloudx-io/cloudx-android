@@ -1,4 +1,4 @@
-package io.cloudx.sdk.internal
+package io.cloudx.sdk.internal.ad_banner
 
 import android.app.Activity
 import kotlinx.coroutines.*

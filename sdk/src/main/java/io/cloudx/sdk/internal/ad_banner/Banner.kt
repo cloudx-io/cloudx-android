@@ -1,9 +1,12 @@
-package io.cloudx.sdk.internal
+package io.cloudx.sdk.internal.ad_banner
 
 import android.app.Activity
 import io.cloudx.sdk.CloudXAdViewListener
 import io.cloudx.sdk.CloudXAd
 import io.cloudx.sdk.Destroyable
+import io.cloudx.sdk.internal.AdNetwork
+import io.cloudx.sdk.internal.AdType
+import io.cloudx.sdk.internal.CloudXLogger
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
 import io.cloudx.sdk.internal.adapter.BannerFactoryMiscParams
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterFactory
@@ -23,6 +26,7 @@ import io.cloudx.sdk.internal.core.ad.source.bid.BidAdSourceResponse
 import io.cloudx.sdk.internal.core.ad.source.bid.BidBannerSource
 import io.cloudx.sdk.internal.core.ad.suspendable.SuspendableBanner
 import io.cloudx.sdk.internal.core.ad.suspendable.SuspendableBannerEvent
+import io.cloudx.sdk.internal.decorate
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTrackerNew
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsType
@@ -257,11 +261,17 @@ private class BannerImpl(
                 bidBackoffMechanism.notifySoftError()
 
                 // Delay after each batch of 3 fails
-                CloudXLogger.debug(TAG, "Soft error delay for ${bidBackoffMechanism.getBatchDelay()}ms (batch)")
+                CloudXLogger.debug(
+                    TAG,
+                    "Soft error delay for ${bidBackoffMechanism.getBatchDelay()}ms (batch)"
+                )
                 delay(bidBackoffMechanism.getBatchDelay())
 
                 if (bidBackoffMechanism.isBatchEnd) {
-                    CloudXLogger.debug(TAG, "Batch of 3 soft errors: Delaying for ${bidBackoffMechanism.getBarrierDelay()}ms (barrier pause)")
+                    CloudXLogger.debug(
+                        TAG,
+                        "Batch of 3 soft errors: Delaying for ${bidBackoffMechanism.getBarrierDelay()}ms (barrier pause)"
+                    )
 
                     // Additional barrier delay after each batch
                     delay(bidBackoffMechanism.getBarrierDelay())
@@ -312,7 +322,10 @@ private class BannerImpl(
                     val reason = lossReasons[bidItem.id] ?: return@forEachIndexed
 
                     if (!bidItem.lurl.isNullOrBlank()) {
-                        CloudXLogger.debug(TAG, "Calling LURL for ${bidItem.adNetwork}, reason=${reason.name}, rank=${bidItem.rank}")
+                        CloudXLogger.debug(
+                            TAG,
+                            "Calling LURL for ${bidItem.adNetwork}, reason=${reason.name}, rank=${bidItem.rank}"
+                        )
 
                         LossReporter.fireLoss(bidItem.lurl, reason)
                     }

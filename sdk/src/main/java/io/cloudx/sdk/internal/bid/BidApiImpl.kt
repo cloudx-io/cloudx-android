@@ -70,13 +70,13 @@ internal class BidApiImpl(
         } catch (e: CancellationException) {
             throw e
         } catch (e: HttpRequestTimeoutException) {
-            Result.Failure(CLXError(CLXErrorCode.NETWORK_TIMEOUT))
+            Result.Failure(CLXError(CLXErrorCode.NETWORK_TIMEOUT, cause = e))
         } catch (e: IOException) {
-            Result.Failure(CLXError(CLXErrorCode.NETWORK_ERROR))
+            Result.Failure(CLXError(CLXErrorCode.NETWORK_ERROR, cause = e))
         } catch (e: ServerResponseException) {
             handleResponse(e.response)
         } catch (e: Exception) {
-            Result.Failure(CLXError(CLXErrorCode.NETWORK_ERROR, e.message))
+            Result.Failure(CLXError(CLXErrorCode.NETWORK_ERROR, e.message, e))
         }
     }
 

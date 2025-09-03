@@ -3,9 +3,10 @@ package io.cloudx.sdk.internal
 /**
  * Generic CloudX Error class
  */
-internal class CLXError(
+internal data class CLXError(
     val code: CLXErrorCode, 
     val message: String? = null,
+    val cause: Throwable? = null
 ) {
     /**
      * Gets the effective error message - uses custom message if provided,

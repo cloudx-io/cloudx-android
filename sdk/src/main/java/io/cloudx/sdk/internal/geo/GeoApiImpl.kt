@@ -1,7 +1,8 @@
 package io.cloudx.sdk.internal.geo
 
 import io.cloudx.sdk.Result
-import io.cloudx.sdk.internal.Error
+import io.cloudx.sdk.internal.CLXError
+import io.cloudx.sdk.internal.CLXErrorCode
 import io.cloudx.sdk.internal.Logger
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.retry
@@ -18,7 +19,7 @@ internal class GeoApiImpl(
 
     private val tag = "GeoApiImpl"
 
-    override suspend fun fetchGeoHeaders(endpointUrl: String): Result<Map<String, String>, Error> {
+    override suspend fun fetchGeoHeaders(endpointUrl: String): Result<Map<String, String>, CLXError> {
         Logger.d(tag, "Fetching geo headers from $endpointUrl")
 
         return try {
@@ -45,11 +46,12 @@ internal class GeoApiImpl(
             if (response.status == HttpStatusCode.OK && headersMap.isNotEmpty()) {
                 Result.Success(headersMap)
             } else {
-                Result.Failure(Error("No headers found in response"))
+                Logger.d(tag, "No headers found in response")
+                Result.Failure(CLXError(CLXErrorCode.INVALID_RESPONSE))
             }
         } catch (e: Exception) {
             Logger.e(tag, "Geo fetch failed: ${e.message}")
-            Result.Failure(Error("Geo fetch failed: ${e.message}"))
+            Result.Failure(CLXError(CLXErrorCode.NETWORK_ERROR))
         }
     }
 }

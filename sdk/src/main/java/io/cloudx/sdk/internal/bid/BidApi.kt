@@ -1,7 +1,7 @@
 package io.cloudx.sdk.internal.bid
 
 import io.cloudx.sdk.Result
-import io.cloudx.sdk.internal.Error
+import io.cloudx.sdk.internal.CLXError
 import io.cloudx.sdk.internal.httpclient.CloudXHttpClient
 import org.json.JSONObject
 
@@ -11,7 +11,7 @@ import org.json.JSONObject
 internal interface BidApi {
 
     // TODO: removed `operator` keyword for better readability. Check consequences!
-    suspend fun invoke(appKey: String, bidRequest: JSONObject): Result<BidResponse, Error>
+    suspend fun invoke(appKey: String, bidRequest: JSONObject): Result<BidResponse, CLXError>
 }
 
 internal fun BidApi(endpointUrl: String, timeoutMillis: Long): BidApi = BidApiImpl(

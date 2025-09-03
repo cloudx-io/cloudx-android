@@ -1,7 +1,8 @@
 package io.cloudx.sdk.internal.config
 
 import io.cloudx.sdk.Result
-import io.cloudx.sdk.internal.Error
+import io.cloudx.sdk.internal.CLXError
+import io.cloudx.sdk.internal.CLXErrorCode
 import io.cloudx.sdk.internal.Logger
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.retry
@@ -27,7 +28,7 @@ internal class ConfigApiImpl(
     override suspend fun invoke(
         appKey: String,
         configRequest: ConfigRequest
-    ): Result<Config, Error> {
+    ): Result<Config, CLXError> {
         Logger.d(tag, buildString {
             appendLine("Attempting config request:")
             appendLine("  Endpoint: $endpointUrl")
@@ -96,20 +97,20 @@ internal class ConfigApiImpl(
                 when (val result = jsonToConfig(responseBody)) {
                     is Result.Success -> Result.Success(result.value)
                     is Result.Failure -> {
-                        Logger.e(tag, "Failed to parse config: ${result.value.description}")
+                        Logger.e(tag, "Failed to parse config: ${result.value.effectiveMessage}")
                         Result.Failure(result.value)
                     }
                 }
             } else {
                 val errStr = "Bad response status: ${response.status}"
                 Logger.e(tag, errStr)
-                Result.Failure(Error(errStr))
+                Result.Failure(CLXError(CLXErrorCode.SERVER_ERROR))
             }
 
         } catch (e: Exception) {
             val errStr = "Request failed: ${e.message}"
             Logger.e(tag, errStr)
-            Result.Failure(Error(errStr))
+            Result.Failure(CLXError(CLXErrorCode.NETWORK_ERROR))
         }
     }
 }

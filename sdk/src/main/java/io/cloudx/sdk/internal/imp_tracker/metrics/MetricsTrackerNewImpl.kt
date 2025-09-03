@@ -77,7 +77,7 @@ internal class MetricsTrackerNewImpl(
                 metrics.forEach { db.metricsEventDao().deleteById(it.id) }
             } else if (result is Result.Failure) {
                 Logger.e(
-                    "MetricsTrackerNewImpl", "Failed to send metrics: ${result.value.description}"
+                    "MetricsTrackerNewImpl", "Failed to send metrics: ${result.value.effectiveMessage}"
                 )
             }
         }

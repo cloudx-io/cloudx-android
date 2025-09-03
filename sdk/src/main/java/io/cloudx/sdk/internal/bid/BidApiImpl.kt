@@ -1,7 +1,8 @@
 package io.cloudx.sdk.internal.bid
 
 import io.cloudx.sdk.Result
-import io.cloudx.sdk.internal.Error
+import io.cloudx.sdk.internal.CLXError
+import io.cloudx.sdk.internal.CLXErrorCode
 import io.cloudx.sdk.internal.Logger
 import io.cloudx.sdk.internal.imp_tracker.TrackingFieldResolver
 import io.cloudx.sdk.internal.requestTimeoutMillis
@@ -34,7 +35,7 @@ internal class BidApiImpl(
 
     override suspend fun invoke(
         appKey: String, bidRequest: JSONObject
-    ): Result<BidResponse, Error> {
+    ): Result<BidResponse, CLXError> {
 
         val requestBody = withContext(Dispatchers.IO) { bidRequest.toString() }
         Logger.d(
@@ -95,12 +96,12 @@ internal class BidApiImpl(
             is CyclingRetryResult.SoftError -> {
                 val raw = (cyclingResult.value as BidAttemptResult.SoftError).raw
                 Logger.e(tag, "Soft error, no bid: $raw")
-                Result.Failure(Error("Soft error (no bid)"))
+                Result.Failure(CLXError(CLXErrorCode.NO_FILL))
             }
 
             is CyclingRetryResult.HardError -> {
                 Logger.e(tag, "All cycling attempts failed: ${cyclingResult.error.message}")
-                Result.Failure(Error(cyclingResult.error.message ?: "Unknown error"))
+                Result.Failure(CLXError(CLXErrorCode.SERVER_ERROR))
             }
         }
     }

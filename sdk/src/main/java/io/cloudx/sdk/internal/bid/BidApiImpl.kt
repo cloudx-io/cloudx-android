@@ -152,7 +152,7 @@ internal class BidApiImpl(
     private fun shouldRetry(result: Result<BidResponse, CLXError>): Long? {
         if (result is Result.Success) return null
 
-        val error = (result as Result.Failure).value
+        val error = (result as? Result.Failure)?.value ?: return null
         return when (error.code) {
             // Never retry these
             CLXErrorCode.ADS_DISABLED -> null

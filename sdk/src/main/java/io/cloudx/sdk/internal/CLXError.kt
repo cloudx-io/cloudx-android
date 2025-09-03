@@ -6,7 +6,6 @@ package io.cloudx.sdk.internal
 internal class CLXError(
     val code: CLXErrorCode, 
     val message: String? = null,
-    val payload: Any? = null
 ) {
     /**
      * Gets the effective error message - uses custom message if provided,
@@ -34,6 +33,7 @@ internal enum class CLXErrorCode(
     NETWORK_TIMEOUT(201, "Network request timed out."),
     INVALID_RESPONSE(202, "Invalid response received from server."),
     SERVER_ERROR(203, "Server error occurred."),
+    CLIENT_ERROR(204, "A client error occurred."),
 
     // --- Ad Loading (300–399)
     NO_FILL(300, "No ad available to show."),
@@ -61,6 +61,5 @@ internal enum class CLXErrorCode(
     INVALID_NATIVE_VIEW(504, "Native view is nil or invalid."),
 
     // --- General (600–699)
-    CLIENT_ERROR(600, "A client error occurred."),
-    UNKNOWN_ERROR(601, "An unknown error occurred.")
+    UNEXPECTED_ERROR(600, "An unexpected error occurred.")
 }

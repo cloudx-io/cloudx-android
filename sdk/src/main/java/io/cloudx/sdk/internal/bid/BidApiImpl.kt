@@ -4,15 +4,15 @@ import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.CLXError
 import io.cloudx.sdk.internal.CLXErrorCode
 import io.cloudx.sdk.internal.Logger
-import io.cloudx.sdk.internal.httpclient.CLOUDX_DEFAULT_RETRY_MS
-import io.cloudx.sdk.internal.httpclient.HDR_CLOUDX_RETRY_AFTER
-import io.cloudx.sdk.internal.httpclient.HDR_CLOUDX_STATUS
-import io.cloudx.sdk.internal.httpclient.STATUS_ADS_DISABLED
+import io.cloudx.sdk.internal.CLOUDX_DEFAULT_RETRY_MS
+import io.cloudx.sdk.internal.HEADER_CLOUDX_STATUS
+import io.cloudx.sdk.internal.STATUS_ADS_DISABLED
 import io.cloudx.sdk.internal.imp_tracker.TrackingFieldResolver
 import io.cloudx.sdk.internal.requestTimeoutMillis
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.client.plugins.ServerResponseException
+import io.ktor.client.plugins.retry
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -22,12 +22,10 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.io.IOException
 import kotlin.coroutines.cancellation.CancellationException
-import kotlin.math.max
 
 internal class BidApiImpl(
     private val endpointUrl: String,
@@ -45,15 +43,6 @@ internal class BidApiImpl(
         val requestBody = withContext(Dispatchers.IO) { bidRequest.toString() }
         Logger.d(tag, "Bid request → $endpointUrl\nBody: $requestBody")
 
-        // First attempt
-        val firstResult = makeRequest(appKey, requestBody)
-
-        // Check if we should retry
-        val retryDelayMs = shouldRetry(firstResult) ?: return firstResult
-        Logger.d(tag, "Retrying bid once after ${retryDelayMs}ms")
-
-        // Single retry with appropriate delay
-        delay(retryDelayMs)
         return makeRequest(appKey, requestBody)
     }
 
@@ -64,6 +53,18 @@ internal class BidApiImpl(
                 contentType(ContentType.Application.Json)
                 setBody(body)
                 requestTimeoutMillis(timeoutMillis)
+                retry {
+                    maxRetries = 1
+                    retryOnExceptionOrServerErrors() // Handles network exceptions + 5xx
+                    retryIf { _, response ->
+                        response.status.value == 429 // Too Many Requests
+                    }
+                    constantDelay(
+                        millis = CLOUDX_DEFAULT_RETRY_MS,
+                        randomizationMs = 1000L,
+                        respectRetryAfterHeader = true
+                    )
+                }
             }
             handleResponse(response)
         } catch (e: CancellationException) {
@@ -100,7 +101,7 @@ internal class BidApiImpl(
 
             // 204 No Bid
             response.status == HttpStatusCode.NoContent -> {
-                val xStatus = response.headers[HDR_CLOUDX_STATUS]
+                val xStatus = response.headers[HEADER_CLOUDX_STATUS]
                 if (xStatus == STATUS_ADS_DISABLED) {
                     Result.Failure(CLXError(CLXErrorCode.ADS_DISABLED))
                 } else {
@@ -110,12 +111,7 @@ internal class BidApiImpl(
 
             // 429
             response.status == HttpStatusCode.TooManyRequests -> {
-                val retryAfterMs = parseRetryAfter(response)
-                Result.Failure(
-                    CLXError(
-                        CLXErrorCode.TOO_MANY_REQUESTS, payload = retryAfterMs
-                    )
-                )
+                Result.Failure(CLXError(CLXErrorCode.TOO_MANY_REQUESTS))
             }
 
             response.status.value in 400..499 -> {
@@ -129,46 +125,11 @@ internal class BidApiImpl(
             else -> {
                 Result.Failure(
                     CLXError(
-                        CLXErrorCode.UNKNOWN_ERROR,
+                        CLXErrorCode.UNEXPECTED_ERROR,
                         "Unexpected status: ${response.status}"
                     )
                 )
             }
-        }
-    }
-
-    private fun parseRetryAfter(response: HttpResponse): Long {
-        val retryAfterHeader = response.headers[HDR_CLOUDX_RETRY_AFTER]
-        return if (retryAfterHeader != null) {
-            retryAfterHeader.toLongOrNull()?.let { max(0, it * 1000) } ?: CLOUDX_DEFAULT_RETRY_MS
-        } else {
-            CLOUDX_DEFAULT_RETRY_MS
-        }
-    }
-
-    /**
-     * Returns retry delay in milliseconds, or null if no retry should be attempted
-     */
-    private fun shouldRetry(result: Result<BidResponse, CLXError>): Long? {
-        if (result is Result.Success) return null
-
-        val error = (result as Result.Failure).value
-        return when (error.code) {
-            // Never retry these
-            CLXErrorCode.ADS_DISABLED -> null
-            CLXErrorCode.CLIENT_ERROR -> null
-
-            // Retry with server-specified delay
-            CLXErrorCode.TOO_MANY_REQUESTS ->
-                (error.payload as? Long) ?: CLOUDX_DEFAULT_RETRY_MS
-
-            // Retry after 1 second
-            CLXErrorCode.SERVER_ERROR,
-            CLXErrorCode.NETWORK_ERROR,
-            CLXErrorCode.NETWORK_TIMEOUT -> CLOUDX_DEFAULT_RETRY_MS
-
-            // Default: no retry
-            else -> null
         }
     }
 }

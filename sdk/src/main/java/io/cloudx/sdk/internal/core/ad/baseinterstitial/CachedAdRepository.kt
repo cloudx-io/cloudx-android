@@ -88,7 +88,11 @@ internal class CachedAdRepository<SuspendableAd: Destroyable, C: CacheableAd>(
         appLifecycleService.awaitAppResume()
         cachedQueue.hasAvailableSlots.first { it }
 
-        val bidResponse = bidAdSource.requestBid() ?: return@coroutineScope AdLoadOperationStatus.AdLoadFailed
+        val bidResult = bidAdSource.requestBid()
+        val bidResponse = when (bidResult) {
+            is BidSourceResult.Success -> bidResult.data
+            else -> return@coroutineScope AdLoadOperationStatus.AdLoadFailed
+        }
 
 //        for ((index, bidItem) in bidResponse.bidItemsByRank.withIndex()) {
 //            ensureActive()

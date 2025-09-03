@@ -5,7 +5,8 @@ package io.cloudx.sdk.internal
  */
 internal class CLXError(
     val code: CLXErrorCode, 
-    val message: String? = null
+    val message: String? = null,
+    val payload: Any? = null
 ) {
     /**
      * Gets the effective error message - uses custom message if provided,
@@ -57,5 +58,9 @@ internal enum class CLXErrorCode(
     PERMISSION_DENIED(501, "Required permissions not granted."),
     UNSUPPORTED_AD_FORMAT(502, "Ad format not supported."),
     INVALID_BANNER_VIEW(503, "Banner view is nil or invalid."),
-    INVALID_NATIVE_VIEW(504, "Native view is nil or invalid.")
+    INVALID_NATIVE_VIEW(504, "Native view is nil or invalid."),
+
+    // --- General (600–699)
+    CLIENT_ERROR(600, "A client error occurred."),
+    UNKNOWN_ERROR(601, "An unknown error occurred.")
 }

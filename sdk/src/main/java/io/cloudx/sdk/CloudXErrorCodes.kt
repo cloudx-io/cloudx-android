@@ -6,6 +6,8 @@ object CloudXErrorCodes {
 
     const val HYPOTHETICAL_NO_ADS_LOADED_YET = 450
     const val HYPOTHETICAL_AD_ALREADY_DISPLAYING = 451
+
+    const val NO_FILL = 300 // ✅
     
     // TODO: update codes with the actual values shown in the spec
     const val TIMEOUT = 1001

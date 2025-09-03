@@ -28,7 +28,6 @@ import io.cloudx.sdk.internal.core.ad.suspendable.SuspendableBannerEvent
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTrackerNew
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsType
-import io.cloudx.sdk.internal.kill_switch.KillSwitch
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -247,8 +246,12 @@ private class BannerImpl(
                 is BidSourceResult.Success -> {
                     loadedBanner = res.response.loadOrDestroyBanner()
                     if (loadedBanner == null) {
-                        // all creative banners failed to load
-                        // TODO: Q: What happens when all the bids fail to load? Accept it as no bid? What should we tell the user?
+                        listener?.onAdLoadFailed(
+                            CloudXAdError(
+                                "No creative banners could be loaded for this bid.",
+                                CloudXErrorCodes.NO_FILL
+                            )
+                        )
                         delay(refreshDelayMillis)
                     }
                 }

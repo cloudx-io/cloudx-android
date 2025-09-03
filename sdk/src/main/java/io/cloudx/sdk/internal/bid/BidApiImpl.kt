@@ -97,7 +97,7 @@ internal class BidApiImpl(
                         parseResult
                     }
 
-                    is Result.Failure -> parseResult // todo: log parsing error?, what is going to happen to the bid?
+                    is Result.Failure -> parseResult
                 }
             }
 

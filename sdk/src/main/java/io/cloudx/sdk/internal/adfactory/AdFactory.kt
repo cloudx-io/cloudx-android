@@ -17,12 +17,16 @@ import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTrackerNew
 
 internal interface AdFactory {
-    fun createInterstitial(params: CreateAdParams<CloudXInterstitialListener>): CloudXInterstitialAd?
-    fun createRewarded(params: CreateAdParams<RewardedInterstitialListener>): CloudXRewardedAd?
-
+    // Banner and Native Ad creation
     // TODO. Refactor.
     //  For now, to speed things up, I'll use this API to create both Banner and Native Ads.
     fun createBanner(params: CreateBannerParams): CloudXAdView?
+
+    // Interstitial Ad creation
+    fun createInterstitial(params: CreateAdParams<CloudXInterstitialListener>): CloudXInterstitialAd?
+
+    // Rewarded Ad creation
+    fun createRewarded(params: CreateAdParams<RewardedInterstitialListener>): CloudXRewardedAd?
 
     open class CreateAdParams<T>(
         val activity: Activity,

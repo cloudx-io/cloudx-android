@@ -15,11 +15,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-// TODO. Some methods/inits can be reused for any ad type (destroy() etc).
-// TODO. Replace sdk.adapter.Interstitial with this?
-// TODO. Merge with DecoratedSuspendableXXXX?
-internal interface SuspendableInterstitial : SuspendableBaseFullscreenAd<SuspendableInterstitialEvent>
-
+/**
+ * Events emitted by SuspendableInterstitial during its lifecycle
+ */
 sealed class SuspendableInterstitialEvent {
     object Load : SuspendableInterstitialEvent()
     object Show : SuspendableInterstitialEvent()
@@ -28,9 +26,21 @@ sealed class SuspendableInterstitialEvent {
     object Complete : SuspendableInterstitialEvent()
     object Hide : SuspendableInterstitialEvent()
     object Click : SuspendableInterstitialEvent()
-    class Error(val error: CloudXAdapterError) : SuspendableInterstitialEvent()
+    data class Error(val error: CloudXAdapterError) : SuspendableInterstitialEvent()
 }
 
+/**
+ * A suspendable interstitial ad interface that provides lifecycle events and metadata
+ */
+// TODO. Some methods/inits can be reused for any ad type (destroy() etc).
+// TODO. Replace sdk.adapter.Interstitial with this?
+// TODO. Merge with DecoratedSuspendableXXXX?
+internal interface SuspendableInterstitial :
+    SuspendableBaseFullscreenAd<SuspendableInterstitialEvent>
+
+/**
+ * Factory function to create a SuspendableInterstitial instance
+ */
 internal fun SuspendableInterstitial(
     price: Double?,
     adNetwork: AdNetwork,
@@ -39,6 +49,9 @@ internal fun SuspendableInterstitial(
 ): SuspendableInterstitial =
     SuspendableInterstitialImpl(price, adNetwork, placementId, createInterstitial)
 
+/**
+ * Implementation of SuspendableInterstitial that wraps a CloudXInterstitialAdapter
+ */
 private class SuspendableInterstitialImpl(
     override val price: Double?,
     override val adNetwork: AdNetwork,
@@ -46,47 +59,18 @@ private class SuspendableInterstitialImpl(
     createInterstitial: (listener: CloudXInterstitialAdapterListener) -> CloudXInterstitialAdapter,
 ) : SuspendableInterstitial {
 
+    // State management
     private val scope = CoroutineScope(Dispatchers.Main)
+    private val _event = MutableSharedFlow<SuspendableInterstitialEvent>()
+    private val _lastErrorEvent = MutableStateFlow<CloudXAdapterError?>(null)
 
-    private val interstitial = createInterstitial(object :
-        CloudXInterstitialAdapterListener {
-        override fun onLoad() {
-            scope.launch { _event.emit(SuspendableInterstitialEvent.Load) }
-        }
+    override val event: SharedFlow<SuspendableInterstitialEvent> = _event
+    override val lastErrorEvent: StateFlow<CloudXAdapterError?> = _lastErrorEvent
 
-        override fun onShow() {
-            scope.launch { _event.emit(SuspendableInterstitialEvent.Show) }
-        }
+    // Interstitial adapter with listener
+    private val interstitial = createInterstitial(createAdapterListener())
 
-        override fun onImpression() {
-            scope.launch { _event.emit(SuspendableInterstitialEvent.Impression) }
-        }
-
-        override fun onSkip() {
-            scope.launch { _event.emit(SuspendableInterstitialEvent.Skip) }
-        }
-
-        override fun onComplete() {
-            scope.launch { _event.emit(SuspendableInterstitialEvent.Complete) }
-        }
-
-        override fun onHide() {
-            scope.launch { _event.emit(SuspendableInterstitialEvent.Hide) }
-        }
-
-        override fun onClick() {
-            scope.launch { _event.emit(SuspendableInterstitialEvent.Click) }
-        }
-
-        override fun onError(error: CloudXAdapterError) {
-            scope.launch {
-                _event.emit(SuspendableInterstitialEvent.Error(error))
-                // 1 liner instead of _event.collect { /*assign error*/ }
-                _lastErrorEvent.value = error
-            }
-        }
-    })
-
+    // Public API methods
     override val isAdLoadOperationAvailable: Boolean
         get() = interstitial.isAdLoadOperationAvailable
 
@@ -98,26 +82,59 @@ private class SuspendableInterstitialImpl(
         }
 
         interstitial.load()
-
         return evtJob.await() is SuspendableInterstitialEvent.Load
-    }
-
-    override fun timeout() {
-        // unused
     }
 
     override fun show() {
         interstitial.show()
     }
 
-    private val _event = MutableSharedFlow<SuspendableInterstitialEvent>()
-    override val event: SharedFlow<SuspendableInterstitialEvent> = _event
-
-    private val _lastErrorEvent = MutableStateFlow<CloudXAdapterError?>(null)
-    override val lastErrorEvent: StateFlow<CloudXAdapterError?> = _lastErrorEvent
+    override fun timeout() {
+        // Currently unused - placeholder for future timeout handling
+    }
 
     override fun destroy() {
         scope.cancel()
         interstitial.destroy()
+    }
+
+    // Private helper methods
+    private fun createAdapterListener(): CloudXInterstitialAdapterListener {
+        return object : CloudXInterstitialAdapterListener {
+            override fun onLoad() {
+                scope.launch { _event.emit(SuspendableInterstitialEvent.Load) }
+            }
+
+            override fun onShow() {
+                scope.launch { _event.emit(SuspendableInterstitialEvent.Show) }
+            }
+
+            override fun onImpression() {
+                scope.launch { _event.emit(SuspendableInterstitialEvent.Impression) }
+            }
+
+            override fun onSkip() {
+                scope.launch { _event.emit(SuspendableInterstitialEvent.Skip) }
+            }
+
+            override fun onComplete() {
+                scope.launch { _event.emit(SuspendableInterstitialEvent.Complete) }
+            }
+
+            override fun onHide() {
+                scope.launch { _event.emit(SuspendableInterstitialEvent.Hide) }
+            }
+
+            override fun onClick() {
+                scope.launch { _event.emit(SuspendableInterstitialEvent.Click) }
+            }
+
+            override fun onError(error: CloudXAdapterError) {
+                scope.launch {
+                    _event.emit(SuspendableInterstitialEvent.Error(error))
+                    _lastErrorEvent.value = error
+                }
+            }
+        }
     }
 }

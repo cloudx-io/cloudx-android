@@ -15,11 +15,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-// TODO. Some methods/inits can be reused for any ad type (destroy() etc).
-// TODO. Replace sdk.adapter.RewardedInterstitial with this?
-// TODO. Merge with DecoratedSuspendableXXXX?
-internal interface SuspendableRewardedInterstitial : SuspendableBaseFullscreenAd<SuspendableRewardedInterstitialEvent>
-
+/**
+ * Events emitted by SuspendableRewardedInterstitial during its lifecycle
+ */
 sealed class SuspendableRewardedInterstitialEvent {
     object Load : SuspendableRewardedInterstitialEvent()
     object Show : SuspendableRewardedInterstitialEvent()
@@ -27,24 +25,32 @@ sealed class SuspendableRewardedInterstitialEvent {
     object Reward : SuspendableRewardedInterstitialEvent()
     object Hide : SuspendableRewardedInterstitialEvent()
     object Click : SuspendableRewardedInterstitialEvent()
-
-    class Error(val error: CloudXAdapterError) :
-        SuspendableRewardedInterstitialEvent()
+    data class Error(val error: CloudXAdapterError) : SuspendableRewardedInterstitialEvent()
 }
 
+/**
+ * A suspendable rewarded interstitial ad interface that provides lifecycle events and metadata
+ */
+// TODO. Some methods/inits can be reused for any ad type (destroy() etc).
+// TODO. Replace sdk.adapter.RewardedInterstitial with this?
+// TODO. Merge with DecoratedSuspendableXXXX?
+internal interface SuspendableRewardedInterstitial :
+    SuspendableBaseFullscreenAd<SuspendableRewardedInterstitialEvent>
+
+/**
+ * Factory function to create a SuspendableRewardedInterstitial instance
+ */
 internal fun SuspendableRewardedInterstitial(
     price: Double?,
     adNetwork: AdNetwork,
     placementId: String,
     createRewardedInterstitial: (listener: CloudXRewardedInterstitialAdapterListener) -> CloudXRewardedInterstitialAdapter
 ): SuspendableRewardedInterstitial =
-    SuspendableRewardedInterstitialImpl(
-        price,
-        adNetwork,
-        placementId,
-        createRewardedInterstitial
-    )
+    SuspendableRewardedInterstitialImpl(price, adNetwork, placementId, createRewardedInterstitial)
 
+/**
+ * Implementation of SuspendableRewardedInterstitial that wraps a CloudXRewardedInterstitialAdapter
+ */
 private class SuspendableRewardedInterstitialImpl(
     override val price: Double?,
     override val adNetwork: AdNetwork,
@@ -52,11 +58,48 @@ private class SuspendableRewardedInterstitialImpl(
     createRewardedInterstitial: (listener: CloudXRewardedInterstitialAdapterListener) -> CloudXRewardedInterstitialAdapter,
 ) : SuspendableRewardedInterstitial {
 
+    // State management
     private val scope = CoroutineScope(Dispatchers.Main)
+    private val _event = MutableSharedFlow<SuspendableRewardedInterstitialEvent>()
+    private val _lastErrorEvent = MutableStateFlow<CloudXAdapterError?>(null)
 
-    private val rewardedInterstitial =
-        createRewardedInterstitial(object :
-            CloudXRewardedInterstitialAdapterListener {
+    override val event: SharedFlow<SuspendableRewardedInterstitialEvent> = _event
+    override val lastErrorEvent: StateFlow<CloudXAdapterError?> = _lastErrorEvent
+
+    // Rewarded interstitial adapter with listener
+    private val rewardedInterstitial = createRewardedInterstitial(createAdapterListener())
+
+    // Public API methods
+    override val isAdLoadOperationAvailable: Boolean
+        get() = rewardedInterstitial.isAdLoadOperationAvailable
+
+    override suspend fun load(): Boolean {
+        val evtJob = scope.async {
+            event.first {
+                it is SuspendableRewardedInterstitialEvent.Load || it is SuspendableRewardedInterstitialEvent.Error
+            }
+        }
+
+        rewardedInterstitial.load()
+        return evtJob.await() is SuspendableRewardedInterstitialEvent.Load
+    }
+
+    override fun show() {
+        rewardedInterstitial.show()
+    }
+
+    override fun timeout() {
+        // Currently unused - placeholder for future timeout handling
+    }
+
+    override fun destroy() {
+        scope.cancel()
+        rewardedInterstitial.destroy()
+    }
+
+    // Private helper methods
+    private fun createAdapterListener(): CloudXRewardedInterstitialAdapterListener {
+        return object : CloudXRewardedInterstitialAdapterListener {
             override fun onLoad() {
                 scope.launch { _event.emit(SuspendableRewardedInterstitialEvent.Load) }
             }
@@ -84,45 +127,9 @@ private class SuspendableRewardedInterstitialImpl(
             override fun onError(error: CloudXAdapterError) {
                 scope.launch {
                     _event.emit(SuspendableRewardedInterstitialEvent.Error(error))
-                    // 1 liner instead of _event.collect { /*assign error*/ }
                     _lastErrorEvent.value = error
                 }
             }
-        })
-
-    override val isAdLoadOperationAvailable: Boolean
-        get() = rewardedInterstitial.isAdLoadOperationAvailable
-
-    override suspend fun load(): Boolean {
-        val evtJob = scope.async {
-            event.first {
-                it is SuspendableRewardedInterstitialEvent.Load || it is SuspendableRewardedInterstitialEvent.Error
-            }
         }
-
-        rewardedInterstitial.load()
-
-        return evtJob.await() is SuspendableRewardedInterstitialEvent.Load
-    }
-
-    override fun timeout() {
-        // unused
-    }
-
-    override fun show() {
-        rewardedInterstitial.show()
-    }
-
-    private val _event = MutableSharedFlow<SuspendableRewardedInterstitialEvent>()
-    override val event: SharedFlow<SuspendableRewardedInterstitialEvent> = _event
-
-    private val _lastErrorEvent =
-        MutableStateFlow<CloudXAdapterError?>(null)
-    override val lastErrorEvent: StateFlow<CloudXAdapterError?> =
-        _lastErrorEvent
-
-    override fun destroy() {
-        scope.cancel()
-        rewardedInterstitial.destroy()
     }
 }

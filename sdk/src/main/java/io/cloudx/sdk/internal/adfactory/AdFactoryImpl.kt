@@ -37,67 +37,7 @@ internal class AdFactoryImpl(
 
     private val TAG = "AdFactoryImpl"
 
-    override fun createInterstitial(params: AdFactory.CreateAdParams<CloudXInterstitialListener>): CloudXInterstitialAd? {
-        val placementName = params.placementName
-        val placement = config.placements[placementName] as? Config.Placement.Interstitial
-        if (placement == null) {
-            logCantFindPlacement(placementName)
-            return null
-        }
-        val bidApi = createBidApi(placement.bidResponseTimeoutMillis)
-
-        return Interstitial(
-            params.activity,
-            placementId = placement.id,
-            placementName = placement.name,
-            cacheSize = config.precacheSize,
-            bidFactories = factories.interstitials,
-            bidRequestExtrasProviders = factories.bidRequestExtrasProviders,
-            bidMaxBackOffTimeMillis = BID_AD_LOAD_BACKOFF_MAX_MILLIS,
-            bidAdLoadTimeoutMillis = placement.adLoadTimeoutMillis.toLong(),
-            bidApi = bidApi,
-            cdpApi = createCdpApi(),
-            eventTracker = eventTracker,
-            metricsTrackerNew = metricsTrackerNew,
-            connectionStatusService = connectionStatusService,
-            appLifecycleService = appLifecycleService,
-            // TODO. Nullable support.
-            listener = params.listener.decorate(),
-            accountId = config.accountId ?: "",
-            appKey = appKey
-        )
-    }
-
-    override fun createRewarded(params: AdFactory.CreateAdParams<RewardedInterstitialListener>): CloudXRewardedAd? {
-        val placementName = params.placementName
-        val placement = config.placements[placementName] as? Config.Placement.Rewarded
-        if (placement == null) {
-            logCantFindPlacement(placementName)
-            return null
-        }
-        val bidApi = createBidApi(placement.bidResponseTimeoutMillis)
-
-        return RewardedInterstitial(
-            params.activity,
-            placementId = placement.id,
-            placementName = placement.name,
-            cacheSize = config.precacheSize,
-            bidFactories = factories.rewardedInterstitials,
-            bidRequestExtrasProviders = factories.bidRequestExtrasProviders,
-            bidMaxBackOffTimeMillis = BID_AD_LOAD_BACKOFF_MAX_MILLIS,
-            bidAdLoadTimeoutMillis = placement.adLoadTimeoutMillis.toLong(),
-            bidApi = bidApi,
-            cdpApi = createCdpApi(),
-            eventTracker = eventTracker,
-            metricsTrackerNew = metricsTrackerNew,
-            connectionStatusService = connectionStatusService,
-            appLifecycleService = appLifecycleService,
-            // TODO. Nullable support.
-            listener = params.listener.decorate(),
-            accountId = config.accountId ?: "",
-            appKey = appKey
-        )
-    }
+    // ===== Banner and Native Ad Creation =====
 
     // TODO. Refactor.
     //  For now, to speed things up, I'll use this API to create both Banner and Native Ads.
@@ -182,6 +122,74 @@ internal class AdFactoryImpl(
             listener = params.listener
         }
     }
+
+    // ===== Interstitial Ad Creation =====
+
+    override fun createInterstitial(params: AdFactory.CreateAdParams<CloudXInterstitialListener>): CloudXInterstitialAd? {
+        val placementName = params.placementName
+        val placement = config.placements[placementName] as? Config.Placement.Interstitial
+        if (placement == null) {
+            logCantFindPlacement(placementName)
+            return null
+        }
+        val bidApi = createBidApi(placement.bidResponseTimeoutMillis)
+
+        return Interstitial(
+            params.activity,
+            placementId = placement.id,
+            placementName = placement.name,
+            cacheSize = config.precacheSize,
+            bidFactories = factories.interstitials,
+            bidRequestExtrasProviders = factories.bidRequestExtrasProviders,
+            bidMaxBackOffTimeMillis = BID_AD_LOAD_BACKOFF_MAX_MILLIS,
+            bidAdLoadTimeoutMillis = placement.adLoadTimeoutMillis.toLong(),
+            bidApi = bidApi,
+            cdpApi = createCdpApi(),
+            eventTracker = eventTracker,
+            metricsTrackerNew = metricsTrackerNew,
+            connectionStatusService = connectionStatusService,
+            appLifecycleService = appLifecycleService,
+            // TODO. Nullable support.
+            listener = params.listener.decorate(),
+            accountId = config.accountId ?: "",
+            appKey = appKey
+        )
+    }
+
+    // ===== Rewarded Ad Creation =====
+
+    override fun createRewarded(params: AdFactory.CreateAdParams<RewardedInterstitialListener>): CloudXRewardedAd? {
+        val placementName = params.placementName
+        val placement = config.placements[placementName] as? Config.Placement.Rewarded
+        if (placement == null) {
+            logCantFindPlacement(placementName)
+            return null
+        }
+        val bidApi = createBidApi(placement.bidResponseTimeoutMillis)
+
+        return RewardedInterstitial(
+            params.activity,
+            placementId = placement.id,
+            placementName = placement.name,
+            cacheSize = config.precacheSize,
+            bidFactories = factories.rewardedInterstitials,
+            bidRequestExtrasProviders = factories.bidRequestExtrasProviders,
+            bidMaxBackOffTimeMillis = BID_AD_LOAD_BACKOFF_MAX_MILLIS,
+            bidAdLoadTimeoutMillis = placement.adLoadTimeoutMillis.toLong(),
+            bidApi = bidApi,
+            cdpApi = createCdpApi(),
+            eventTracker = eventTracker,
+            metricsTrackerNew = metricsTrackerNew,
+            connectionStatusService = connectionStatusService,
+            appLifecycleService = appLifecycleService,
+            // TODO. Nullable support.
+            listener = params.listener.decorate(),
+            accountId = config.accountId ?: "",
+            appKey = appKey
+        )
+    }
+
+    // ===== Private Helper Methods =====
 
     private fun createBidApi(timeoutMillis: Int) = BidApi(
         ResolvedEndpoints.auctionEndpoint,

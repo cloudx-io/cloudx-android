@@ -11,7 +11,7 @@ import io.cloudx.sdk.internal.deviceinfo.DeviceInfo
 import io.cloudx.sdk.internal.deviceinfo.DeviceInfoProvider
 import io.cloudx.sdk.internal.gaid.GAIDProvider
 import io.cloudx.sdk.internal.geo.GeoInfoHolder
-import io.cloudx.sdk.internal.httpclient.UserAgentProvider
+import io.cloudx.sdk.internal.network.httpclient.UserAgentProvider
 import io.cloudx.sdk.internal.PlacementLoopIndexTracker
 import io.cloudx.sdk.internal.location.LocationProvider
 import io.cloudx.sdk.internal.nativead.NativeAdSpecs

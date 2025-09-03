@@ -6,7 +6,7 @@ import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapter
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterListener
 import io.cloudx.sdk.internal.adapter.CloudXAdapterError
 import io.cloudx.sdk.internal.core.ad.AdMetaData
-import io.cloudx.sdk.internal.httpclient.CloudXHttpClient
+import io.cloudx.sdk.internal.network.httpclient.CloudXHttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.isSuccess

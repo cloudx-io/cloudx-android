@@ -4,7 +4,7 @@ import io.cloudx.sdk.BuildConfig
 import io.cloudx.sdk.Result
 import io.cloudx.sdk.RoboMockkTest
 import io.cloudx.sdk.internal.appinfo.AppInfoProvider
-import io.cloudx.sdk.internal.httpclient.UserAgentProvider
+import io.cloudx.sdk.internal.network.httpclient.UserAgentProvider
 import io.cloudx.sdk.mocks.MockAppInfoProvider
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine

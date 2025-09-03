@@ -1,6 +1,6 @@
 package io.cloudx.sdk.mocks
 
-import io.cloudx.sdk.internal.httpclient.UserAgentProvider
+import io.cloudx.sdk.internal.network.httpclient.UserAgentProvider
 
 internal object MockUserAgentProvider : UserAgentProvider {
 

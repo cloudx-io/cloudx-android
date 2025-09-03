@@ -2,6 +2,7 @@ package io.cloudx.sdk.internal.imp_tracker
 
 import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.CLXError
+import io.cloudx.sdk.internal.network.httpclient.CloudXHttpClient
 import io.ktor.client.HttpClient
 
 /**
@@ -27,7 +28,7 @@ internal fun interface EventTrackerApi {
 
 internal fun EventTrackerApi(
     timeoutMillis: Long = 10_000,
-    httpClient: HttpClient = io.cloudx.sdk.internal.httpclient.CloudXHttpClient(),
+    httpClient: HttpClient = CloudXHttpClient(),
 ): EventTrackerApi = EventTrackerApiImpl(
     timeoutMillis = timeoutMillis,
     httpClient = httpClient

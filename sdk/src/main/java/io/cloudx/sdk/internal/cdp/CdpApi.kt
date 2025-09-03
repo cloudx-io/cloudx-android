@@ -2,7 +2,7 @@ package io.cloudx.sdk.internal.cdp
 
 import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.CLXError
-import io.cloudx.sdk.internal.httpclient.CloudXHttpClient
+import io.cloudx.sdk.internal.network.httpclient.CloudXHttpClient
 import org.json.JSONObject
 
 /**

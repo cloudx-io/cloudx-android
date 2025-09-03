@@ -1,6 +1,6 @@
 package io.cloudx.sdk.internal.bid
 
-import io.cloudx.sdk.internal.httpclient.CloudXHttpClient
+import io.cloudx.sdk.internal.network.httpclient.CloudXHttpClient
 import io.ktor.client.request.get
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

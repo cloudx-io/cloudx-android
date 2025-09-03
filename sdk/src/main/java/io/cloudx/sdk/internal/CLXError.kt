@@ -60,7 +60,8 @@ internal enum class CLXErrorCode(
     INVALID_BANNER_VIEW(503, "Banner view is nil or invalid."),
     INVALID_NATIVE_VIEW(504, "Native view is nil or invalid."),
 
+    // TODO: this is not in the doc, I added it myself, maybe they are not needed.
     // --- General (600–699)
-    CLIENT_ERROR(600, "A client error occurred."),
-    UNKNOWN_ERROR(601, "An unknown error occurred.")
+    CLIENT_ERROR(600, "HTTP client error occurred."),
+    UNKNOWN_ERROR(601, "Unknown error occurred.")
 }

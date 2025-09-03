@@ -5,7 +5,7 @@ import io.cloudx.sdk.Result
 import io.cloudx.sdk.RoboMockkTest
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.appinfo.AppInfoProvider
-import io.cloudx.sdk.internal.httpclient.UserAgentProvider
+import io.cloudx.sdk.internal.network.httpclient.UserAgentProvider
 import io.cloudx.sdk.internal.screen.ScreenService
 import io.cloudx.sdk.mocks.MockAppInfoProvider
 import io.cloudx.sdk.mocks.MockScreenService

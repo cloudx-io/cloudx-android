@@ -1,4 +1,4 @@
-package io.cloudx.sdk.internal.httpclient
+package io.cloudx.sdk.internal.network.httpclient
 
 internal const val HDR_CLOUDX_STATUS = "X-CloudX-Status"
 internal const val STATUS_SDK_DISABLED = "SDK_DISABLED"

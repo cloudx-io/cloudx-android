@@ -1,4 +1,4 @@
-package io.cloudx.sdk.internal.httpclient
+package io.cloudx.sdk.internal.network.httpclient
 
 import io.cloudx.sdk.internal.ApplicationContext
 

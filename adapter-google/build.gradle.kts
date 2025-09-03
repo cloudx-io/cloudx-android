@@ -1,20 +1,18 @@
 plugins {
-    id("com.android.library")
-    kotlin("android")
-    id("com.vanniktech.maven.publish") version "0.34.0"
+    alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.kotlinAndroid)
+    alias(libs.plugins.mavenPublish)
 }
-
-private val releaseVariant = "release"
 
 android {
     namespace = "io.cloudx.adapter.googleadmanager"
 
-    compileSdk = 35
+    compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
-        minSdk = 21
+        minSdk = libs.versions.minSdk.get().toInt()
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = libs.versions.testInstrumentationRunner.get()
         consumerProguardFiles("consumer-rules.pro") // TODO
     }
 
@@ -44,7 +42,7 @@ android {
 
     // Inlined from setupKotlinJvmOptions
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = libs.versions.kotlinJvmTarget.get()
     }
 
     // Inlined from setupTestOptions
@@ -59,14 +57,14 @@ android {
 
 dependencies {
     implementation(project(":sdk"))
-    implementation("com.google.android.gms:play-services-ads:23.0.0")
+    implementation(libs.google.ads)
 }
 
 mavenPublishing {
     publishToMavenCentral(automaticRelease = true)
     signAllPublications()
     // Use version from tag (set via -Pversion=... or replace if you want to hardcode)
-    coordinates("io.cloudx", "adapter-google", project.findProperty("version") as String? ?: "0.0.1.00")
+    coordinates(libs.versions.mavenGroupId.get(), "adapter-google", project.findProperty("version") as String? ?: "0.0.1.00")
 
     pom {
         name.set("CloudX Adapter - GoogleAds")

@@ -1,24 +1,21 @@
 plugins {
-    id("com.android.library")
-    kotlin("android")
-    id("com.vanniktech.maven.publish") version "0.34.0"
+    alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.kotlinAndroid)
+    alias(libs.plugins.mavenPublish)
 }
-
-private val releaseVariant = "release"
-private val metaVersion = "6.17.0"
 
 android {
     namespace = "io.cloudx.adapter.meta"
 
-    compileSdk = 35
+    compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
-        minSdk = 21
+        minSdk = libs.versions.minSdk.get().toInt()
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = libs.versions.testInstrumentationRunner.get()
         consumerProguardFiles("consumer-rules.pro") // TODO
 
-        buildConfigField("String", "AUDIENCE_SDK_VERSION_NAME", "\"$metaVersion\"")
+        buildConfigField("String", "AUDIENCE_SDK_VERSION_NAME", "\"${libs.versions.metaAudienceNetworkVersion.get()}\"")
     }
 
     buildFeatures {
@@ -47,7 +44,7 @@ android {
 
     // Inlined from setupKotlinJvmOptions
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = libs.versions.kotlinJvmTarget.get()
     }
 
     // Inlined from setupTestOptions
@@ -62,14 +59,14 @@ android {
 
 dependencies {
     implementation(project(":sdk"))
-    implementation("androidx.annotation:annotation:1.8.0")
-    implementation("com.facebook.android:audience-network-sdk:$metaVersion")
+    implementation(libs.androidx.annotation)
+    implementation(libs.metaAudienceNetwork)
 }
 
 mavenPublishing {
     publishToMavenCentral(automaticRelease = true)
     signAllPublications()
-    coordinates("io.cloudx", "adapter-meta", project.findProperty("version") as String? ?: "0.0.1.00")
+    coordinates(libs.versions.mavenGroupId.get(), "adapter-meta", project.findProperty("version") as String? ?: "0.0.1.00")
 
     pom {
         name.set("CloudX Adapter - Meta")

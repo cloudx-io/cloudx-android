@@ -147,7 +147,7 @@ private class SuspendableBannerImpl(
     private fun handleImpressionTracking() {
         // TODO: Make a separate class for nurls and burls to handle. It looks ugly here.
         nurl?.let { url ->
-            val completeUrl = url.replace("\${AUCTION_PRICE}", revenue.toString())
+            val completeUrl = url.replace("\${AUCTION_PRICE}", revenue?.toString() ?: "")
             scope.launch(Dispatchers.IO) {
                 try {
                     val response: HttpResponse = CloudXHttpClient().get(completeUrl)

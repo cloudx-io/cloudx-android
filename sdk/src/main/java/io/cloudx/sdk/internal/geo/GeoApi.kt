@@ -1,7 +1,7 @@
 package io.cloudx.sdk.internal.geo
 
 import io.cloudx.sdk.Result
-import io.cloudx.sdk.internal.Error
+import io.cloudx.sdk.internal.CLXError
 import io.cloudx.sdk.internal.httpclient.CloudXHttpClient
 import io.ktor.client.HttpClient
 
@@ -9,7 +9,7 @@ import io.ktor.client.HttpClient
  * Geo API responsible for fetching user's country code using remote service.
  */
 internal interface GeoApi {
-    suspend fun fetchGeoHeaders(endpointUrl: String): Result<Map<String, String>, Error>
+    suspend fun fetchGeoHeaders(endpointUrl: String): Result<Map<String, String>, CLXError>
 }
 
 internal fun GeoApi(

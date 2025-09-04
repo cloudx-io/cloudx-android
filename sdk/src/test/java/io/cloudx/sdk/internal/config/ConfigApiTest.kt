@@ -47,7 +47,7 @@ class ConfigApiTest : RoboMockkTest() {
         val result = configApi.invoke(appKey, provideConfigRequest())
 
         assert(result is Result.Success) {
-            "Expected successful endpoint response, actual: ${(result as Result.Failure).value.description}"
+            "Expected successful endpoint response, actual: ${(result as Result.Failure).value.effectiveMessage}"
         }
     }
 

@@ -2,17 +2,17 @@ package io.cloudx.sdk.internal.bid
 
 import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.AdNetwork
-import io.cloudx.sdk.internal.Error
+import io.cloudx.sdk.internal.CLXError
+import io.cloudx.sdk.internal.CLXErrorCode
 import io.cloudx.sdk.internal.Logger
 import io.cloudx.sdk.internal.toAdNetwork
 import io.cloudx.sdk.internal.toStringPairMap
-import io.cloudx.sdk.testing.TestBids
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 
-internal suspend fun jsonToBidResponse(json: String): Result<BidResponse, Error> =
+internal suspend fun jsonToBidResponse(json: String): Result<BidResponse, CLXError> =
     withContext(Dispatchers.IO) {
         try {
             val root = JSONObject(json)
@@ -23,26 +23,16 @@ internal suspend fun jsonToBidResponse(json: String): Result<BidResponse, Error>
                     "jsonToBidResponse",
                     "No seatbid — interpreting as no-bid. Ext errors: $errorJson"
                 )
-                return@withContext Result.Failure(Error("No bid."))
+                return@withContext Result.Failure(CLXError(CLXErrorCode.NO_FILL))
             }
 
             Result.Success(root.toBidResponse())
         } catch (e: Exception) {
             val errStr = e.toString()
             Logger.e(tag = "jsonToBidResponse", msg = errStr)
-            Result.Failure(Error(errStr))
+            Result.Failure(CLXError(CLXErrorCode.INVALID_RESPONSE))
         }
     }
-
-private fun JSONObject.toNoBidResponse(): NoBidResponse? {
-    val nbrCode = "nbr".let { if (has(it)) getInt(it) else return null }
-
-    return NoBidResponse(
-        id = optString("id", ""),
-        noBidResponseCode = nbrCode,
-        ext = optString(EXT, "")
-    )
-}
 
 private fun JSONObject.toBidResponse(): BidResponse {
     val auctionId = getString("id")

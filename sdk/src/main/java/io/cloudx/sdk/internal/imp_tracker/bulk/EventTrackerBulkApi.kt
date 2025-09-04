@@ -1,7 +1,7 @@
 package io.cloudx.sdk.internal.imp_tracker.bulk
 
 import io.cloudx.sdk.Result
-import io.cloudx.sdk.internal.Error
+import io.cloudx.sdk.internal.CLXError
 import io.ktor.client.HttpClient
 
 /**
@@ -19,7 +19,7 @@ internal fun interface EventTrackerBulkApi {
     suspend fun send(
         endpointUrl: String,
         items: List<EventAM>
-    ): Result<Unit, Error>
+    ): Result<Unit, CLXError>
 }
 
 internal fun EventTrackerBulkApi(

@@ -1,6 +1,6 @@
 package io.cloudx.sdk.mocks
 
-import io.cloudx.sdk.internal.Error
+import io.cloudx.sdk.internal.CLXError
 import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.config.Config
@@ -13,7 +13,7 @@ internal class MockConfigAPIWithPredefinedConfig : ConfigApi {
     override suspend fun invoke(
         appKey: String,
         configRequest: ConfigRequest
-    ): Result<Config, Error> = Result.Success(
+    ): Result<Config, CLXError> = Result.Success(
         Config(
             precacheSize = 5,
             auctionEndpointUrl = Config.EndpointConfig("nopoint"),

@@ -2,7 +2,8 @@ package io.cloudx.sdk.internal.config
 
 import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.AdNetwork
-import io.cloudx.sdk.internal.Error
+import io.cloudx.sdk.internal.CLXError
+import io.cloudx.sdk.internal.CLXErrorCode
 import io.cloudx.sdk.internal.Logger
 import io.cloudx.sdk.internal.toAdNetwork
 import io.cloudx.sdk.internal.toStringPairMap
@@ -12,7 +13,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.util.UUID
 
-internal suspend fun jsonToConfig(json: String): Result<Config, Error> =
+internal suspend fun jsonToConfig(json: String): Result<Config, CLXError> =
     withContext(Dispatchers.IO) {
         try {
             val root = JSONObject(json)
@@ -51,7 +52,7 @@ internal suspend fun jsonToConfig(json: String): Result<Config, Error> =
             val errStr = e.toString()
             Logger.e(tag = "jsonToConfig", msg = errStr)
 
-            Result.Failure(Error(errStr))
+            Result.Failure(CLXError(CLXErrorCode.INVALID_RESPONSE))
         }
     }
 

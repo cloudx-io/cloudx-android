@@ -1,7 +1,7 @@
 package io.cloudx.sdk.internal.config
 
 import io.cloudx.sdk.Result
-import io.cloudx.sdk.internal.Error
+import io.cloudx.sdk.internal.CLXError
 import io.cloudx.sdk.internal.httpclient.CloudXHttpClient
 import io.ktor.client.HttpClient
 
@@ -13,9 +13,9 @@ internal fun interface ConfigApi {
     /**
      * @param appKey - unique application key/identifier; comes from app's Publisher.
      * @param configRequest - Config request data required for SDK initialization/startup (initial configuration request)
-     * @return [Config] if api response is successful, otherwise [Error]
+     * @return [Config] if api response is successful, otherwise [CLXError]
      */
-    suspend fun invoke(appKey: String, configRequest: ConfigRequest): Result<Config, Error>
+    suspend fun invoke(appKey: String, configRequest: ConfigRequest): Result<Config, CLXError>
 }
 
 internal fun ConfigApi(

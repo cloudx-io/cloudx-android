@@ -5,7 +5,7 @@ import io.cloudx.sdk.Destroyable
 import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.CloudXLogger
-import io.cloudx.sdk.internal.Error
+import io.cloudx.sdk.internal.CLXError
 import io.cloudx.sdk.internal.bid.BidApi
 import io.cloudx.sdk.internal.bid.BidRequestProvider
 import io.cloudx.sdk.internal.bid.BidResponse
@@ -133,7 +133,7 @@ private class BidAdSourceImpl<T : Destroyable>(
                 is Result.Failure -> {
                     CloudXLogger.error(
                         logTag,
-                        "CDP enrichment failed: ${enrichResult.value.description}. Using original payload."
+                        "CDP enrichment failed: ${enrichResult.value.effectiveMessage}. Using original payload."
                     )
                     bidRequestParamsJson
                 }
@@ -145,7 +145,7 @@ private class BidAdSourceImpl<T : Destroyable>(
             "Sending BidRequest [loop-index=$currentLoopIndex] for placementId: ${bidRequestParams.placementId}"
         )
 
-        val result: Result<BidResponse, Error>
+        val result: Result<BidResponse, CLXError>
         val bidRequestLatencyMillis = measureTimeMillis {
             result = requestBid.invoke(bidRequestParams.appKey, enrichedPayload)
         }
@@ -173,7 +173,7 @@ private class BidAdSourceImpl<T : Destroyable>(
 
         return when (result) {
             is Result.Failure -> {
-                CloudXLogger.error(logTag, result.value.description)
+                CloudXLogger.error(logTag, result.value.effectiveMessage)
                 null
             }
 

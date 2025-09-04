@@ -1,7 +1,8 @@
 package io.cloudx.sdk.internal.cdp
 
 import io.cloudx.sdk.Result
-import io.cloudx.sdk.internal.Error
+import io.cloudx.sdk.internal.CLXError
+import io.cloudx.sdk.internal.CLXErrorCode
 import io.cloudx.sdk.internal.Logger
 import io.cloudx.sdk.internal.requestTimeoutMillis
 import io.ktor.client.HttpClient
@@ -23,7 +24,7 @@ internal class CdpApiImpl(
 
     private val tag = "CdpApi"
 
-    override suspend fun enrich(original: JSONObject): Result<JSONObject, Error> {
+    override suspend fun enrich(original: JSONObject): Result<JSONObject, CLXError> {
         val requestBody = withContext(Dispatchers.IO) { original.toString() }
 
         Logger.d(tag, buildString {
@@ -49,11 +50,11 @@ internal class CdpApiImpl(
             if (response.status == HttpStatusCode.OK) {
                 Result.Success(JSONObject(responseBody))
             } else {
-                Result.Failure(Error("CDP returned error status: ${response.status}"))
+                Result.Failure(CLXError(CLXErrorCode.SERVER_ERROR, "CDP returned error status: ${response.status}"))
             }
 
         } catch (e: Exception) {
-            Result.Failure(Error("CDP Lambda call failed: ${e.message}"))
+            Result.Failure(CLXError(CLXErrorCode.NETWORK_ERROR, "CDP Lambda call failed: ${e.message}"))
         }
     }
 }

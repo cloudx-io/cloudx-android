@@ -1,13 +1,14 @@
 package io.cloudx.sdk.internal.imp_tracker.bulk
 
+import android.util.Log
 import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.CloudXLogger
-import io.cloudx.sdk.internal.Error
+import io.cloudx.sdk.internal.CLXError
+import io.cloudx.sdk.internal.CLXErrorCode
 import io.cloudx.sdk.internal.Logger
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.retry
 import io.ktor.client.plugins.timeout
-import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
@@ -23,7 +24,7 @@ internal class EventTrackerBulkApiImpl(
 
     override suspend fun send(
         endpointUrl: String, items: List<EventAM>
-    ): Result<Unit, Error> {
+    ): Result<Unit, CLXError> {
 
         Logger.d(tag, buildString {
             appendLine("Sending event tracking  request:")
@@ -55,13 +56,14 @@ internal class EventTrackerBulkApiImpl(
             if (code in 200..299) {
                 Result.Success(Unit)
             } else {
-                Result.Failure(Error("Bad response status: ${response.status}"))
+                Logger.d(tag, "Bad response status: ${response.status}")
+                Result.Failure(CLXError(CLXErrorCode.SERVER_ERROR))
             }
 
         } catch (e: Exception) {
             val errStr = "Tracking request failed: ${e.message}"
             Logger.e(tag, errStr)
-            Result.Failure(Error(errStr))
+            Result.Failure(CLXError(CLXErrorCode.NETWORK_ERROR))
         }
     }
 }

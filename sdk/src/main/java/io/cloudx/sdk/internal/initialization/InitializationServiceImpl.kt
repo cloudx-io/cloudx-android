@@ -7,7 +7,7 @@ import io.cloudx.sdk.BuildConfig
 import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.CloudXLogger
-import io.cloudx.sdk.internal.Error
+import io.cloudx.sdk.internal.CLXError
 import io.cloudx.sdk.internal.adfactory.AdFactory
 import io.cloudx.sdk.internal.appinfo.AppInfoProvider
 import io.cloudx.sdk.internal.bid.BidRequestProvider
@@ -142,7 +142,7 @@ internal class InitializationServiceImpl(
         return pending
     }
 
-    override suspend fun initialize(appKey: String): Result<Config, Error> =
+    override suspend fun initialize(appKey: String): Result<Config, CLXError> =
         mutex.withLock {
             this.appKey = appKey
 
@@ -153,7 +153,7 @@ internal class InitializationServiceImpl(
                 return Result.Success(config)
             }
 
-            val configApiResult: Result<Config, Error>
+            val configApiResult: Result<Config, CLXError>
             val configApiRequestMillis = measureTimeMillis {
                 configApiResult = configApi.invoke(appKey, provideConfigRequest())
             }
@@ -170,7 +170,7 @@ internal class InitializationServiceImpl(
 
                 metricsTrackerNew.start(cfg)
 
-                val geoDataResult: Result<Map<String, String>, Error>
+                val geoDataResult: Result<Map<String, String>, CLXError>
                 val geoRequestMillis = measureTimeMillis {
                     geoDataResult = geoApi.fetchGeoHeaders(ResolvedEndpoints.geoEndpoint)
                 }

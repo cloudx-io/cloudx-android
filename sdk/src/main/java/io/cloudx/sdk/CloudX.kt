@@ -102,7 +102,7 @@ object CloudX {
             val initStatus =
                 when (val result = initializationService.initialize(initializationParams.appKey)) {
                     is Result.Failure -> CloudXInitializationStatus(
-                        initialized = false, result.value.description
+                        initialized = false, result.value.effectiveMessage
                     )
 
                     is Result.Success -> CloudXInitializationStatus(

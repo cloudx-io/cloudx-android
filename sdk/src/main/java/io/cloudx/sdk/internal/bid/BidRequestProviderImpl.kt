@@ -303,7 +303,6 @@ private suspend fun JSONObject.putRegsObject(privacyService: PrivacyService) {
 
         put("ext", JSONObject().apply {
             put("gdpr_consent", cloudXPrivacy.isUserConsent.toOrtbRegsValue())
-            put("ccpa_do_not_sell", cloudXPrivacy.isDoNotSell.toOrtbRegsValue())
 
             val iabJsonObj = JSONObject().apply {
                 put("gdpr_tcfv2_gdpr_applies", privacyService.gdprApplies().toOrtbRegsValue())

@@ -5,7 +5,6 @@ package io.cloudx.sdk
  *
  * @property isUserConsent GDPR flag; if _null_ - flag not set
  * @property isAgeRestrictedUser COPPA flag; if _null_ - flag not set
- * @property isDoNotSell CCPA flag; if _null_ - flag not set
  */
 data class CloudXPrivacy(
     @JvmField val isUserConsent: Boolean? = null,

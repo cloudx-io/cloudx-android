@@ -13,7 +13,7 @@ object Initializer : CloudXAdapterInitializer {
         config: Map<String, String>,
         privacy: StateFlow<CloudXPrivacy>
     ): CloudXAdapterInitializationResult {
-        CloudXLogger.info("TestBidNetworkInitializer", "initialized")
+        CloudXLogger.i("TestBidNetworkInitializer", "initialized")
         return CloudXAdapterInitializationResult.Success
     }
 }

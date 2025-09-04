@@ -74,7 +74,7 @@ internal class CachedAdRepository<SuspendableAd: Destroyable, C: CacheableAd>(
                         bidBackoffAlgorithm.notifyAdLoadFailed()
                         if (bidBackoffAlgorithm.isThreshold) {
                             val delayMillis = bidBackoffAlgorithm.calculateDelayMillis()
-                            CloudXLogger.info(
+                            CloudXLogger.i(
                                 TAG,
                                 "delaying for: ${delayMillis}ms as ${bidBackoffAlgorithm.bidFails} bid responses have failed to load"
                             )

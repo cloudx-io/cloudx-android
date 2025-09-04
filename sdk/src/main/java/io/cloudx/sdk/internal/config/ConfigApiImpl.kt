@@ -3,7 +3,7 @@ package io.cloudx.sdk.internal.config
 import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.CLXError
 import io.cloudx.sdk.internal.CLXErrorCode
-import io.cloudx.sdk.internal.Logger
+import io.cloudx.sdk.internal.CloudXLogger
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.retry
 import io.ktor.client.plugins.timeout
@@ -29,7 +29,7 @@ internal class ConfigApiImpl(
         appKey: String,
         configRequest: ConfigRequest
     ): Result<Config, CLXError> {
-        Logger.d(tag, buildString {
+        CloudXLogger.d(tag, buildString {
             appendLine("Attempting config request:")
             appendLine("  Endpoint: $endpointUrl")
             appendLine("  AppKey: $appKey")
@@ -87,7 +87,7 @@ internal class ConfigApiImpl(
             }
 
             val responseBody = response.bodyAsText()
-            Logger.d(tag, buildString {
+            CloudXLogger.d(tag, buildString {
                 appendLine("Received response:")
                 appendLine("  Status: ${response.status}")
                 appendLine("  Body: $responseBody")
@@ -97,19 +97,19 @@ internal class ConfigApiImpl(
                 when (val result = jsonToConfig(responseBody)) {
                     is Result.Success -> Result.Success(result.value)
                     is Result.Failure -> {
-                        Logger.e(tag, "Failed to parse config: ${result.value.effectiveMessage}")
+                        CloudXLogger.e(tag, "Failed to parse config: ${result.value.effectiveMessage}")
                         Result.Failure(result.value)
                     }
                 }
             } else {
                 val errStr = "Bad response status: ${response.status}"
-                Logger.e(tag, errStr)
+                CloudXLogger.e(tag, errStr)
                 Result.Failure(CLXError(CLXErrorCode.SERVER_ERROR))
             }
 
         } catch (e: Exception) {
             val errStr = "Request failed: ${e.message}"
-            Logger.e(tag, errStr)
+            CloudXLogger.e(tag, errStr)
             Result.Failure(CLXError(CLXErrorCode.NETWORK_ERROR))
         }
     }

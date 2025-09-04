@@ -119,7 +119,7 @@ internal class FullscreenAdManagerImpl<
     private var lastLoadJob: Job? = null
 
     override fun show() {
-        CloudXLogger.info(
+        CloudXLogger.i(
             "CloudX${if (placementType == AdType.Interstitial) "Interstitial" else "Rewarded"}",
             "show() was called"
         )
@@ -174,7 +174,7 @@ internal class FullscreenAdManagerImpl<
                 if (shown || ++showRetryCount >= showRetryCountMax) null else popAdAndSetLastShown()
 
             if (!shown) {
-                CloudXLogger.info(
+                CloudXLogger.i(
                     "CloudX ${if (placementType == AdType.Interstitial) "Interstitial" else "Rewarded"}",
                     "Ad was not shown, retry show ${showRetryAd != null}, retry count $showRetryCount"
                 )

@@ -23,9 +23,9 @@ internal object ResolvedEndpoints {
         geoEndpoint = config.geoDataEndpointUrl ?: ""
 
         // AB test configs
-        CloudXLogger.debug("Endpoints", "================")
+        CloudXLogger.d("Endpoints", "================")
         val randomValue = random.nextDouble()
-        CloudXLogger.debug("Endpoints", "Generated random value: $randomValue")
+        CloudXLogger.d("Endpoints", "Generated random value: $randomValue")
 
         val tests = listOfNotNull(
             config.auctionEndpointUrl.test?.firstOrNull { it.value.isNotEmpty() }?.let {
@@ -37,7 +37,7 @@ internal object ResolvedEndpoints {
         )
 
         if (tests.isEmpty()) {
-            CloudXLogger.debug("Endpoints", "No valid test variants found, using defaults")
+            CloudXLogger.d("Endpoints", "No valid test variants found, using defaults")
             assignDefaults(config)
             return
         }
@@ -91,16 +91,16 @@ internal object ResolvedEndpoints {
     }
 
     private fun logEndpoints() {
-        CloudXLogger.debug("Endpoints", "Resolved Endpoints:")
-        CloudXLogger.debug(
+        CloudXLogger.d("Endpoints", "Resolved Endpoints:")
+        CloudXLogger.d(
             "Endpoints",
             "auction: ${auctionEndpoint.take(30)}${if (auctionEndpoint.length > 30) "..." else ""}"
         )
-        CloudXLogger.debug(
+        CloudXLogger.d(
             "Endpoints",
             "cdp: ${cdpEndpoint.take(30)}${if (cdpEndpoint.length > 30) "..." else ""}"
         )
-        CloudXLogger.debug("Endpoints", "================")
+        CloudXLogger.d("Endpoints", "================")
     }
 
     private data class TestCase(

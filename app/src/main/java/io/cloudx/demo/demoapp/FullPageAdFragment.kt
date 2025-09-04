@@ -40,12 +40,12 @@ abstract class FullPageAdFragment : Fragment(R.layout.fragment_fullscreen_ad) {
 
             ad = createAd(LoggedCloudXAdListener(logTag, placementName))
             if (ad == null) {
-                CloudXLogger.error(
+                CloudXLogger.e(
                     logTag,
                     "can't create $adType ad: $placementName placement is missing in SDK config"
                 )
             } else {
-                CloudXLogger.info(
+                CloudXLogger.i(
                     logTag,
                     "$adType created for $placementName placement"
                 )
@@ -86,7 +86,7 @@ abstract class FullPageAdFragment : Fragment(R.layout.fragment_fullscreen_ad) {
     private fun onLoadClick() {
         val ad = this.ad
         if (ad == null) {
-            CloudXLogger.error(
+            CloudXLogger.e(
                 logTag,
                 "Can't load: $adType ad wasn't created for placement: $placementName;"
             )
@@ -99,7 +99,7 @@ abstract class FullPageAdFragment : Fragment(R.layout.fragment_fullscreen_ad) {
     private fun onShowClick() {
         val ad = this.ad
         if (ad == null) {
-            CloudXLogger.error(
+            CloudXLogger.e(
                 logTag,
                 "Can't show: $adType ad wasn't created for placement: $placementName;"
             )

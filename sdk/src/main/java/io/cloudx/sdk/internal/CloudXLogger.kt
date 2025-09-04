@@ -2,66 +2,110 @@ package io.cloudx.sdk.internal
 
 import android.util.Log
 import io.cloudx.sdk.BuildConfig
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.receiveAsFlow
+import java.time.Instant
 
-// TODO. Merge with Logger.kt
+/**
+ * Modern, performant logger for CloudX SDK
+ */
 object CloudXLogger {
-
-    @JvmStatic
-    var logEnabled: Boolean = BuildConfig.DEBUG
-
-    private const val TAG = "CloudX"
-
-    private val _logFlow = MutableSharedFlow<LogItem>()
-    val logFlow = _logFlow.asSharedFlow()
-
-    fun debug(tag: String = TAG, msg: String, forceLogging: Boolean = false) {
-        log(LogItem(LogItem.Type.Debug, tag, msg), forceLogging)
+    
+    private const val TAG_PREFIX = "CX"
+    internal const val DEFAULT_COMPONENT = "SDK"
+    private const val LOG_BUFFER_SIZE = 1000
+    
+    @Volatile
+    var isEnabled: Boolean = BuildConfig.DEBUG
+    
+    @Volatile 
+    var minLogLevel: LogLevel = LogLevel.VERBOSE
+    
+    // Non-blocking channel for log events
+    private val logChannel = Channel<LogEntry>(capacity = LOG_BUFFER_SIZE)
+    val logFlow: Flow<LogEntry> = logChannel.receiveAsFlow()
+    
+    // Main logging methods - component first
+    fun verbose(component: String = DEFAULT_COMPONENT, message: String, throwable: Throwable? = null) {
+        log(LogLevel.VERBOSE, component, message, throwable)
+    }
+    
+    fun debug(component: String = DEFAULT_COMPONENT, message: String, throwable: Throwable? = null) {
+        log(LogLevel.DEBUG, component, message, throwable)
+    }
+    
+    fun info(component: String = DEFAULT_COMPONENT, message: String, throwable: Throwable? = null) {
+        log(LogLevel.INFO, component, message, throwable)
+    }
+    
+    fun warn(component: String = DEFAULT_COMPONENT, message: String, throwable: Throwable? = null) {
+        log(LogLevel.WARN, component, message, throwable)
+    }
+    
+    fun error(component: String = DEFAULT_COMPONENT, message: String, throwable: Throwable? = null) {
+        log(LogLevel.ERROR, component, message, throwable)
     }
 
-    fun info(tag: String = TAG, msg: String, forceLogging: Boolean = false) {
-        log(LogItem(LogItem.Type.Info, tag, msg), forceLogging)
+    // Shorthand methods for compatibility
+    fun v(component: String = DEFAULT_COMPONENT, message: String) = verbose(component, message)
+    fun d(component: String = DEFAULT_COMPONENT, message: String) = debug(component, message)
+    fun i(component: String = DEFAULT_COMPONENT, message: String) = info(component, message)
+    fun w(component: String = DEFAULT_COMPONENT, message: String) = warn(component, message)
+    fun e(component: String = DEFAULT_COMPONENT, message: String, throwable: Throwable? = null) = error(component, message, throwable)
+    
+    private fun log(level: LogLevel, component: String, message: String, throwable: Throwable? = null) {
+        if (!isEnabled || level < minLogLevel) return
+        
+        val fullTag = createTag(component)
+        
+        // Log to Android immediately (most important)
+        logToAndroid(level, fullTag, message, throwable)
+        
+        // Emit to flow non-blockingly (secondary)
+        val logEntry = LogEntry(
+            level = level,
+            tag = fullTag, 
+            message = message,
+            throwable = throwable,
+            timestamp = Instant.now()
+        )
+        
+        // Non-blocking emit - if buffer is full, just drop (logging shouldn't block app)
+        logChannel.trySend(logEntry)
     }
-
-    fun warn(tag: String = TAG, msg: String, forceLogging: Boolean = false) {
-        log(LogItem(LogItem.Type.Warn, tag, msg), forceLogging)
-    }
-
-    fun error(tag: String = TAG, msg: String, forceLogging: Boolean = false) {
-        log(LogItem(LogItem.Type.Error, tag, msg), forceLogging)
-    }
-
-    private fun log(logItem: LogItem, forceLogging: Boolean) {
-        if (!logEnabled && !forceLogging) {
-            return
+    
+    private fun createTag(component: String): String = "$TAG_PREFIX:$component"
+    
+    private fun logToAndroid(level: LogLevel, tag: String, message: String, throwable: Throwable?) {
+        val finalMessage = if (throwable != null) {
+            "$message\n${Log.getStackTraceString(throwable)}"
+        } else {
+            message
         }
-
-        with(logItem) {
-            when (logItem.type) {
-                LogItem.Type.Debug -> Log.d(tag, msg)
-                LogItem.Type.Info -> Log.i(tag, msg)
-                LogItem.Type.Warn -> Log.w(tag, msg)
-                LogItem.Type.Error -> Log.e(tag, msg)
-            }
-        }
-
-        // TODO. RunBlocking might be not ideal, consider scope with limited parallelism or flow buffer.
-        runBlocking(Dispatchers.Main.immediate) {
-            _logFlow.emit(logItem)
+        
+        when (level) {
+            LogLevel.VERBOSE -> Log.v(tag, finalMessage)
+            LogLevel.DEBUG -> Log.d(tag, finalMessage)
+            LogLevel.INFO -> Log.i(tag, finalMessage)  
+            LogLevel.WARN -> Log.w(tag, finalMessage)
+            LogLevel.ERROR -> Log.e(tag, finalMessage)
         }
     }
 
-    data class LogItem(
-        val type: Type,
+    enum class LogLevel(val priority: Int) {
+        VERBOSE(0),
+        DEBUG(1),
+        INFO(2),
+        WARN(3),
+        ERROR(4)
+    }
+
+    data class LogEntry(
+        val level: LogLevel,
         val tag: String,
-        val msg: String
-    ) {
-
-        enum class Type {
-            Debug, Info, Warn, Error
-        }
-    }
+        val message: String,
+        val throwable: Throwable? = null,
+        val timestamp: Instant
+    )
 }

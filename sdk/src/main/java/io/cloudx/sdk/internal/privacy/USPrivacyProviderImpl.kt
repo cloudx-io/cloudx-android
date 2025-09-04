@@ -14,7 +14,7 @@ internal class USPrivacyProviderImpl(context: Context) : USPrivacyProvider {
             sharedPrefs.getString(IABUSPrivacy_String, null)
         } catch (e: Exception) {
             // In case value wasn't string, handle exception gracefully.
-            CloudXLogger.error(TAG, e.toString())
+            CloudXLogger.e(TAG, e.toString())
             null
         }
 

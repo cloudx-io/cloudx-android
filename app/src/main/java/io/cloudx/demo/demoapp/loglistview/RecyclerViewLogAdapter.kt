@@ -5,7 +5,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.color.MaterialColors
@@ -38,10 +37,10 @@ class RecyclerViewLogAdapter(recyclerView: RecyclerView) :
         with(viewHolder) {
             time.text = logListItem.time
 
-            tag.text = logListItem.logItem.tag
+            tag.text = logListItem.logEntry.tag
             tag.setTextColor(tag.tagTextColor(logListItem))
 
-            var text = logListItem.logItem.msg
+            var text = logListItem.logEntry.message
 
             // Handle custom color marker
             val greenMarker = "color=green"
@@ -88,16 +87,17 @@ class RecyclerViewLogAdapter(recyclerView: RecyclerView) :
 
 private fun View.tagTextColor(logListItem: LogListItem) = if (logListItem.isSuccessLog) {
     ContextCompat.getColor(context, R.color.log_success)
-} else when (logListItem.logItem.type) {
-    CloudXLogger.LogItem.Type.Debug -> MaterialColors.getColor(
+} else when (logListItem.logEntry.level) {
+    CloudXLogger.LogLevel.VERBOSE -> ContextCompat.getColor(context, R.color.log_verbose)
+    CloudXLogger.LogLevel.DEBUG -> MaterialColors.getColor(
         this, com.google.android.material.R.attr.colorOutline
     )
 
-    CloudXLogger.LogItem.Type.Info -> ContextCompat.getColor(context, R.color.log_info)
+    CloudXLogger.LogLevel.INFO -> ContextCompat.getColor(context, R.color.log_info)
 
-    CloudXLogger.LogItem.Type.Warn -> ContextCompat.getColor(context, R.color.log_warn)
+    CloudXLogger.LogLevel.WARN -> ContextCompat.getColor(context, R.color.log_warn)
 
-    CloudXLogger.LogItem.Type.Error -> ContextCompat.getColor(context, R.color.log_error)
+    CloudXLogger.LogLevel.ERROR -> ContextCompat.getColor(context, R.color.log_error)
 }
 
 private class ScrollToBottomDataObserver(

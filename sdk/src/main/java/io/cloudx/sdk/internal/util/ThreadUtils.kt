@@ -193,13 +193,13 @@ internal object ThreadUtils : Destroyable {
                 withContext(context, block)
             }
         } catch (e: TimeoutCancellationException) {
-            CloudXLogger.warn("ThreadUtils", "Operation timed out after ${timeoutMs}ms")
+            CloudXLogger.w("ThreadUtils", "Operation timed out after ${timeoutMs}ms")
             null
         } catch (e: CancellationException) {
-            CloudXLogger.debug("ThreadUtils", "Operation was cancelled")
+            CloudXLogger.d("ThreadUtils", "Operation was cancelled")
             throw e // Re-throw cancellation to maintain coroutine semantics
         } catch (e: Exception) {
-            CloudXLogger.error("ThreadUtils", "Operation failed with exception")
+            CloudXLogger.e("ThreadUtils", "Operation failed with exception")
             null
         }
     }
@@ -218,7 +218,7 @@ internal object ThreadUtils : Destroyable {
             // Cancel all coroutine scopes
             ApplicationScope.cancel()
         } catch (e: Exception) {
-            CloudXLogger.warn("ThreadUtils", "Error during thread pool shutdown")
+            CloudXLogger.w("ThreadUtils", "Error during thread pool shutdown")
         }
     }
 

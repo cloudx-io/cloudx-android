@@ -195,13 +195,12 @@ class CloudXAdView internal constructor(
                     bannerContainer.addView(closeButton, closeBtnParams)
                 }
 
-                CloudXLogger.info(TAG, msg = "added banner view to the background layer: ${bannerViewToAdd.javaClass.simpleName}")
+                CloudXLogger.i(TAG, message = "added banner view to the background layer: ${bannerViewToAdd.javaClass.simpleName}")
 
             } catch (e: Exception) {
-                CloudXLogger.error(
+                CloudXLogger.e(
                     TAG,
-                    msg = "CloudXAdView exception during adding ad view ${bannerViewToAdd.javaClass.simpleName}: $e",
-                    forceLogging = true
+                    message = "CloudXAdView exception during adding ad view ${bannerViewToAdd.javaClass.simpleName}: $e",
                 )
             }
         }

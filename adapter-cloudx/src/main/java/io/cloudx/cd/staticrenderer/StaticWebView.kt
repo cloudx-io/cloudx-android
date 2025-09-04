@@ -57,7 +57,7 @@ internal class StaticWebView(
             try {
                 loadDataWithDefaultBaseUrl(applyCSSRenderingFix(html))
             } catch (e: Exception) {
-                CloudXLogger.error(msg = e.toString())
+                CloudXLogger.e(message = e.toString())
             }
 
             // Aahahah.
@@ -115,7 +115,7 @@ private class WebViewClientImpl(
     ) {
         super.onReceivedError(view, errorCode, description, failingUrl)
         _hasUnrecoverableError.value = true
-        CloudXLogger.error(TAG, "onReceivedError $description")
+        CloudXLogger.e(TAG, "onReceivedError $description")
     }
 
     override fun onRenderProcessGone(
@@ -127,7 +127,7 @@ private class WebViewClientImpl(
         // Basically, then webview will be destroyed externally after this, which, ideally, isn't known here.
         // But who cares, plus deadlines.
         _hasUnrecoverableError.value = true
-        CloudXLogger.error(TAG, "onRenderProcessGone")
+        CloudXLogger.e(TAG, "onRenderProcessGone")
         return true
     }
 

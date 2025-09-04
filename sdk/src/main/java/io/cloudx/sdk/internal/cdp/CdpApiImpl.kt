@@ -3,7 +3,7 @@ package io.cloudx.sdk.internal.cdp
 import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.CLXError
 import io.cloudx.sdk.internal.CLXErrorCode
-import io.cloudx.sdk.internal.Logger
+import io.cloudx.sdk.internal.CloudXLogger
 import io.cloudx.sdk.internal.requestTimeoutMillis
 import io.ktor.client.HttpClient
 import io.ktor.client.request.post
@@ -27,7 +27,7 @@ internal class CdpApiImpl(
     override suspend fun enrich(original: JSONObject): Result<JSONObject, CLXError> {
         val requestBody = withContext(Dispatchers.IO) { original.toString() }
 
-        Logger.d(tag, buildString {
+        CloudXLogger.d(tag, buildString {
             appendLine("Calling CDP Lambda:")
             appendLine("  Endpoint: $endpointUrl")
             appendLine("  Request: $requestBody")
@@ -41,7 +41,7 @@ internal class CdpApiImpl(
             }
 
             val responseBody = response.bodyAsText()
-            Logger.d(tag, buildString {
+            CloudXLogger.d(tag, buildString {
                 appendLine("CDP Response:")
                 appendLine("  Status: ${response.status}")
                 appendLine("  Body: $responseBody")

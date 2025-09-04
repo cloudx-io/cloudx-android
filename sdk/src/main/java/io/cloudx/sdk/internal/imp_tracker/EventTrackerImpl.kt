@@ -1,6 +1,6 @@
 package io.cloudx.sdk.internal.imp_tracker
 
-import io.cloudx.sdk.internal.Logger
+import io.cloudx.sdk.internal.CloudXLogger
 import io.cloudx.sdk.internal.db.CloudXDb
 import io.cloudx.sdk.internal.db.imp_tracking.CachedTrackingEvents
 import io.cloudx.sdk.internal.imp_tracker.bulk.EventAM
@@ -40,7 +40,7 @@ internal class EventTrackerImpl(
         val endpointUrl = baseEndpoint
 
         if (endpointUrl.isNullOrBlank()) {
-            Logger.e(tag, "No endpoint for $eventType, caching event")
+            CloudXLogger.e(tag, "No endpoint for $eventType, caching event")
             saveToDb(encoded, campaignId, eventValue, eventType)
             return
         }
@@ -50,9 +50,9 @@ internal class EventTrackerImpl(
             finalUrl, encoded, campaignId, eventValue, eventType.code
         )
         if (result is io.cloudx.sdk.Result.Success) {
-            Logger.d(tag, "$eventType sent successfully.")
+            CloudXLogger.d(tag, "$eventType sent successfully.")
         } else {
-            Logger.e(tag, "$eventType failed to send. Caching for retry later.")
+            CloudXLogger.e(tag, "$eventType failed to send. Caching for retry later.")
             saveToDb(encoded, campaignId, eventValue, eventType)
         }
     }
@@ -61,10 +61,10 @@ internal class EventTrackerImpl(
         scope.launch {
             val cached = db.cachedTrackingEventDao().getAll()
             if (cached.isEmpty()) {
-                Logger.d(tag, "No pending tracking events to send")
+                CloudXLogger.d(tag, "No pending tracking events to send")
                 return@launch
             }
-            Logger.d(tag, "Found ${cached.size} pending events to retry")
+            CloudXLogger.d(tag, "Found ${cached.size} pending events to retry")
             sendBulk(cached)
         }
     }

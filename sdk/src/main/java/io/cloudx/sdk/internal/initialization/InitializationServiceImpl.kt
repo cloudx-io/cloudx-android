@@ -190,15 +190,15 @@ internal class InitializationServiceImpl(
                     // TODO: Hardcoded for now, should be configurable later via config CX-919.
                     val userGeoIp = headersMap["x-amzn-remapped-x-forwarded-for"]
                     val hashedGeoIp = userGeoIp?.let { normalizeAndHash(userGeoIp) } ?: ""
-                    CloudXLogger.info("MainActivity", "User Geo IP: $userGeoIp")
-                    CloudXLogger.info("MainActivity", "Hashed Geo IP: $hashedGeoIp")
+                    CloudXLogger.i("MainActivity", "User Geo IP: $userGeoIp")
+                    CloudXLogger.i("MainActivity", "Hashed Geo IP: $hashedGeoIp")
                     TrackingFieldResolver.setHashedGeoIp(hashedGeoIp)
 
-                    CloudXLogger.info("MainActivity", "geo data: $geoInfo")
+                    CloudXLogger.i("MainActivity", "geo data: $geoInfo")
                     GeoInfoHolder.setGeoInfo(geoInfo, headersMap)
 
                     val removePii = privacyService.shouldClearPersonalData()
-                    CloudXLogger.info("MainActivity", "PII remove: $removePii")
+                    CloudXLogger.i("MainActivity", "PII remove: $removePii")
 
                     sendInitSDKEvent(cfg, appKey)
 
@@ -272,7 +272,7 @@ internal class InitializationServiceImpl(
             val initializer = adapterInitializers[bidderCfg.key]
 
             if (initializer == null) {
-                CloudXLogger.warn(
+                CloudXLogger.w(
                     "InitializationServiceImpl",
                     "No initializer found for ${bidderCfg.key}"
                 )

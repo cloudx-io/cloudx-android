@@ -2,7 +2,7 @@ package io.cloudx.sdk.internal.core.ad.baseinterstitial
 
 import io.cloudx.sdk.Destroyable
 import io.cloudx.sdk.internal.AdType
-import io.cloudx.sdk.internal.Logger
+import io.cloudx.sdk.internal.CloudXLogger
 import io.cloudx.sdk.internal.adapter.CloudXAdLoadOperationAvailability
 import io.cloudx.sdk.internal.common.service.AppLifecycleService
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
@@ -50,7 +50,7 @@ internal class CachedAdQueue<T : CacheableAd>(
         val currentMaxCapacity = if (isMeteredConnection) 1 else maxCapacity
         availableSlots.value = max(0, currentMaxCapacity - sortedQueue.size)
 
-        Logger.d(TAG, "ads in queue: ${sortedQueue.size}")
+        CloudXLogger.d(TAG, "ads in queue: ${sortedQueue.size}")
     }
 
     val topCloudXAd: CloudXAd? get() = sortedQueue.firstOrNull()?.ad

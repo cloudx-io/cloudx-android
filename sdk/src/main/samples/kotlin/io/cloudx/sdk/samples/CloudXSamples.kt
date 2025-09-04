@@ -1,18 +1,18 @@
 package io.cloudx.sdk.samples
 
 import android.app.Activity
-import android.util.Log
 import android.widget.FrameLayout
-import io.cloudx.sdk.CloudXAdViewListener
 import io.cloudx.sdk.CloudX
 import io.cloudx.sdk.CloudXAd
 import io.cloudx.sdk.CloudXAdError
+import io.cloudx.sdk.CloudXAdViewListener
 import io.cloudx.sdk.CloudXInterstitialAd
+import io.cloudx.sdk.CloudXInterstitialListener
 import io.cloudx.sdk.CloudXIsAdLoadedListener
 import io.cloudx.sdk.CloudXPrivacy
 import io.cloudx.sdk.CloudXRewardedAd
-import io.cloudx.sdk.CloudXInterstitialListener
 import io.cloudx.sdk.RewardedInterstitialListener
+import io.cloudx.sdk.internal.CloudXLogger
 
 internal fun cloudXSetPrivacy() {
     CloudX.setPrivacy(
@@ -40,7 +40,7 @@ internal fun cloudXInitialize(activity: Activity) {
             // SDK is initialized; now you can create ad instances.
         } else {
             // Initialization failed.
-            Log.d("SDK", "SDK init failed: ${initStatus.description}")
+            CloudXLogger.d("SDK", "SDK init failed: ${initStatus.description}")
         }
     }
 }
@@ -102,7 +102,7 @@ internal fun cloudXCreateAdView(activity: Activity, frameLayout: FrameLayout) {
         adView.destroy()
         frameLayout.removeView(adView)
     } else {
-        Log.d("SDK", "SDK not initialized or placement does not exist")
+        CloudXLogger.d("SDK", "SDK not initialized or placement does not exist")
     }
 }
 
@@ -163,7 +163,7 @@ internal fun createInterstitial(activity: Activity, placementName: String) {
             }
         })
     } else {
-        Log.d("SDK", "SDK not initialized or placement does not exist")
+        CloudXLogger.d("SDK", "SDK not initialized or placement does not exist")
     }
 
     // Release ad view resources, once it's not needed anymore
@@ -232,7 +232,7 @@ internal fun createRewarded(activity: Activity, placementName: String) {
             }
         })
     } else {
-        Log.d("SDK", "SDK not initialized or placement does not exist")
+        CloudXLogger.d("SDK", "SDK not initialized or placement does not exist")
     }
 
     // Release ad view resources, once it's not needed anymore

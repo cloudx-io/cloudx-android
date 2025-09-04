@@ -105,12 +105,12 @@ abstract class BannerProgrammaticFragment: Fragment(R.layout.fragment_banner_pro
             if (placementName.isNullOrBlank()) return@forEachIndexed
             val bannerAdView = createAdView(requireActivity(), placementName, createBannerListener(placementName))
             if (bannerAdView == null) {
-                CloudXLogger.error(
+                CloudXLogger.e(
                     logTag,
                     "Can't create banner ad: SDK is not initialized or $placementName placement is missing in SDK config"
                 )
             } else {
-                CloudXLogger.info(logTag, "Banner ad created for \"$placementName\" placement")
+                CloudXLogger.i(logTag, "Banner ad created for \"$placementName\" placement")
                 bannerAdView.visibility = VISIBLE
                 val adContainer = llAds.getChildAt(index) as AdContainerLayout
                 adContainer.addAdView(bannerAdView)
@@ -140,7 +140,7 @@ abstract class BannerProgrammaticFragment: Fragment(R.layout.fragment_banner_pro
                 )
             )
         }
-        CloudXLogger.info(logTag, "Banner ads destroyed for placements: ${placements.joinToString()}")
+        CloudXLogger.i(logTag, "Banner ads destroyed for placements: ${placements.joinToString()}")
     }
 
     override fun onDestroyView() {
@@ -153,11 +153,11 @@ abstract class BannerProgrammaticFragment: Fragment(R.layout.fragment_banner_pro
             logTag = logTag, placementName = placementName
         ) {
             override fun onAdExpanded(placementName: String) {
-                CloudXLogger.info(logTag, "Ad expanded by user: $placementName")
+                CloudXLogger.i(logTag, "Ad expanded by user: $placementName")
             }
 
             override fun onAdCollapsed(placementName: String) {
-                CloudXLogger.info(logTag, "Ad closed by user: $placementName")
+                CloudXLogger.i(logTag, "Ad closed by user: $placementName")
                 destroyBanners()
             }
         }

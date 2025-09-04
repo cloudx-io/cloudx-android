@@ -9,7 +9,7 @@ internal fun JSONObject.toStringPairMap(): Map<String, String> {
     for (key in keys) {
         runCatching { getString(key) }.getOrNull()?.let {
             map[key] = it
-        } ?: CloudXLogger.error(msg = "failed to parse value as string for key: $key")
+        } ?: CloudXLogger.e(message = "failed to parse value as string for key: $key")
     }
 
     return map

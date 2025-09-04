@@ -3,7 +3,7 @@ package io.cloudx.sdk.internal.bid
 import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.CLXError
 import io.cloudx.sdk.internal.CLXErrorCode
-import io.cloudx.sdk.internal.Logger
+import io.cloudx.sdk.internal.CloudXLogger
 import io.cloudx.sdk.internal.CLOUDX_DEFAULT_RETRY_MS
 import io.cloudx.sdk.internal.HEADER_CLOUDX_STATUS
 import io.cloudx.sdk.internal.STATUS_ADS_DISABLED
@@ -41,7 +41,7 @@ internal class BidApiImpl(
     ): Result<BidResponse, CLXError> {
 
         val requestBody = withContext(Dispatchers.IO) { bidRequest.toString() }
-        Logger.d(tag, "Bid request → $endpointUrl\nBody: $requestBody")
+        CloudXLogger.d(tag, "Bid request → $endpointUrl\nBody: $requestBody")
 
         return makeRequest(appKey, requestBody)
     }
@@ -82,7 +82,7 @@ internal class BidApiImpl(
 
     private suspend fun handleResponse(response: HttpResponse): Result<BidResponse, CLXError> {
         val responseBody = response.bodyAsText()
-        Logger.d(tag, "Bid response ← HTTP ${response.status}\n$responseBody")
+        CloudXLogger.d(tag, "Bid response ← HTTP ${response.status}\n$responseBody")
 
         return when {
             response.status == HttpStatusCode.OK -> {

@@ -14,7 +14,7 @@ internal class TCFProviderImpl(context: Context) : TCFProvider {
             sharedPrefs.getString(IABTCF_TCString, null)
         } catch (e: Exception) {
             // In case value wasn't string, handle exception gracefully.
-            CloudXLogger.error(TAG, e.toString())
+            CloudXLogger.e(TAG, e.toString())
             null
         }
 
@@ -44,7 +44,7 @@ internal class TCFProviderImpl(context: Context) : TCFProvider {
             }
         } catch (e: Exception) {
             // In case value wasn't int, handle exception gracefully.
-            CloudXLogger.error(TAG, e.toString())
+            CloudXLogger.e(TAG, e.toString())
             null
         }
     }

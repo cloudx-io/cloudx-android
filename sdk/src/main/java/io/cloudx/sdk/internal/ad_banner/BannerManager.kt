@@ -174,7 +174,7 @@ private class BannerManagerImpl(
 
                 metricsTrackerNew.trackMethodCall(MetricsType.Method.BannerRefresh)
 
-                CloudXLogger.debug(TAG, "Banner refresh scheduled in ${refreshSeconds}s")
+                CloudXLogger.d(TAG, "Banner refresh scheduled in ${refreshSeconds}s")
                 bannerRefreshTimer.awaitTimeout(refreshDelayMillis)
             }
         }
@@ -260,14 +260,14 @@ private class BannerManagerImpl(
                 bidBackoffMechanism.notifySoftError()
 
                 // Delay after each batch of 3 fails
-                CloudXLogger.debug(
+                CloudXLogger.d(
                     TAG,
                     "Soft error delay for ${bidBackoffMechanism.getBatchDelay()}ms (batch)"
                 )
                 delay(bidBackoffMechanism.getBatchDelay())
 
                 if (bidBackoffMechanism.isBatchEnd) {
-                    CloudXLogger.debug(
+                    CloudXLogger.d(
                         TAG,
                         "Batch of 3 soft errors: Delaying for ${bidBackoffMechanism.getBarrierDelay()}ms (barrier pause)"
                     )
@@ -321,7 +321,7 @@ private class BannerManagerImpl(
                     val reason = lossReasons[bidItem.id] ?: return@forEachIndexed
 
                     if (!bidItem.lurl.isNullOrBlank()) {
-                        CloudXLogger.debug(
+                        CloudXLogger.d(
                             TAG,
                             "Calling LURL for ${bidItem.adNetwork}, reason=${reason.name}, rank=${bidItem.rank}"
                         )

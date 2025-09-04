@@ -14,7 +14,6 @@ import androidx.fragment.app.commit
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.progressindicator.LinearProgressIndicator
-import io.cloudx.adapter.meta.enableMetaAudienceNetworkTestMode
 import io.cloudx.demo.demoapp.dynamic.ConfigurationManager
 import io.cloudx.demo.demoapp.dynamic.normalizeAndHash
 import io.cloudx.sdk.CloudX
@@ -273,7 +272,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main),
             val activity = this@MainActivity
             val settings = settings()
 
-            CloudXLogger.info(
+            CloudXLogger.i(
                 TAG,
                 "🚀 Starting SDK init with appKey: ${settings.appKey}, endpoint: ${settings.initUrl}"
             )
@@ -282,14 +281,14 @@ class MainActivity : AppCompatActivity(R.layout.activity_main),
             val finalHashedEmail = userInfoConfig?.let { info ->
                 when {
                     !info.userEmailHashed.isNullOrBlank() -> {
-                        CloudXLogger.info(TAG, "📧 Using pre-hashed email from config")
+                        CloudXLogger.i(TAG, "📧 Using pre-hashed email from config")
                         info.userEmailHashed
                     }
 
                     !info.userEmail.isNullOrBlank() -> {
                         val algo = info.hashAlgo?.lowercase() ?: "sha256"
                         val hashed = normalizeAndHash(info.userEmail, algo)
-                        CloudXLogger.info(TAG, "📧 Normalized and hashed email using $algo")
+                        CloudXLogger.i(TAG, "📧 Normalized and hashed email using $algo")
                         hashed
                     }
 
@@ -302,17 +301,17 @@ class MainActivity : AppCompatActivity(R.layout.activity_main),
 
             // Log email registration strategy
             when {
-                finalHashedEmail == null -> CloudXLogger.info(
+                finalHashedEmail == null -> CloudXLogger.i(
                     TAG,
                     "📧 Hashed Email → No email to register"
                 )
 
-                emailInjectionDelayMS == 0L -> CloudXLogger.info(
+                emailInjectionDelayMS == 0L -> CloudXLogger.i(
                     TAG,
                     "📧 Hashed Email → Init-time registration"
                 )
 
-                else -> CloudXLogger.info(
+                else -> CloudXLogger.i(
                     TAG,
                     "📧 Hashed Email → Delayed registration in ${emailInjectionDelayMS / 1000}s"
                 )
@@ -328,17 +327,17 @@ class MainActivity : AppCompatActivity(R.layout.activity_main),
                     if (result.initialized) INIT_SUCCESS else "$INIT_FAILURE ${result.description}"
 
                 if (result.initialized) {
-                    CloudXLogger.info(TAG, resultMsg)
+                    CloudXLogger.i(TAG, resultMsg)
 
                     if (!finalHashedEmail.isNullOrBlank() && emailInjectionDelayMS > 0L) {
                         Handler(Looper.getMainLooper()).postDelayed({
                             CloudX.setHashedUserId(finalHashedEmail)
-                            CloudXLogger.info(TAG, "📧 Hashed Email → Registered after delay")
+                            CloudXLogger.i(TAG, "📧 Hashed Email → Registered after delay")
                         }, emailInjectionDelayMS)
                     }
 
                 } else {
-                    CloudXLogger.error(TAG, resultMsg)
+                    CloudXLogger.e(TAG, resultMsg)
                 }
 
                 shortSnackbar(bottomNavBar, resultMsg)

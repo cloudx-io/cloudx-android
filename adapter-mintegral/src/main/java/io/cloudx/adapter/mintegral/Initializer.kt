@@ -25,7 +25,7 @@ internal object Initializer : CloudXAdapterInitializer {
     ): CloudXAdapterInitializationResult =
         withContext(Dispatchers.Main) {
             if (isInitialized) {
-                CloudXLogger.debug(TAG, "already initialized")
+                CloudXLogger.d(TAG, "already initialized")
                 CloudXAdapterInitializationResult.Success
             } else {
                 privacy.updateMintegralPrivacy(context)
@@ -43,25 +43,25 @@ internal object Initializer : CloudXAdapterInitializer {
 
                     sdk.init(map, context, object : SDKInitStatusListener {
                         override fun onInitFail(p0: String?) {
-                            CloudXLogger.debug(TAG, "init fail: $p0")
+                            CloudXLogger.d(TAG, "init fail: $p0")
                             // Sometimes adapters call [Continuation.resume] twice which they shouldn't.
                             // So we have a try catch block around it.
                             try {
                                 continuation.resume(CloudXAdapterInitializationResult.Error(p0 ?: ""))
                             } catch (e: Exception) {
-                                CloudXLogger.error(TAG, e.toString())
+                                CloudXLogger.e(TAG, e.toString())
                             }
                         }
 
                         override fun onInitSuccess() {
                             isInitialized = true
-                            CloudXLogger.debug(TAG, "initialized")
+                            CloudXLogger.d(TAG, "initialized")
                             // Sometimes adapters call [Continuation.resume] twice which they shouldn't.
                             // So we have a try catch block around it.
                             try {
                                 continuation.resume(CloudXAdapterInitializationResult.Success)
                             } catch (e: Exception) {
-                                CloudXLogger.error(TAG, e.toString())
+                                CloudXLogger.e(TAG, e.toString())
                             }
                         }
                     })
@@ -81,7 +81,7 @@ private fun StateFlow<CloudXPrivacy>.updateMintegralPrivacy(context: Context) {
     val privacy = value
     val sdk = MBridgeSDKFactory.getMBridgeSDK()
 
-    CloudXLogger.debug(TAG, "setting EU consent: ${value.isUserConsent}; coppa: ${value.isAgeRestrictedUser}")
+    CloudXLogger.d(TAG, "setting EU consent: ${value.isUserConsent}; coppa: ${value.isAgeRestrictedUser}")
 
     privacy.isUserConsent?.let {
         sdk.setConsentStatus(
@@ -113,6 +113,6 @@ private fun trySetMintegralChannelCode(): Boolean = try {
     method.invoke(a, channelCode)
     true
 } catch (e: Exception) {
-    CloudXLogger.error(TAG, "failed to set mintegral's channel code: $e")
+    CloudXLogger.e(TAG, "failed to set mintegral's channel code: $e")
     false
 }

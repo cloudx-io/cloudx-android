@@ -22,7 +22,7 @@ internal object Initializer: CloudXAdapterInitializer {
     ): CloudXAdapterInitializationResult =
         withContext(Dispatchers.Main) {
             if (isInitialized) {
-                CloudXLogger.debug(TAG, "already initialized")
+                CloudXLogger.d(TAG, "already initialized")
                 CloudXAdapterInitializationResult.Success
             } else {
                 privacy.updateAdManagerPrivacy()
@@ -30,13 +30,13 @@ internal object Initializer: CloudXAdapterInitializer {
                 suspendCancellableCoroutine { continuation ->
                     MobileAds.initialize(context) {
                         isInitialized = true
-                        CloudXLogger.debug(TAG, "initialized")
+                        CloudXLogger.d(TAG, "initialized")
                         // Sometimes adapters call [Continuation.resume] twice which they shouldn't.
                         // So we have a try catch block around it.
                         try {
                             continuation.resume(CloudXAdapterInitializationResult.Success)
                         } catch (e: Exception) {
-                            CloudXLogger.error(TAG, e.toString())
+                            CloudXLogger.e(TAG, e.toString())
                         }
                     }
                 }
@@ -53,7 +53,7 @@ internal val AdManagerVersion = MobileAds.getVersion().toString()
 private fun StateFlow<CloudXPrivacy>.updateAdManagerPrivacy() {
     val isAgeRestrictedUser = value.isAgeRestrictedUser
 
-    CloudXLogger.debug(TAG, "setting isAgeRestrictedUser: $isAgeRestrictedUser for AdManager SDK")
+    CloudXLogger.d(TAG, "setting isAgeRestrictedUser: $isAgeRestrictedUser for AdManager SDK")
 
     val requestConfiguration = MobileAds.getRequestConfiguration().toBuilder().apply {
         setTagForUnderAgeOfConsent(

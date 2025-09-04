@@ -31,7 +31,7 @@ object CloudXInitializer {
                 isUserConsent = settings.gdprConsent,
                 isAgeRestrictedUser = settings.ageRestricted
             ).also {
-                CloudXLogger.info(logTag, "CloudX privacy set: $it")
+                CloudXLogger.i(logTag, "CloudX privacy set: $it")
             }
         )
 

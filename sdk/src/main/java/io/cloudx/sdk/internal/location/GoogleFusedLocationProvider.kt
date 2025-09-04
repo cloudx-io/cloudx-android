@@ -5,7 +5,7 @@ import android.content.Context
 import android.location.Location
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.Task
-import io.cloudx.sdk.internal.Logger
+import io.cloudx.sdk.internal.CloudXLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.resume
@@ -42,7 +42,7 @@ internal class GoogleFusedLocationProvider(
             }
         }
     } catch (e: Exception) {
-        Logger.d(TAG, e.toString())
+        CloudXLogger.d(TAG, e.toString())
         // Not enough location permissions, or location data simply unavailable.
         null
     }

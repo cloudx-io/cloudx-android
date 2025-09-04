@@ -4,7 +4,7 @@ import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.CLXError
 import io.cloudx.sdk.internal.CLXErrorCode
-import io.cloudx.sdk.internal.Logger
+import io.cloudx.sdk.internal.CloudXLogger
 import io.cloudx.sdk.internal.toAdNetwork
 import io.cloudx.sdk.internal.toStringPairMap
 import kotlinx.coroutines.Dispatchers
@@ -19,7 +19,7 @@ internal suspend fun jsonToBidResponse(json: String): Result<BidResponse, CLXErr
 
             if (!root.has("seatbid")) {
                 val errorJson = root.optJSONObject("ext")?.optJSONObject("errors")?.toString()
-                Logger.d(
+                CloudXLogger.d(
                     "jsonToBidResponse",
                     "No seatbid — interpreting as no-bid. Ext errors: $errorJson"
                 )
@@ -29,7 +29,7 @@ internal suspend fun jsonToBidResponse(json: String): Result<BidResponse, CLXErr
             Result.Success(root.toBidResponse())
         } catch (e: Exception) {
             val errStr = e.toString()
-            Logger.e(tag = "jsonToBidResponse", msg = errStr)
+            CloudXLogger.e(component = "jsonToBidResponse", message = errStr)
             Result.Failure(CLXError(CLXErrorCode.INVALID_RESPONSE))
         }
     }

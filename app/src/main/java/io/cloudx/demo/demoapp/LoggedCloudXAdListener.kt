@@ -11,14 +11,14 @@ class LoggedCloudXAdListener(
 ) : CloudXAdListener {
 
     override fun onAdLoaded(cloudXAd: CloudXAd) {
-        CloudXLogger.info(
+        CloudXLogger.i(
             logTag,
             "Load Success; placement: $placementName; network: ${cloudXAd.bidderName}"
         )
     }
 
     override fun onAdLoadFailed(cloudXAdError: CloudXAdError) {
-        CloudXLogger.info(logTag, "LOAD FAILED; placement: $placementName;")
+        CloudXLogger.i(logTag, "LOAD FAILED; placement: $placementName;")
     }
 
     override fun onAdDisplayed(cloudXAd: CloudXAd) {
@@ -29,7 +29,7 @@ class LoggedCloudXAdListener(
     }
 
     override fun onAdDisplayFailed(cloudXAdError: CloudXAdError) {
-        CloudXLogger.info(logTag, "SHOW FAILED; placement: $placementName;")
+        CloudXLogger.i(logTag, "SHOW FAILED; placement: $placementName;")
     }
 
     override fun onAdHidden(cloudXAd: CloudXAd) {
@@ -40,7 +40,7 @@ class LoggedCloudXAdListener(
     }
 
     override fun onAdClicked(cloudXAd: CloudXAd) {
-        CloudXLogger.info(
+        CloudXLogger.i(
             logTag,
             "Ad clicked; placement: $placementName; network: ${cloudXAd.bidderName}"
         )

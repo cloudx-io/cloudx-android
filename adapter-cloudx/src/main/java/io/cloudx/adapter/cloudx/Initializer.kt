@@ -13,7 +13,7 @@ object Initializer : CloudXAdapterInitializer {
         config: Map<String, String>,
         privacy: StateFlow<CloudXPrivacy>
     ): CloudXAdapterInitializationResult {
-        CloudXLogger.info("CloudX-DSP Initializer", "initialized")
+        CloudXLogger.i("CloudX-DSP Initializer", "initialized")
         return CloudXAdapterInitializationResult.Success
     }
 }

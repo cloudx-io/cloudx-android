@@ -2,7 +2,7 @@ package io.cloudx.sdk.internal.core.resolver
 
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.AdViewSize
-import io.cloudx.sdk.internal.Logger
+import io.cloudx.sdk.internal.CloudXLogger
 import io.cloudx.sdk.internal.adapter.CloudXAdapterInitializer
 import io.cloudx.sdk.internal.adapter.CloudXAdViewSizeSupport
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterFactory
@@ -82,7 +82,7 @@ private fun <B: CloudXAdViewSizeSupport, N> populateBannersByBannerSize(
 private fun instance(className: String) = try {
     Class.forName(className).kotlin.objectInstance
 } catch (e: Exception) {
-    Logger.e(TAG, e.toString())
+    CloudXLogger.e(TAG, e.toString())
     null
 }
 

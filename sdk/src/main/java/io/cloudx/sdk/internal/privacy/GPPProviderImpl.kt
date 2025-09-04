@@ -27,7 +27,7 @@ private class GPPProviderImpl(context: Context) : GPPProvider {
         return try {
             sharedPrefs.getString(IABGPP_GppString, null)?.takeIf { it.isNotBlank() }
         } catch (e: Exception) {
-            CloudXLogger.error(TAG, "Failed to read GPP string: ${e.message}")
+            CloudXLogger.e(TAG, "Failed to read GPP string: ${e.message}")
             null
         }
     }
@@ -37,7 +37,7 @@ private class GPPProviderImpl(context: Context) : GPPProvider {
             val raw = sharedPrefs.getString(IABGPP_GppSID, null)?.takeIf { it.isNotBlank() }
             raw?.trim()?.split("_")?.mapNotNull { it.toIntOrNull() }?.takeIf { it.isNotEmpty() }
         } catch (e: Exception) {
-            CloudXLogger.error(TAG, "Failed to read or parse GPP SID: ${e.message}")
+            CloudXLogger.e(TAG, "Failed to read or parse GPP SID: ${e.message}")
             null
         }
     }

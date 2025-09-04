@@ -10,7 +10,7 @@ class DemoApplication : Application() {
         super.onCreate()
         
         // Enforce logging for the demo app regardless of build variant
-        CloudXLogger.logEnabled = true
+        CloudXLogger.isEnabled = true
         
         // Enable Meta test mode for demo app
         enableMetaAudienceNetworkTestMode(true)
@@ -23,8 +23,8 @@ class DemoApplication : Application() {
         // Get the settings for SDK initialization
         val settings = settings()
         
-        CloudXLogger.info(TAG, "🚀 Auto-initializing CloudX SDK on app startup")
-        CloudXLogger.info(TAG, "AppKey: ${settings.appKey}, Endpoint: ${settings.initUrl}")
+        CloudXLogger.i(TAG, "🚀 Auto-initializing CloudX SDK on app startup")
+        CloudXLogger.i(TAG, "AppKey: ${settings.appKey}, Endpoint: ${settings.initUrl}")
         
         // Use the CloudXInitializer which now accepts Context
         CloudXInitializer.initializeCloudX(
@@ -39,7 +39,7 @@ class DemoApplication : Application() {
                 "❌ CloudX SDK initialization failed: ${result.description}"
             }
             
-            CloudXLogger.info(TAG, message)
+            CloudXLogger.i(TAG, message)
         }
     }
     

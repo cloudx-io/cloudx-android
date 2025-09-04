@@ -198,25 +198,25 @@ internal fun adapterLoggingDecoration(
 
     return AdEventDecoration(
         onTimeout = {
-            CloudXLogger.debug(
+            CloudXLogger.d(
                 tag,
                 "LOAD TIMEOUT placement: $placementName, id: $placementId, price: $price"
             )
         },
         onLoad = {
-            CloudXLogger.debug(
+            CloudXLogger.d(
                 tag,
                 "LOAD SUCCESS placement: $placementName, id: $placementId, price: $price"
             )
         },
         onError = {
-            CloudXLogger.error(
+            CloudXLogger.e(
                 tag,
                 "ERROR placement: $placementName, id: $placementId, price: $price, error: ${it.description}"
             )
         },
         onImpression = {
-            CloudXLogger.debug(
+            CloudXLogger.d(
                 tag,
                 "IMPRESSION placement: $placementName, id: $placementId, price: $price"
             )

@@ -8,7 +8,7 @@ import android.os.Build
 import android.telephony.TelephonyManager
 import androidx.annotation.RequiresApi
 import androidx.core.net.ConnectivityManagerCompat
-import io.cloudx.sdk.internal.Logger
+import io.cloudx.sdk.internal.CloudXLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -60,7 +60,7 @@ private fun Context.modernConnectionInfo(): ConnectionInfo? = try {
         )
     }
 } catch (e: Exception) {
-    Logger.e("modernConnectionInfo", e.toString(), e)
+    CloudXLogger.e("modernConnectionInfo", e.toString(), e)
     null
 }
 
@@ -77,7 +77,7 @@ private fun Context.preApi29ConnectionInfo(): ConnectionInfo? = try {
         )
     }
 } catch (e: Exception) {
-    Logger.e("preApi29ConnectionInfo", e.toString(), e)
+    CloudXLogger.e("preApi29ConnectionInfo", e.toString(), e)
     null
 }
 

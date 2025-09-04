@@ -39,15 +39,15 @@ class LogListItem(
     val time: String,
     // Special highlighting for such logs (initialization success, for example)
     val isSuccessLog: Boolean,
-    val logItem: CloudXLogger.LogItem
+    val logEntry: CloudXLogger.LogEntry
 )
 
-private fun CloudXLogger.LogItem.toLogListItem(): LogListItem {
+private fun CloudXLogger.LogEntry.toLogListItem(): LogListItem {
     return LogListItem(
         time = now(),
         // TODO. As ugly as it gets.
-        isSuccessLog = msg == INIT_SUCCESS,
-        logItem = this
+        isSuccessLog = message == INIT_SUCCESS,
+        logEntry = this
     )
 }
 

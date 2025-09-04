@@ -1,10 +1,9 @@
 package io.cloudx.sdk.internal.imp_tracker
 
 import io.cloudx.sdk.Result
-import io.cloudx.sdk.internal.CloudXLogger
 import io.cloudx.sdk.internal.CLXError
 import io.cloudx.sdk.internal.CLXErrorCode
-import io.cloudx.sdk.internal.Logger
+import io.cloudx.sdk.internal.CloudXLogger
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.retry
 import io.ktor.client.plugins.timeout
@@ -28,7 +27,7 @@ internal class EventTrackerApiImpl(
         eventName: String
     ): Result<Unit, CLXError> {
 
-        Logger.d(tag, buildString {
+        CloudXLogger.d(tag, buildString {
             appendLine("Sending event tracking  request:")
             appendLine("  Endpoint: $endpointUrl")
             appendLine("  Impression: $encodedData")
@@ -37,7 +36,7 @@ internal class EventTrackerApiImpl(
             appendLine("  EventName: $eventName")
         })
 
-        CloudXLogger.info("MainActivity", "Tracking: Sending ${eventName.uppercase()} event")
+        CloudXLogger.i("MainActivity", "Tracking: Sending ${eventName.uppercase()} event")
 
         return try {
             val response = httpClient.get(endpointUrl) {
@@ -54,22 +53,22 @@ internal class EventTrackerApiImpl(
                 }
             }
 
-            Logger.d(tag, "Request URL: ${response.call.request.url}")
+            CloudXLogger.d(tag, "Request URL: ${response.call.request.url}")
 
             val responseBody = response.bodyAsText()
-            Logger.d(tag, "Tracking response: Status=${response.status}, Body=$responseBody")
+            CloudXLogger.d(tag, "Tracking response: Status=${response.status}, Body=$responseBody")
 
             val code = response.status.value
             if (code in 200..299) {
                 Result.Success(Unit)
             } else {
-                Logger.d(tag, "Bad response status: ${response.status}")
+                CloudXLogger.d(tag, "Bad response status: ${response.status}")
                 Result.Failure(CLXError(CLXErrorCode.SERVER_ERROR))
             }
 
         } catch (e: Exception) {
             val errStr = "Tracking request failed: ${e.message}"
-            Logger.e(tag, errStr)
+            CloudXLogger.e(tag, errStr)
             Result.Failure(CLXError(CLXErrorCode.NETWORK_ERROR))
         }
     }

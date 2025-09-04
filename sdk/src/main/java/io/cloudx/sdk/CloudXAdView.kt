@@ -18,11 +18,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import io.cloudx.sdk.internal.CloudXLogger
-import io.cloudx.sdk.internal.ad_banner.Banner
+import io.cloudx.sdk.internal.ad_banner.BannerManager
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
 import io.cloudx.sdk.internal.common.createViewabilityTracker
 import io.cloudx.sdk.internal.common.dpToPx
-import io.cloudx.sdk.internal.core.ad.suspendable.SuspendableBanner
 import io.cloudx.sdk.internal.PlacementLoopIndexTracker
 
 interface CloudXAdViewListener : CloudXAdListener{
@@ -42,11 +41,11 @@ class CloudXAdView internal constructor(
     activity: Activity,
     private var suspendPreloadWhenInvisible: Boolean,
     private var adViewSize: AdViewSize,
-    internal val createBanner: (
+    internal val createBannerManager: (
         adViewContainer: CloudXAdViewAdapterContainer,
         bannerVisibility: StateFlow<Boolean>,
         suspendPreloadWhenInvisible: Boolean,
-    ) -> Banner,
+    ) -> BannerManager,
     private val placementName: String,
     private val hasCloseButton: Boolean
 ) : FrameLayout(activity), Destroyable {
@@ -54,7 +53,7 @@ class CloudXAdView internal constructor(
     private val TAG = "CloudXAdView"
     private val mainScope = CoroutineScope(Dispatchers.Main)
 
-    private var banner: Banner? = null
+    private var bannerManager: BannerManager? = null
 
     override fun onVisibilityChanged(changedView: View, visibility: Int) {
         super.onVisibilityChanged(changedView, visibility)
@@ -68,9 +67,9 @@ class CloudXAdView internal constructor(
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        if (banner != null) return
+        if (bannerManager != null) return
 
-        banner = createBanner(
+        bannerManager = createBannerManager(
             createBannerContainer(),
             viewabilityTracker.isViewable,
             suspendPreloadWhenInvisible,
@@ -93,8 +92,8 @@ class CloudXAdView internal constructor(
 
     override fun destroy() {
         mainScope.launch {
-            banner?.destroy()
-            banner = null
+            bannerManager?.destroy()
+            bannerManager = null
 
             (parent as? ViewGroup)?.removeView(this@CloudXAdView)
 
@@ -113,7 +112,7 @@ class CloudXAdView internal constructor(
         }
 
     private fun updateBannerListener() {
-        banner?.listener = listener
+        bannerManager?.listener = listener
     }
 
     // So the idea is to create a banner container per each onAdd() call

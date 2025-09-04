@@ -9,7 +9,7 @@ import io.cloudx.sdk.RewardedInterstitial
 import io.cloudx.sdk.RewardedInterstitialListener
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.AdViewSize
-import io.cloudx.sdk.internal.ad_banner.Banner
+import io.cloudx.sdk.internal.ad_banner.BannerManager
 import io.cloudx.sdk.internal.Logger
 import io.cloudx.sdk.internal.adapter.BannerFactoryMiscParams
 import io.cloudx.sdk.internal.bid.BidApi
@@ -90,8 +90,8 @@ internal class AdFactoryImpl(
             activity,
             suspendPreloadWhenInvisible = true,
             adViewSize = size,
-            createBanner = { adViewContainer, bannerVisibility, suspendPreloadWhenInvisible ->
-                Banner(
+            createBannerManager = { adViewContainer, bannerVisibility, suspendPreloadWhenInvisible ->
+                BannerManager(
                     activity,
                     placementId = placement.id,
                     placementName = placement.name,

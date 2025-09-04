@@ -1,8 +1,8 @@
-package io.cloudx.sdk.internal.core.ad.suspendable.decorated
+package io.cloudx.sdk.internal.core.ad.adapter_delegate.decorated
 
 import io.cloudx.sdk.internal.adapter.CloudXAdapterError
-import io.cloudx.sdk.internal.core.ad.suspendable.SuspendableInterstitial
-import io.cloudx.sdk.internal.core.ad.suspendable.SuspendableInterstitialEvent
+import io.cloudx.sdk.internal.core.ad.adapter_delegate.InterstitialAdapterDelegate
+import io.cloudx.sdk.internal.core.ad.adapter_delegate.InterstitialAdapterDelegateEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -12,7 +12,7 @@ private typealias InterstitialFunc = (() -> Unit)?
 private typealias ErrorInterstitialFunc = ((error: CloudXAdapterError) -> Unit)?
 private typealias ClickInterstitialFunc = (() -> Unit)?
 
-internal class DecoratedSuspendableInterstitial(
+internal class DecoratedInterstitialAdapterDelegate(
     onLoad: InterstitialFunc = null,
     onShow: InterstitialFunc = null,
     onImpression: InterstitialFunc = null,
@@ -24,21 +24,21 @@ internal class DecoratedSuspendableInterstitial(
     private val onDestroy: InterstitialFunc = null,
     private val onStartLoad: InterstitialFunc = null,
     private val onTimeout: InterstitialFunc = null,
-    private val interstitial: SuspendableInterstitial
-) : SuspendableInterstitial by interstitial {
+    private val interstitial: InterstitialAdapterDelegate
+) : InterstitialAdapterDelegate by interstitial {
 
     private val scope = CoroutineScope(Dispatchers.Main).also {
         it.launch {
             event.collect { event ->
                 when (event) {
-                    SuspendableInterstitialEvent.Load -> onLoad?.invoke()
-                    SuspendableInterstitialEvent.Show -> onShow?.invoke()
-                    SuspendableInterstitialEvent.Impression -> onImpression?.invoke()
-                    SuspendableInterstitialEvent.Skip -> onSkip?.invoke()
-                    SuspendableInterstitialEvent.Complete -> onComplete?.invoke()
-                    SuspendableInterstitialEvent.Hide -> onHide?.invoke()
-                    is SuspendableInterstitialEvent.Click -> onClick?.invoke()
-                    is SuspendableInterstitialEvent.Error -> onError?.invoke(event.error)
+                    InterstitialAdapterDelegateEvent.Load -> onLoad?.invoke()
+                    InterstitialAdapterDelegateEvent.Show -> onShow?.invoke()
+                    InterstitialAdapterDelegateEvent.Impression -> onImpression?.invoke()
+                    InterstitialAdapterDelegateEvent.Skip -> onSkip?.invoke()
+                    InterstitialAdapterDelegateEvent.Complete -> onComplete?.invoke()
+                    InterstitialAdapterDelegateEvent.Hide -> onHide?.invoke()
+                    is InterstitialAdapterDelegateEvent.Click -> onClick?.invoke()
+                    is InterstitialAdapterDelegateEvent.Error -> onError?.invoke(event.error)
                 }
             }
         }

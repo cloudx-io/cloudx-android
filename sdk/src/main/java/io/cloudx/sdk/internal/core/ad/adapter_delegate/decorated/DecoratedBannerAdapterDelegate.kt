@@ -1,8 +1,8 @@
-package io.cloudx.sdk.internal.core.ad.suspendable.decorated
+package io.cloudx.sdk.internal.core.ad.adapter_delegate.decorated
 
 import io.cloudx.sdk.internal.adapter.CloudXAdapterError
-import io.cloudx.sdk.internal.core.ad.suspendable.SuspendableBanner
-import io.cloudx.sdk.internal.core.ad.suspendable.SuspendableBannerEvent
+import io.cloudx.sdk.internal.core.ad.adapter_delegate.BannerAdapterDelegate
+import io.cloudx.sdk.internal.core.ad.adapter_delegate.BannerAdapterDelegateEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
 private typealias BannerFunc = (() -> Unit)?
 private typealias ErrorBannerFunc = ((error: CloudXAdapterError) -> Unit)?
 
-internal class DecoratedSuspendableBanner(
+internal class DecoratedBannerAdapterDelegate(
     onLoad: BannerFunc = null,
     onShow: BannerFunc = null,
     onImpression: BannerFunc = null,
@@ -20,18 +20,18 @@ internal class DecoratedSuspendableBanner(
     private val onDestroy: BannerFunc = null,
     private val onStartLoad: BannerFunc = null,
     private val onTimeout: BannerFunc = null,
-    private val banner: SuspendableBanner
-) : SuspendableBanner by banner {
+    private val banner: BannerAdapterDelegate
+) : BannerAdapterDelegate by banner {
 
     private val scope = CoroutineScope(Dispatchers.Main).also {
         it.launch {
             event.collect { event ->
                 when (event) {
-                    SuspendableBannerEvent.Load -> onLoad?.invoke()
-                    SuspendableBannerEvent.Show -> onShow?.invoke()
-                    SuspendableBannerEvent.Impression -> onImpression?.invoke()
-                    SuspendableBannerEvent.Click -> onClick?.invoke()
-                    is SuspendableBannerEvent.Error -> onError?.invoke(event.error)
+                    BannerAdapterDelegateEvent.Load -> onLoad?.invoke()
+                    BannerAdapterDelegateEvent.Show -> onShow?.invoke()
+                    BannerAdapterDelegateEvent.Impression -> onImpression?.invoke()
+                    BannerAdapterDelegateEvent.Click -> onClick?.invoke()
+                    is BannerAdapterDelegateEvent.Error -> onError?.invoke(event.error)
                 }
             }
         }

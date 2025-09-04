@@ -1,8 +1,8 @@
-package io.cloudx.sdk.internal.core.ad.suspendable.decorated
+package io.cloudx.sdk.internal.core.ad.adapter_delegate.decorated
 
 import io.cloudx.sdk.internal.adapter.CloudXAdapterError
-import io.cloudx.sdk.internal.core.ad.suspendable.SuspendableRewardedInterstitial
-import io.cloudx.sdk.internal.core.ad.suspendable.SuspendableRewardedInterstitialEvent
+import io.cloudx.sdk.internal.core.ad.adapter_delegate.RewardedInterstitialAdapterDelegate
+import io.cloudx.sdk.internal.core.ad.adapter_delegate.RewardedInterstitialAdapterDelegateEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -12,7 +12,7 @@ private typealias RewardedInterstitialFunc = (() -> Unit)?
 private typealias ErrorRewardedInterstitialFunc = ((error: CloudXAdapterError) -> Unit)?
 private typealias ClickRewardedInterstitialFunc = (() -> Unit)?
 
-internal class DecoratedSuspendableRewardedInterstitial(
+internal class DecoratedRewardedInterstitialAdapterDelegate(
     onLoad: RewardedInterstitialFunc = null,
     onShow: RewardedInterstitialFunc = null,
     onImpression: RewardedInterstitialFunc = null,
@@ -23,20 +23,20 @@ internal class DecoratedSuspendableRewardedInterstitial(
     private val onDestroy: RewardedInterstitialFunc = null,
     private val onStartLoad: RewardedInterstitialFunc = null,
     private val onTimeout: RewardedInterstitialFunc = null,
-    private val rewardedInterstitial: SuspendableRewardedInterstitial
-) : SuspendableRewardedInterstitial by rewardedInterstitial {
+    private val rewardedInterstitial: RewardedInterstitialAdapterDelegate
+) : RewardedInterstitialAdapterDelegate by rewardedInterstitial {
 
     private val scope = CoroutineScope(Dispatchers.Main).also {
         it.launch {
             event.collect { event ->
                 when (event) {
-                    SuspendableRewardedInterstitialEvent.Load -> onLoad?.invoke()
-                    SuspendableRewardedInterstitialEvent.Show -> onShow?.invoke()
-                    SuspendableRewardedInterstitialEvent.Impression -> onImpression?.invoke()
-                    SuspendableRewardedInterstitialEvent.Reward -> onReward?.invoke()
-                    SuspendableRewardedInterstitialEvent.Hide -> onHide?.invoke()
-                    is SuspendableRewardedInterstitialEvent.Click -> onClick?.invoke()
-                    is SuspendableRewardedInterstitialEvent.Error -> onError?.invoke(event.error)
+                    RewardedInterstitialAdapterDelegateEvent.Load -> onLoad?.invoke()
+                    RewardedInterstitialAdapterDelegateEvent.Show -> onShow?.invoke()
+                    RewardedInterstitialAdapterDelegateEvent.Impression -> onImpression?.invoke()
+                    RewardedInterstitialAdapterDelegateEvent.Reward -> onReward?.invoke()
+                    RewardedInterstitialAdapterDelegateEvent.Hide -> onHide?.invoke()
+                    is RewardedInterstitialAdapterDelegateEvent.Click -> onClick?.invoke()
+                    is RewardedInterstitialAdapterDelegateEvent.Error -> onError?.invoke(event.error)
                     else -> {}
                 }
             }

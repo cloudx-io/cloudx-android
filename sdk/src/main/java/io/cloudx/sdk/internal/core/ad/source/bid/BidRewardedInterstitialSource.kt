@@ -12,7 +12,7 @@ import io.cloudx.sdk.internal.core.ad.source.adapterLoggingDecoration
 import io.cloudx.sdk.internal.core.ad.source.baseAdDecoration
 import io.cloudx.sdk.internal.core.ad.source.bidAdDecoration
 import io.cloudx.sdk.internal.core.ad.source.decorate
-import io.cloudx.sdk.internal.core.ad.suspendable.SuspendableRewardedInterstitial
+import io.cloudx.sdk.internal.core.ad.adapter_delegate.RewardedInterstitialAdapterDelegate
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTrackerNew
 
@@ -29,7 +29,7 @@ internal fun BidRewardedInterstitialSource(
     bidRequestTimeoutMillis: Long,
     accountId: String,
     appKey: String
-): BidAdSource<SuspendableRewardedInterstitial> {
+): BidAdSource<RewardedInterstitialAdapterDelegate> {
     val adType = AdType.Rewarded
 
     return BidAdSource(
@@ -57,7 +57,7 @@ internal fun BidRewardedInterstitialSource(
         val params = it.params
         val auctionId = it.auctionId
 
-        SuspendableRewardedInterstitial(
+        RewardedInterstitialAdapterDelegate(
             placementName = placementName,
             placementId = placementId,
             adNetwork = network,

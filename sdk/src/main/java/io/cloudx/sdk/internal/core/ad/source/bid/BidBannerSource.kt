@@ -14,7 +14,7 @@ import io.cloudx.sdk.internal.core.ad.source.adapterLoggingDecoration
 import io.cloudx.sdk.internal.core.ad.source.baseAdDecoration
 import io.cloudx.sdk.internal.core.ad.source.bidAdDecoration
 import io.cloudx.sdk.internal.core.ad.source.decorate
-import io.cloudx.sdk.internal.core.ad.suspendable.SuspendableBanner
+import io.cloudx.sdk.internal.core.ad.adapter_delegate.BannerAdapterDelegate
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTrackerNew
 
@@ -35,7 +35,7 @@ internal fun BidBannerSource(
     bidRequestTimeoutMillis: Long,
     accountId: String,
     appKey: String
-): BidAdSource<SuspendableBanner> =
+): BidAdSource<BannerAdapterDelegate> =
     BidAdSource(
         generateBidRequest,
         BidRequestProvider.Params(
@@ -62,7 +62,7 @@ internal fun BidBannerSource(
         val params = it.params
         val auctionId = it.auctionId
 
-        SuspendableBanner(
+        BannerAdapterDelegate(
             placementName = placementName,
             placementId = placementId,
             adNetwork = network,

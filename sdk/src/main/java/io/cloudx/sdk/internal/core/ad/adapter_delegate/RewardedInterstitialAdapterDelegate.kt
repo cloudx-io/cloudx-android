@@ -1,4 +1,4 @@
-package io.cloudx.sdk.internal.core.ad.suspendable
+package io.cloudx.sdk.internal.core.ad.adapter_delegate
 
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.adapter.CloudXAdapterError
@@ -16,16 +16,16 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
- * Events emitted by SuspendableRewardedInterstitial during its lifecycle
+ * Events emitted by RewardedInterstitialAdapterDelegate during its lifecycle
  */
-sealed class SuspendableRewardedInterstitialEvent {
-    object Load : SuspendableRewardedInterstitialEvent()
-    object Show : SuspendableRewardedInterstitialEvent()
-    object Impression : SuspendableRewardedInterstitialEvent()
-    object Reward : SuspendableRewardedInterstitialEvent()
-    object Hide : SuspendableRewardedInterstitialEvent()
-    object Click : SuspendableRewardedInterstitialEvent()
-    data class Error(val error: CloudXAdapterError) : SuspendableRewardedInterstitialEvent()
+sealed class RewardedInterstitialAdapterDelegateEvent {
+    object Load : RewardedInterstitialAdapterDelegateEvent()
+    object Show : RewardedInterstitialAdapterDelegateEvent()
+    object Impression : RewardedInterstitialAdapterDelegateEvent()
+    object Reward : RewardedInterstitialAdapterDelegateEvent()
+    object Hide : RewardedInterstitialAdapterDelegateEvent()
+    object Click : RewardedInterstitialAdapterDelegateEvent()
+    data class Error(val error: CloudXAdapterError) : RewardedInterstitialAdapterDelegateEvent()
 }
 
 /**
@@ -34,21 +34,21 @@ sealed class SuspendableRewardedInterstitialEvent {
 // TODO. Some methods/inits can be reused for any ad type (destroy() etc).
 // TODO. Replace sdk.adapter.RewardedInterstitial with this?
 // TODO. Merge with DecoratedSuspendableXXXX?
-internal interface SuspendableRewardedInterstitial :
-    SuspendableBaseFullscreenAd<SuspendableRewardedInterstitialEvent>
+internal interface RewardedInterstitialAdapterDelegate :
+    FullscreenAdAdapterDelegate<RewardedInterstitialAdapterDelegateEvent>
 
 /**
- * Factory function to create a SuspendableRewardedInterstitial instance
+ * Factory function to create a RewardedInterstitialAdapterDelegate instance
  */
-internal fun SuspendableRewardedInterstitial(
+internal fun RewardedInterstitialAdapterDelegate(
     placementName: String,
     placementId: String,
     adNetwork: AdNetwork,
     externalPlacementId: String?,
     price: Double?,
     createRewardedInterstitial: (listener: CloudXRewardedInterstitialAdapterListener) -> CloudXRewardedInterstitialAdapter
-): SuspendableRewardedInterstitial =
-    SuspendableRewardedInterstitialImpl(
+): RewardedInterstitialAdapterDelegate =
+    RewardedInterstitialAdapterDelegateImpl(
         placementName = placementName,
         placementId = placementId,
         bidderName = adNetwork.networkName,
@@ -58,23 +58,23 @@ internal fun SuspendableRewardedInterstitial(
     )
 
 /**
- * Implementation of SuspendableRewardedInterstitial that wraps a CloudXRewardedInterstitialAdapter
+ * Implementation of RewardedInterstitialAdapterDelegate that wraps a CloudXRewardedInterstitialAdapter
  */
-private class SuspendableRewardedInterstitialImpl(
+private class RewardedInterstitialAdapterDelegateImpl(
     override val placementName: String,
     override val placementId: String,
     override val bidderName: String,
     override val externalPlacementId: String?,
     override val revenue: Double?,
     createRewardedInterstitial: (listener: CloudXRewardedInterstitialAdapterListener) -> CloudXRewardedInterstitialAdapter,
-) : SuspendableRewardedInterstitial {
+) : RewardedInterstitialAdapterDelegate {
 
     // State management
     private val scope = CoroutineScope(Dispatchers.Main)
-    private val _event = MutableSharedFlow<SuspendableRewardedInterstitialEvent>()
+    private val _event = MutableSharedFlow<RewardedInterstitialAdapterDelegateEvent>()
     private val _lastErrorEvent = MutableStateFlow<CloudXAdapterError?>(null)
 
-    override val event: SharedFlow<SuspendableRewardedInterstitialEvent> = _event
+    override val event: SharedFlow<RewardedInterstitialAdapterDelegateEvent> = _event
     override val lastErrorEvent: StateFlow<CloudXAdapterError?> = _lastErrorEvent
 
     // Rewarded interstitial adapter with listener
@@ -87,12 +87,12 @@ private class SuspendableRewardedInterstitialImpl(
     override suspend fun load(): Boolean {
         val evtJob = scope.async {
             event.first {
-                it is SuspendableRewardedInterstitialEvent.Load || it is SuspendableRewardedInterstitialEvent.Error
+                it is RewardedInterstitialAdapterDelegateEvent.Load || it is RewardedInterstitialAdapterDelegateEvent.Error
             }
         }
 
         rewardedInterstitial.load()
-        return evtJob.await() is SuspendableRewardedInterstitialEvent.Load
+        return evtJob.await() is RewardedInterstitialAdapterDelegateEvent.Load
     }
 
     override fun show() {
@@ -112,32 +112,32 @@ private class SuspendableRewardedInterstitialImpl(
     private fun createAdapterListener(): CloudXRewardedInterstitialAdapterListener {
         return object : CloudXRewardedInterstitialAdapterListener {
             override fun onLoad() {
-                scope.launch { _event.emit(SuspendableRewardedInterstitialEvent.Load) }
+                scope.launch { _event.emit(RewardedInterstitialAdapterDelegateEvent.Load) }
             }
 
             override fun onShow() {
-                scope.launch { _event.emit(SuspendableRewardedInterstitialEvent.Show) }
+                scope.launch { _event.emit(RewardedInterstitialAdapterDelegateEvent.Show) }
             }
 
             override fun onImpression() {
-                scope.launch { _event.emit(SuspendableRewardedInterstitialEvent.Impression) }
+                scope.launch { _event.emit(RewardedInterstitialAdapterDelegateEvent.Impression) }
             }
 
             override fun onEligibleForReward() {
-                scope.launch { _event.emit(SuspendableRewardedInterstitialEvent.Reward) }
+                scope.launch { _event.emit(RewardedInterstitialAdapterDelegateEvent.Reward) }
             }
 
             override fun onHide() {
-                scope.launch { _event.emit(SuspendableRewardedInterstitialEvent.Hide) }
+                scope.launch { _event.emit(RewardedInterstitialAdapterDelegateEvent.Hide) }
             }
 
             override fun onClick() {
-                scope.launch { _event.emit(SuspendableRewardedInterstitialEvent.Click) }
+                scope.launch { _event.emit(RewardedInterstitialAdapterDelegateEvent.Click) }
             }
 
             override fun onError(error: CloudXAdapterError) {
                 scope.launch {
-                    _event.emit(SuspendableRewardedInterstitialEvent.Error(error))
+                    _event.emit(RewardedInterstitialAdapterDelegateEvent.Error(error))
                     _lastErrorEvent.value = error
                 }
             }

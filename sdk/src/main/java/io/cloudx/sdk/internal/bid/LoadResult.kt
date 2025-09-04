@@ -1,5 +1,5 @@
 package io.cloudx.sdk.internal.bid
 
-import io.cloudx.sdk.internal.core.ad.suspendable.SuspendableBanner
+import io.cloudx.sdk.internal.core.ad.adapter_delegate.BannerAdapterDelegate
 
-internal data class LoadResult(val banner: SuspendableBanner?, val lossReason: LossReason?)
+internal data class LoadResult(val banner: BannerAdapterDelegate?, val lossReason: LossReason?)

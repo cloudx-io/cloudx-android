@@ -378,5 +378,3 @@ object CloudX {
         val hashedUserId: String? = null
     )
 }
-
-private val TAG = CloudX.javaClass.simpleName

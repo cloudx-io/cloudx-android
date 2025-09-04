@@ -7,8 +7,8 @@ import io.cloudx.sdk.internal.adapter.CloudXAdLoadOperationAvailability
 import io.cloudx.sdk.internal.common.service.AppLifecycleService
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.CloudXAd
-import io.cloudx.sdk.internal.core.ad.suspendable.AdTimeoutEvent
-import io.cloudx.sdk.internal.core.ad.suspendable.LastErrorEvent
+import io.cloudx.sdk.internal.core.ad.adapter_delegate.AdTimeoutEvent
+import io.cloudx.sdk.internal.core.ad.adapter_delegate.LastErrorEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

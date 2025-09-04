@@ -8,7 +8,7 @@ import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.core.ad.baseinterstitial.CacheableAd
 import io.cloudx.sdk.internal.core.ad.baseinterstitial.CachedAdRepository
 import io.cloudx.sdk.internal.core.ad.source.bid.BidAdSource
-import io.cloudx.sdk.internal.core.ad.suspendable.SuspendableBaseFullscreenAd
+import io.cloudx.sdk.internal.core.ad.adapter_delegate.FullscreenAdAdapterDelegate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -50,22 +50,22 @@ interface CloudXFullscreenAd : Destroyable {
 }
 
 // TODO. Yeah, more generics, classes, interfaces...
-internal class CloudXFullscreenAdImpl<
-        SuspendableFullscreenAd : SuspendableBaseFullscreenAd<SuspendableFullscreenAdEvent>,
-        SuspendableFullscreenAdEvent,
-        PublisherListener : CloudXAdListener,
+internal class FullscreenAdManagerImpl<
+        Delegate : FullscreenAdAdapterDelegate<DelegateEvent>,
+        DelegateEvent,
+        Listener : CloudXAdListener,
         >(
-    bidAdSource: BidAdSource<SuspendableFullscreenAd>,
+    bidAdSource: BidAdSource<Delegate>,
     bidMaxBackOffTimeMillis: Long,
     bidAdLoadTimeoutMillis: Long,
     cacheSize: Int,
     private val placementType: AdType,
     connectionStatusService: ConnectionStatusService,
     appLifecycleService: AppLifecycleService,
-    private val listener: PublisherListener,
+    private val listener: Listener,
     // TODO. Ahaha. stop it, please.
-    // Listens to the current ad events and returns BaseSuspendableFullscreenAdEvent if similar.
-    private val tryHandleCurrentEvent: SuspendableFullscreenAdEvent.(cloudXAd: CloudXAd) -> BaseSuspendableFullscreenAdEvent?
+    // Listens to the current ad events and returns FullscreenAdEvent if similar.
+    private val tryHandleCurrentEvent: DelegateEvent.(cloudXAd: CloudXAd) -> FullscreenAdEvent?
 ) : CloudXFullscreenAd {
 
     private val scope = CoroutineScope(Dispatchers.Main)
@@ -157,11 +157,11 @@ internal class CloudXFullscreenAdImpl<
     /**
      * Tries to show the ad, but in case some error occurs, then it will retry for up to 3 times.
      */
-    private suspend fun showWithRetry(ad: SuspendableBaseFullscreenAd<SuspendableFullscreenAdEvent>) {
+    private suspend fun showWithRetry(ad: io.cloudx.sdk.internal.core.ad.adapter_delegate.FullscreenAdAdapterDelegate<DelegateEvent>) {
         val showRetryDelayMillis = 100L
         val showRetryCountMax = 3
         var showRetryCount = 0
-        var showRetryAd: SuspendableBaseFullscreenAd<SuspendableFullscreenAdEvent>? = ad
+        var showRetryAd: FullscreenAdAdapterDelegate<DelegateEvent>? = ad
         while (showRetryAd != null) {
             val shown: Boolean
             try {
@@ -185,15 +185,15 @@ internal class CloudXFullscreenAdImpl<
         }
     }
 
-    private fun popAdAndSetLastShown(): SuspendableBaseFullscreenAd<SuspendableFullscreenAdEvent>? {
+    private fun popAdAndSetLastShown(): FullscreenAdAdapterDelegate<DelegateEvent>? {
         return cachedAdRepository.popAd().apply { lastShownAd = this }
     }
 
     private var lastShowJob: Job? = null
     private var lastShowJobStartedTimeMillis: Long = -1
-    private var lastShownAd: SuspendableBaseFullscreenAd<SuspendableFullscreenAdEvent>? = null
+    private var lastShownAd: FullscreenAdAdapterDelegate<DelegateEvent>? = null
 
-    private suspend fun show(ad: SuspendableBaseFullscreenAd<SuspendableFullscreenAdEvent>) =
+    private suspend fun show(ad: FullscreenAdAdapterDelegate<DelegateEvent>) =
         coroutineScope {
             // And the correct behaviour of "terminal hide event"
             // should be treated somewhere else anyways. By the way:
@@ -231,7 +231,7 @@ internal class CloudXFullscreenAdImpl<
         }
 
     private fun CoroutineScope.trackAdLifecycle(
-        ad: SuspendableBaseFullscreenAd<SuspendableFullscreenAdEvent>,
+        ad: FullscreenAdAdapterDelegate<DelegateEvent>,
         onHide: () -> Unit,
         onLastError: () -> Unit,
     ) =
@@ -239,18 +239,18 @@ internal class CloudXFullscreenAdImpl<
             launch {
                 ad.event.collect {
                     when (it.tryHandleCurrentEvent(ad)) {
-                        BaseSuspendableFullscreenAdEvent.Show -> {
+                        FullscreenAdEvent.Show -> {
                             listener.onAdDisplayed(ad)
                         }
 
-                        BaseSuspendableFullscreenAdEvent.Click -> {
+                        FullscreenAdEvent.Click -> {
                             listener.onAdClicked(ad)
                         }
                         // TODO. Check if adapters send important events (reward, complete) only before "hide" event.
                         //  They might be lost after job cancellation otherwise.
                         //  Fix ad network's adapter then. I guess.
                         //  Make sure "hide" is the last event in sequence.
-                        BaseSuspendableFullscreenAdEvent.Hide -> {
+                        FullscreenAdEvent.Hide -> {
                             listener.onAdHidden(ad)
                             onHide()
                         }
@@ -272,13 +272,13 @@ internal class CloudXFullscreenAdImpl<
 }
 
 private class CacheableFullscreenAd<SuspendableFullscreenAdEvent>(
-    suspendableFullscreenAd: SuspendableBaseFullscreenAd<SuspendableFullscreenAdEvent>,
+    suspendableFullscreenAd: FullscreenAdAdapterDelegate<SuspendableFullscreenAdEvent>,
 ) :
     CacheableAd,
-    SuspendableBaseFullscreenAd<SuspendableFullscreenAdEvent> by suspendableFullscreenAd
+    FullscreenAdAdapterDelegate<SuspendableFullscreenAdEvent> by suspendableFullscreenAd
 
 // TODO. Ahaha, stop it, please.
-internal enum class BaseSuspendableFullscreenAdEvent {
+internal enum class FullscreenAdEvent {
 
     Show, Click, Hide
 }

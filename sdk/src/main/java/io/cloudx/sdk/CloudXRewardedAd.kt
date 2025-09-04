@@ -12,8 +12,8 @@ import io.cloudx.sdk.internal.common.service.AppLifecycleService
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.core.ad.source.bid.BidAdSource
 import io.cloudx.sdk.internal.core.ad.source.bid.BidRewardedInterstitialSource
-import io.cloudx.sdk.internal.core.ad.suspendable.SuspendableRewardedInterstitial
-import io.cloudx.sdk.internal.core.ad.suspendable.SuspendableRewardedInterstitialEvent
+import io.cloudx.sdk.internal.core.ad.adapter_delegate.RewardedInterstitialAdapterDelegate
+import io.cloudx.sdk.internal.core.ad.adapter_delegate.RewardedInterstitialAdapterDelegateEvent
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTrackerNew
 
@@ -82,7 +82,7 @@ internal fun RewardedInterstitial(
 }
 
 private class RewardedInterstitialImpl(
-    bidAdSource: BidAdSource<SuspendableRewardedInterstitial>,
+    bidAdSource: BidAdSource<RewardedInterstitialAdapterDelegate>,
     bidMaxBackOffTimeMillis: Long,
     bidAdLoadTimeoutMillis: Long,
     cacheSize: Int,
@@ -90,7 +90,7 @@ private class RewardedInterstitialImpl(
     appLifecycleService: AppLifecycleService,
     private val listener: RewardedInterstitialListener,
 ) : CloudXRewardedAd,
-    CloudXFullscreenAd by CloudXFullscreenAdImpl(
+    CloudXFullscreenAd by FullscreenAdManagerImpl(
         bidAdSource,
         bidMaxBackOffTimeMillis,
         bidAdLoadTimeoutMillis,
@@ -101,10 +101,10 @@ private class RewardedInterstitialImpl(
         listener,
         { cloudXAd ->
             when (this) {
-                SuspendableRewardedInterstitialEvent.Show -> BaseSuspendableFullscreenAdEvent.Show
-                is SuspendableRewardedInterstitialEvent.Click -> BaseSuspendableFullscreenAdEvent.Click
-                SuspendableRewardedInterstitialEvent.Hide -> BaseSuspendableFullscreenAdEvent.Hide
-                SuspendableRewardedInterstitialEvent.Reward -> {
+                RewardedInterstitialAdapterDelegateEvent.Show -> FullscreenAdEvent.Show
+                is RewardedInterstitialAdapterDelegateEvent.Click -> FullscreenAdEvent.Click
+                RewardedInterstitialAdapterDelegateEvent.Hide -> FullscreenAdEvent.Hide
+                RewardedInterstitialAdapterDelegateEvent.Reward -> {
                     listener.onUserRewarded(cloudXAd)
                     null
                 }

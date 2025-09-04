@@ -1,4 +1,4 @@
-package io.cloudx.sdk.internal.core.ad.suspendable
+package io.cloudx.sdk.internal.core.ad.adapter_delegate
 
 import io.cloudx.sdk.Destroyable
 import io.cloudx.sdk.internal.AdNetwork
@@ -22,14 +22,14 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
- * Events emitted by SuspendableBanner during its lifecycle
+ * Events emitted by BannerAdapterDelegate during its lifecycle
  */
-sealed class SuspendableBannerEvent {
-    object Load : SuspendableBannerEvent()
-    object Show : SuspendableBannerEvent()
-    object Impression : SuspendableBannerEvent()
-    object Click : SuspendableBannerEvent()
-    data class Error(val error: CloudXAdapterError) : SuspendableBannerEvent()
+sealed class BannerAdapterDelegateEvent {
+    object Load : BannerAdapterDelegateEvent()
+    object Show : BannerAdapterDelegateEvent()
+    object Impression : BannerAdapterDelegateEvent()
+    object Click : BannerAdapterDelegateEvent()
+    data class Error(val error: CloudXAdapterError) : BannerAdapterDelegateEvent()
 }
 
 /**
@@ -38,15 +38,15 @@ sealed class SuspendableBannerEvent {
 // TODO. Some methods/inits can be reused for any ad type (destroy() etc).
 // TODO. Replace sdk.adapter.Banner with this?
 // TODO. Merge with DecoratedSuspendableXXXX?
-internal interface SuspendableBanner : AdTimeoutEvent, LastErrorEvent, Destroyable, CloudXAd {
+internal interface BannerAdapterDelegate : AdTimeoutEvent, LastErrorEvent, Destroyable, CloudXAd {
     suspend fun load(): Boolean
-    val event: SharedFlow<SuspendableBannerEvent>
+    val event: SharedFlow<BannerAdapterDelegateEvent>
 }
 
 /**
- * Factory function to create a SuspendableBanner instance
+ * Factory function to create a BannerAdapterDelegate instance
  */
-internal fun SuspendableBanner(
+internal fun BannerAdapterDelegate(
     placementName: String,
     placementId: String,
     adNetwork: AdNetwork,
@@ -55,8 +55,8 @@ internal fun SuspendableBanner(
     nurl: String?,
     lurl: String?,
     createBanner: (listener: CloudXAdViewAdapterListener) -> CloudXAdViewAdapter
-): SuspendableBanner =
-    SuspendableBannerImpl(
+): BannerAdapterDelegate =
+    BannerAdapterDelegateImpl(
         placementName = placementName,
         placementId = placementId,
         bidderName = adNetwork.networkName,
@@ -68,9 +68,9 @@ internal fun SuspendableBanner(
     )
 
 /**
- * Implementation of SuspendableBanner that wraps a CloudXAdViewAdapter
+ * Implementation of BannerAdapterDelegate that wraps a CloudXAdViewAdapter
  */
-private class SuspendableBannerImpl(
+private class BannerAdapterDelegateImpl(
     override val placementName: String,
     override val placementId: String,
     override val bidderName: String,
@@ -79,14 +79,14 @@ private class SuspendableBannerImpl(
     private val nurl: String?,
     private val lurl: String?,
     createBanner: (listener: CloudXAdViewAdapterListener) -> CloudXAdViewAdapter,
-) : SuspendableBanner {
+) : BannerAdapterDelegate {
 
     // State management
     private val scope = CoroutineScope(Dispatchers.Main)
-    private val _event = MutableSharedFlow<SuspendableBannerEvent>()
+    private val _event = MutableSharedFlow<BannerAdapterDelegateEvent>()
     private val _lastErrorEvent = MutableStateFlow<CloudXAdapterError?>(null)
 
-    override val event: SharedFlow<SuspendableBannerEvent> = _event
+    override val event: SharedFlow<BannerAdapterDelegateEvent> = _event
     override val lastErrorEvent: StateFlow<CloudXAdapterError?> = _lastErrorEvent
 
     // Banner adapter with listener
@@ -96,12 +96,12 @@ private class SuspendableBannerImpl(
     override suspend fun load(): Boolean {
         val evtJob = scope.async {
             event.first {
-                it is SuspendableBannerEvent.Load || it is SuspendableBannerEvent.Error
+                it is BannerAdapterDelegateEvent.Load || it is BannerAdapterDelegateEvent.Error
             }
         }
 
         banner.load()
-        return evtJob.await() is SuspendableBannerEvent.Load
+        return evtJob.await() is BannerAdapterDelegateEvent.Load
     }
 
     override fun timeout() {
@@ -117,27 +117,27 @@ private class SuspendableBannerImpl(
     private fun createAdapterListener(): CloudXAdViewAdapterListener {
         return object : CloudXAdViewAdapterListener {
             override fun onLoad() {
-                scope.launch { _event.emit(SuspendableBannerEvent.Load) }
+                scope.launch { _event.emit(BannerAdapterDelegateEvent.Load) }
             }
 
             override fun onShow() {
-                scope.launch { _event.emit(SuspendableBannerEvent.Show) }
+                scope.launch { _event.emit(BannerAdapterDelegateEvent.Show) }
             }
 
             override fun onImpression() {
                 scope.launch {
-                    _event.emit(SuspendableBannerEvent.Impression)
+                    _event.emit(BannerAdapterDelegateEvent.Impression)
                     handleImpressionTracking()
                 }
             }
 
             override fun onClick() {
-                scope.launch { _event.emit(SuspendableBannerEvent.Click) }
+                scope.launch { _event.emit(BannerAdapterDelegateEvent.Click) }
             }
 
             override fun onError(error: CloudXAdapterError) {
                 scope.launch {
-                    _event.emit(SuspendableBannerEvent.Error(error))
+                    _event.emit(BannerAdapterDelegateEvent.Error(error))
                     _lastErrorEvent.value = error
                 }
             }

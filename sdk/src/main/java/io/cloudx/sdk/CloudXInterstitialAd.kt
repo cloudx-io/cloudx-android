@@ -10,8 +10,8 @@ import io.cloudx.sdk.internal.cdp.CdpApi
 import io.cloudx.sdk.internal.common.service.AppLifecycleService
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.core.ad.source.bid.*
-import io.cloudx.sdk.internal.core.ad.suspendable.SuspendableInterstitial
-import io.cloudx.sdk.internal.core.ad.suspendable.SuspendableInterstitialEvent
+import io.cloudx.sdk.internal.core.ad.adapter_delegate.InterstitialAdapterDelegate
+import io.cloudx.sdk.internal.core.ad.adapter_delegate.InterstitialAdapterDelegateEvent
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTrackerNew
 
@@ -73,7 +73,7 @@ internal fun Interstitial(
 }
 
 private class InterstitialImpl(
-    bidAdSource: BidAdSource<SuspendableInterstitial>,
+    bidAdSource: BidAdSource<InterstitialAdapterDelegate>,
     bidMaxBackOffTimeMillis: Long,
     bidAdLoadTimeoutMillis: Long,
     cacheSize: Int,
@@ -81,7 +81,7 @@ private class InterstitialImpl(
     appLifecycleService: AppLifecycleService,
     private val listener: CloudXInterstitialListener,
 ) : CloudXInterstitialAd,
-    CloudXFullscreenAd by CloudXFullscreenAdImpl(
+    CloudXFullscreenAd by FullscreenAdManagerImpl(
         bidAdSource,
         bidMaxBackOffTimeMillis,
         bidAdLoadTimeoutMillis,
@@ -92,9 +92,9 @@ private class InterstitialImpl(
         listener,
         {
             when (this) {
-                SuspendableInterstitialEvent.Show -> BaseSuspendableFullscreenAdEvent.Show
-                is SuspendableInterstitialEvent.Click -> BaseSuspendableFullscreenAdEvent.Click
-                SuspendableInterstitialEvent.Hide -> BaseSuspendableFullscreenAdEvent.Hide
+                InterstitialAdapterDelegateEvent.Show -> FullscreenAdEvent.Show
+                is InterstitialAdapterDelegateEvent.Click -> FullscreenAdEvent.Click
+                InterstitialAdapterDelegateEvent.Hide -> FullscreenAdEvent.Hide
                 else -> null
             }
         }

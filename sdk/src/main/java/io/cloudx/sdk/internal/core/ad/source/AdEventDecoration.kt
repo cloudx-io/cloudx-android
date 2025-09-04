@@ -4,12 +4,12 @@ import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.CloudXLogger
 import io.cloudx.sdk.internal.GlobalScopes
-import io.cloudx.sdk.internal.core.ad.suspendable.SuspendableBanner
-import io.cloudx.sdk.internal.core.ad.suspendable.SuspendableInterstitial
-import io.cloudx.sdk.internal.core.ad.suspendable.SuspendableRewardedInterstitial
-import io.cloudx.sdk.internal.core.ad.suspendable.decorated.DecoratedSuspendableBanner
-import io.cloudx.sdk.internal.core.ad.suspendable.decorated.DecoratedSuspendableInterstitial
-import io.cloudx.sdk.internal.core.ad.suspendable.decorated.DecoratedSuspendableRewardedInterstitial
+import io.cloudx.sdk.internal.core.ad.adapter_delegate.BannerAdapterDelegate
+import io.cloudx.sdk.internal.core.ad.adapter_delegate.InterstitialAdapterDelegate
+import io.cloudx.sdk.internal.core.ad.adapter_delegate.RewardedInterstitialAdapterDelegate
+import io.cloudx.sdk.internal.core.ad.adapter_delegate.decorated.DecoratedBannerAdapterDelegate
+import io.cloudx.sdk.internal.core.ad.adapter_delegate.decorated.DecoratedInterstitialAdapterDelegate
+import io.cloudx.sdk.internal.core.ad.adapter_delegate.decorated.DecoratedRewardedInterstitialAdapterDelegate
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.EventType
 import io.cloudx.sdk.internal.imp_tracker.TrackingFieldResolver
@@ -90,9 +90,9 @@ class AdEventDecoration(
     )
 }
 
-internal fun SuspendableBanner.decorate(adEventDecoration: AdEventDecoration): SuspendableBanner =
+internal fun BannerAdapterDelegate.decorate(adEventDecoration: AdEventDecoration): BannerAdapterDelegate =
     with(adEventDecoration) {
-        DecoratedSuspendableBanner(
+        DecoratedBannerAdapterDelegate(
             onLoad,
             onShow,
             onImpression,
@@ -105,9 +105,9 @@ internal fun SuspendableBanner.decorate(adEventDecoration: AdEventDecoration): S
         )
     }
 
-internal fun SuspendableInterstitial.decorate(adEventDecoration: AdEventDecoration): SuspendableInterstitial =
+internal fun InterstitialAdapterDelegate.decorate(adEventDecoration: AdEventDecoration): InterstitialAdapterDelegate =
     with(adEventDecoration) {
-        DecoratedSuspendableInterstitial(
+        DecoratedInterstitialAdapterDelegate(
             onLoad,
             onShow,
             onImpression,
@@ -123,9 +123,9 @@ internal fun SuspendableInterstitial.decorate(adEventDecoration: AdEventDecorati
         )
     }
 
-internal fun SuspendableRewardedInterstitial.decorate(adEventDecoration: AdEventDecoration): SuspendableRewardedInterstitial =
+internal fun RewardedInterstitialAdapterDelegate.decorate(adEventDecoration: AdEventDecoration): RewardedInterstitialAdapterDelegate =
     with(adEventDecoration) {
-        DecoratedSuspendableRewardedInterstitial(
+        DecoratedRewardedInterstitialAdapterDelegate(
             onLoad,
             onShow,
             onImpression,

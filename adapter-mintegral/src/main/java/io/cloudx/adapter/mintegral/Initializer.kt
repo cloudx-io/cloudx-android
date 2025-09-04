@@ -81,7 +81,7 @@ private fun StateFlow<CloudXPrivacy>.updateMintegralPrivacy(context: Context) {
     val privacy = value
     val sdk = MBridgeSDKFactory.getMBridgeSDK()
 
-    CloudXLogger.debug(TAG, "setting EU consent: ${value.isUserConsent}; US do not sell: ${value.isDoNotSell} coppa: ${value.isAgeRestrictedUser}")
+    CloudXLogger.debug(TAG, "setting EU consent: ${value.isUserConsent}; coppa: ${value.isAgeRestrictedUser}")
 
     privacy.isUserConsent?.let {
         sdk.setConsentStatus(
@@ -90,9 +90,7 @@ private fun StateFlow<CloudXPrivacy>.updateMintegralPrivacy(context: Context) {
         )
     }
 
-    privacy.isDoNotSell?.let {
-        sdk.setDoNotTrackStatus(context, it)
-    }
+    // TODO: Mintegral GPP/CPPA integration
 
     privacy.isAgeRestrictedUser?.let {
         sdk.setCoppaStatus(context, it)

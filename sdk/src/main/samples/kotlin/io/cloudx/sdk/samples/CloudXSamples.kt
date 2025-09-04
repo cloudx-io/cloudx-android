@@ -19,7 +19,6 @@ internal fun cloudXSetPrivacy() {
         CloudXPrivacy(
             isUserConsent = true, // user gave consent (GDPR)
             isAgeRestrictedUser = null, // null, flag is not set (COPPA).
-            isDoNotSell = true // do not sell my data (CCPA)
         )
     )
 }

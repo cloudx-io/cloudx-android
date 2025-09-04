@@ -67,6 +67,7 @@ internal fun <T : Destroyable> BidAdSource(
     )
 
 internal class CreateBidAdParams(
+    val placementName: String,
     val placementId: String,
     val bidId: String,
     val adm: String,
@@ -232,6 +233,7 @@ private fun <T : Destroyable> BidResponse.toBidAdSourceResponse(
                 createBidAd = {
                     createBidAd(
                         CreateBidAdParams(
+                            placementName = bidRequestParams.placementName,
                             placementId = bidRequestParams.placementId,
                             bidId = bid.id,
                             adm = bid.adm,

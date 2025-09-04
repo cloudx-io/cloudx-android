@@ -2,7 +2,7 @@ package io.cloudx.sdk.internal.core.ad.suspendable
 
 import io.cloudx.sdk.Destroyable
 import io.cloudx.sdk.internal.adapter.CloudXAdLoadOperationAvailability
-import io.cloudx.sdk.internal.core.ad.AdMetaData
+import io.cloudx.sdk.CloudXAd
 import kotlinx.coroutines.flow.SharedFlow
 
 // TODO. Refactor. This should do for now.
@@ -10,7 +10,7 @@ internal interface SuspendableBaseFullscreenAd<Event> : CloudXAdLoadOperationAva
     AdTimeoutEvent,
     LastErrorEvent,
     Destroyable,
-    AdMetaData {
+    CloudXAd {
 
     suspend fun load(): Boolean
     fun show()

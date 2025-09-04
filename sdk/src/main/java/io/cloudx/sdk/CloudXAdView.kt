@@ -173,11 +173,11 @@ class CloudXAdView internal constructor(
                         background = null
                         scaleType = ImageView.ScaleType.CENTER
                         setOnClickListener {
-
-                            banner?.let {
-                                val adNetwork = (it as? SuspendableBanner)?.adNetwork
-                                listener?.onAdHidden(CloudXAd(adNetwork))
-                            }
+                            // TODO this will never succeed consider removing close button altogether
+//                            banner?.let {
+//                                val adNetwork = (it as? SuspendableBanner)?.bidderName
+//                                listener?.onAdHidden(CloudXAd(adNetwork))
+//                            }
 
                             listener?.onAdCollapsed(placementName)
                             PlacementLoopIndexTracker.reset(placementName)

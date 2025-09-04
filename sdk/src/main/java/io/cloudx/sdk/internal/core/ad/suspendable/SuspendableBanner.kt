@@ -5,7 +5,7 @@ import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapter
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterListener
 import io.cloudx.sdk.internal.adapter.CloudXAdapterError
-import io.cloudx.sdk.internal.core.ad.AdMetaData
+import io.cloudx.sdk.CloudXAd
 import io.cloudx.sdk.internal.httpclient.CloudXHttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
@@ -38,7 +38,7 @@ sealed class SuspendableBannerEvent {
 // TODO. Some methods/inits can be reused for any ad type (destroy() etc).
 // TODO. Replace sdk.adapter.Banner with this?
 // TODO. Merge with DecoratedSuspendableXXXX?
-internal interface SuspendableBanner : AdTimeoutEvent, LastErrorEvent, Destroyable, AdMetaData {
+internal interface SuspendableBanner : AdTimeoutEvent, LastErrorEvent, Destroyable, CloudXAd {
     suspend fun load(): Boolean
     val event: SharedFlow<SuspendableBannerEvent>
 }
@@ -47,22 +47,35 @@ internal interface SuspendableBanner : AdTimeoutEvent, LastErrorEvent, Destroyab
  * Factory function to create a SuspendableBanner instance
  */
 internal fun SuspendableBanner(
-    price: Double?,
-    adNetwork: AdNetwork,
+    placementName: String,
     placementId: String,
+    adNetwork: AdNetwork,
+    externalPlacementId: String?,
+    price: Double?,
     nurl: String?,
     lurl: String?,
     createBanner: (listener: CloudXAdViewAdapterListener) -> CloudXAdViewAdapter
 ): SuspendableBanner =
-    SuspendableBannerImpl(price, adNetwork, placementId, nurl, lurl, createBanner)
+    SuspendableBannerImpl(
+        placementName = placementName,
+        placementId = placementId,
+        bidderName = adNetwork.networkName,
+        externalPlacementId = externalPlacementId,
+        revenue = price,
+        nurl = nurl,
+        lurl = lurl,
+        createBanner = createBanner
+    )
 
 /**
  * Implementation of SuspendableBanner that wraps a CloudXAdViewAdapter
  */
 private class SuspendableBannerImpl(
-    override val price: Double?,
-    override val adNetwork: AdNetwork,
+    override val placementName: String,
     override val placementId: String,
+    override val bidderName: String,
+    override val externalPlacementId: String?,
+    override val revenue: Double?,
     private val nurl: String?,
     private val lurl: String?,
     createBanner: (listener: CloudXAdViewAdapterListener) -> CloudXAdViewAdapter,
@@ -134,7 +147,7 @@ private class SuspendableBannerImpl(
     private fun handleImpressionTracking() {
         // TODO: Make a separate class for nurls and burls to handle. It looks ugly here.
         nurl?.let { url ->
-            val completeUrl = url.replace("\${AUCTION_PRICE}", price.toString())
+            val completeUrl = url.replace("\${AUCTION_PRICE}", revenue.toString())
             scope.launch(Dispatchers.IO) {
                 try {
                     val response: HttpResponse = CloudXHttpClient().get(completeUrl)

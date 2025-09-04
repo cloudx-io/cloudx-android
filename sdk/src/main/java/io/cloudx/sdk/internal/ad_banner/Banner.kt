@@ -2,7 +2,6 @@ package io.cloudx.sdk.internal.ad_banner
 
 import android.app.Activity
 import io.cloudx.sdk.CloudXAdViewListener
-import io.cloudx.sdk.CloudXAd
 import io.cloudx.sdk.Destroyable
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.AdType
@@ -378,8 +377,8 @@ private class BannerImpl(
     private var currentBanner: SuspendableBanner? = null
     private var currentBannerEventHandlerJob: Job? = null
 
-    private suspend fun showNewBanner(banner: SuspendableBanner) {
-        listener?.onAdDisplayed(CloudXAd(banner.adNetwork))
+    private fun showNewBanner(banner: SuspendableBanner) {
+        listener?.onAdDisplayed(banner)
 
         currentBanner = banner
 
@@ -387,7 +386,7 @@ private class BannerImpl(
         currentBannerEventHandlerJob = scope.launch {
             launch {
                 banner.event.filter { it == SuspendableBannerEvent.Click }.collect {
-                    listener?.onAdClicked(CloudXAd(banner.adNetwork))
+                    listener?.onAdClicked(banner)
                 }
             }
             launch {
@@ -399,7 +398,7 @@ private class BannerImpl(
     }
 
     private fun hideAndDestroyCurrentBanner() {
-        currentBanner?.let { listener?.onAdHidden(CloudXAd(it.adNetwork)) }
+        currentBanner?.let { listener?.onAdHidden(it) }
         destroyCurrentBanner()
     }
 

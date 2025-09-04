@@ -13,7 +13,7 @@ class LoggedCloudXAdListener(
     override fun onAdLoaded(cloudXAd: CloudXAd) {
         CloudXLogger.info(
             logTag,
-            "Load Success; placement: $placementName; network: ${cloudXAd.networkName}"
+            "Load Success; placement: $placementName; network: ${cloudXAd.bidderName}"
         )
     }
 
@@ -42,7 +42,7 @@ class LoggedCloudXAdListener(
     override fun onAdClicked(cloudXAd: CloudXAd) {
         CloudXLogger.info(
             logTag,
-            "Ad clicked; placement: $placementName; network: ${cloudXAd.networkName}"
+            "Ad clicked; placement: $placementName; network: ${cloudXAd.bidderName}"
         )
     }
 }

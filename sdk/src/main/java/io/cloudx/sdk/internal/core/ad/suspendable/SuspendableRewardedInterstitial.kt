@@ -41,20 +41,31 @@ internal interface SuspendableRewardedInterstitial :
  * Factory function to create a SuspendableRewardedInterstitial instance
  */
 internal fun SuspendableRewardedInterstitial(
-    price: Double?,
-    adNetwork: AdNetwork,
+    placementName: String,
     placementId: String,
+    adNetwork: AdNetwork,
+    externalPlacementId: String?,
+    price: Double?,
     createRewardedInterstitial: (listener: CloudXRewardedInterstitialAdapterListener) -> CloudXRewardedInterstitialAdapter
 ): SuspendableRewardedInterstitial =
-    SuspendableRewardedInterstitialImpl(price, adNetwork, placementId, createRewardedInterstitial)
+    SuspendableRewardedInterstitialImpl(
+        placementName = placementName,
+        placementId = placementId,
+        bidderName = adNetwork.networkName,
+        externalPlacementId = externalPlacementId,
+        revenue = price,
+        createRewardedInterstitial = createRewardedInterstitial
+    )
 
 /**
  * Implementation of SuspendableRewardedInterstitial that wraps a CloudXRewardedInterstitialAdapter
  */
 private class SuspendableRewardedInterstitialImpl(
-    override val price: Double?,
-    override val adNetwork: AdNetwork,
+    override val placementName: String,
     override val placementId: String,
+    override val bidderName: String,
+    override val externalPlacementId: String?,
+    override val revenue: Double?,
     createRewardedInterstitial: (listener: CloudXRewardedInterstitialAdapterListener) -> CloudXRewardedInterstitialAdapter,
 ) : SuspendableRewardedInterstitial {
 

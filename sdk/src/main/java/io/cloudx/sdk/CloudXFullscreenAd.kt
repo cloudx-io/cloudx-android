@@ -2,7 +2,6 @@ package io.cloudx.sdk
 
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.CloudXLogger
-import io.cloudx.sdk.internal.adToDisplayInfo
 import io.cloudx.sdk.internal.common.service.AppLifecycleService
 import io.cloudx.sdk.internal.common.utcNowEpochMillis
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
@@ -26,7 +25,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 /**
  * Base fullscreen ad interface
  */
-interface CloudXFullscreenAd : CloudXAdToDisplayInfoApi, Destroyable {
+interface CloudXFullscreenAd : Destroyable {
 
     /**
      * Tells about current ad load status.
@@ -83,9 +82,6 @@ internal class CloudXFullscreenAdImpl<
         appLifecycleService = appLifecycleService
     )
 
-    override val adToDisplayInfo: CloudXAdToDisplayInfoApi.Info?
-        get() = cachedAdRepository.adToDisplayInfo
-
     private var isAdReadyListenerJob: Job? = null
 
     override fun setIsAdLoadedListener(listener: CloudXIsAdLoadedListener?) {
@@ -109,9 +105,9 @@ internal class CloudXFullscreenAdImpl<
                 true
             }
 
-            if (hasAds == true) {
-                val topAdMetaData = cachedAdRepository.topAdMetaData
-                listener.onAdLoaded(CloudXAd(topAdMetaData?.adNetwork))
+            val topAd = cachedAdRepository.topCloudXAd
+            if (hasAds == true && topAd != null) {
+                listener.onAdLoaded(topAd)
             } else {
                 listener.onAdLoadFailed(CloudXAdError(description = "No ads loaded yet"))
             }
@@ -138,7 +134,7 @@ internal class CloudXFullscreenAdImpl<
                 } else {
                     job.cancel("No adHidden or adError event received. Cancelling job")
                     lastShownAd?.let {
-                        listener.onAdHidden(CloudXAd(it.adNetwork))
+                        listener.onAdHidden(it)
                     }
                 }
             }
@@ -229,7 +225,7 @@ internal class CloudXFullscreenAdImpl<
                 return@coroutineScope false
             }
 
-            if (!isHideEventSent) listener.onAdHidden(CloudXAd(ad.adNetwork))
+            if (!isHideEventSent) listener.onAdHidden(ad)
 
             return@coroutineScope true
         }
@@ -241,23 +237,21 @@ internal class CloudXFullscreenAdImpl<
     ) =
         launch {
             launch {
-                val network = ad.adNetwork
                 ad.event.collect {
-                    val cloudXAd = CloudXAd(network)
-                    when (it.tryHandleCurrentEvent(cloudXAd)) {
+                    when (it.tryHandleCurrentEvent(ad)) {
                         BaseSuspendableFullscreenAdEvent.Show -> {
-                            listener.onAdDisplayed(cloudXAd)
+                            listener.onAdDisplayed(ad)
                         }
 
                         BaseSuspendableFullscreenAdEvent.Click -> {
-                            listener.onAdClicked(cloudXAd)
+                            listener.onAdClicked(ad)
                         }
                         // TODO. Check if adapters send important events (reward, complete) only before "hide" event.
                         //  They might be lost after job cancellation otherwise.
                         //  Fix ad network's adapter then. I guess.
                         //  Make sure "hide" is the last event in sequence.
                         BaseSuspendableFullscreenAdEvent.Hide -> {
-                            listener.onAdHidden(cloudXAd)
+                            listener.onAdHidden(ad)
                             onHide()
                         }
 

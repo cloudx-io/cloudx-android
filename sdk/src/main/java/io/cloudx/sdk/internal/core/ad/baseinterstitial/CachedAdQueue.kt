@@ -6,7 +6,7 @@ import io.cloudx.sdk.internal.Logger
 import io.cloudx.sdk.internal.adapter.CloudXAdLoadOperationAvailability
 import io.cloudx.sdk.internal.common.service.AppLifecycleService
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
-import io.cloudx.sdk.internal.core.ad.AdMetaData
+import io.cloudx.sdk.CloudXAd
 import io.cloudx.sdk.internal.core.ad.suspendable.AdTimeoutEvent
 import io.cloudx.sdk.internal.core.ad.suspendable.LastErrorEvent
 import kotlinx.coroutines.CoroutineScope
@@ -53,7 +53,7 @@ internal class CachedAdQueue<T : CacheableAd>(
         Logger.d(TAG, "ads in queue: ${sortedQueue.size}")
     }
 
-    val topAdMeta: AdMetaData? get() = sortedQueue.firstOrNull()?.ad
+    val topCloudXAd: CloudXAd? get() = sortedQueue.firstOrNull()?.ad
 
     val hasItems: StateFlow<Boolean> = availableSlots
         .map { sortedQueue.size != 0 }
@@ -229,7 +229,7 @@ internal class CachedAdQueue<T : CacheableAd>(
 }
 
 internal interface CacheableAd : AdTimeoutEvent, CloudXAdLoadOperationAvailability, LastErrorEvent,
-    Destroyable, AdMetaData {
+    Destroyable, CloudXAd {
 
     suspend fun load(): Boolean
 }

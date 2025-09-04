@@ -34,16 +34,6 @@ internal suspend fun jsonToBidResponse(json: String): Result<BidResponse, CLXErr
         }
     }
 
-private fun JSONObject.toNoBidResponse(): NoBidResponse? {
-    val nbrCode = "nbr".let { if (has(it)) getInt(it) else return null }
-
-    return NoBidResponse(
-        id = optString("id", ""),
-        noBidResponseCode = nbrCode,
-        ext = optString(EXT, "")
-    )
-}
-
 private fun JSONObject.toBidResponse(): BidResponse {
     val auctionId = getString("id")
 

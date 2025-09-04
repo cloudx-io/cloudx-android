@@ -4,12 +4,19 @@ import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.CLXError
 import io.cloudx.sdk.internal.CLXErrorCode
 import io.cloudx.sdk.internal.Logger
+import io.cloudx.sdk.internal.CLOUDX_DEFAULT_RETRY_MS
+import io.cloudx.sdk.internal.HEADER_CLOUDX_STATUS
+import io.cloudx.sdk.internal.STATUS_ADS_DISABLED
 import io.cloudx.sdk.internal.imp_tracker.TrackingFieldResolver
 import io.cloudx.sdk.internal.requestTimeoutMillis
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.HttpRequestTimeoutException
+import io.ktor.client.plugins.ServerResponseException
+import io.ktor.client.plugins.retry
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
@@ -17,13 +24,8 @@ import io.ktor.http.contentType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
-
-// A sealed class representing the outcome of a single HTTP request + parse
-private sealed class BidAttemptResult {
-    data class Success(val bidResponse: BidResponse, val raw: String) : BidAttemptResult()
-    data class SoftError(val raw: String) : BidAttemptResult()
-    data class HardError(val status: Int, val raw: String) : BidAttemptResult()
-}
+import java.io.IOException
+import kotlin.coroutines.cancellation.CancellationException
 
 internal class BidApiImpl(
     private val endpointUrl: String,
@@ -34,74 +36,99 @@ internal class BidApiImpl(
     private val tag = "BidApiImpl"
 
     override suspend fun invoke(
-        appKey: String, bidRequest: JSONObject
+        appKey: String,
+        bidRequest: JSONObject
     ): Result<BidResponse, CLXError> {
 
         val requestBody = withContext(Dispatchers.IO) { bidRequest.toString() }
-        Logger.d(
-            tag, "Attempting bid request:\n  Endpoint: $endpointUrl\n  Request Body: $requestBody"
-        )
-        val cyclingResult = cyclingBarrierRetry(
-            maxAttemptsPerGroup = 3,
-            delayBetweenAttemptsMs = 10_000,
-            delayBetweenGroupsMs = 300_000,
-            isHardError = { it is BidAttemptResult.HardError },
-            isSoftError = { it is BidAttemptResult.SoftError }) { attempt, group ->
+        Logger.d(tag, "Bid request → $endpointUrl\nBody: $requestBody")
+
+        return makeRequest(appKey, requestBody)
+    }
+
+    private suspend fun makeRequest(appKey: String, body: String): Result<BidResponse, CLXError> {
+        return try {
             val response = httpClient.post(endpointUrl) {
                 headers { append("Authorization", "Bearer $appKey") }
                 contentType(ContentType.Application.Json)
-                setBody(requestBody)
+                setBody(body)
                 requestTimeoutMillis(timeoutMillis)
-            }
-            val responseBody = response.bodyAsText()
-            Logger.d(
-                tag,
-                msg = "Bid request attempt " +
-                        "$attempt (group $group): " +
-                        "HTTP ${response.status}\n$responseBody"
-            )
-
-            when {
-                response.status.value >= 500 -> {
-                    BidAttemptResult.HardError(response.status.value, responseBody)
-                }
-
-                response.status == HttpStatusCode.OK -> {
-                    when (val parsed = jsonToBidResponse(responseBody)) {
-                        is Result.Success -> {
-                            BidAttemptResult.Success(parsed.value, responseBody)
-                        }
-
-                        is Result.Failure -> {
-                            BidAttemptResult.SoftError(responseBody)
-                        }
+                retry {
+                    maxRetries = 1
+                    retryOnExceptionOrServerErrors() // Handles network exceptions + 5xx
+                    retryIf { _, response ->
+                        response.status.value == 429 // Too Many Requests
                     }
-                }
-
-                else -> {
-                    Logger.e("MainActivity", "Unexpected response status: ${response.status.value}")
-                    BidAttemptResult.HardError(response.status.value, responseBody)
+                    constantDelay(
+                        millis = CLOUDX_DEFAULT_RETRY_MS,
+                        randomizationMs = 1000L,
+                        respectRetryAfterHeader = true
+                    )
                 }
             }
+            handleResponse(response)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: HttpRequestTimeoutException) {
+            Result.Failure(CLXError(CLXErrorCode.NETWORK_TIMEOUT, cause = e))
+        } catch (e: IOException) {
+            Result.Failure(CLXError(CLXErrorCode.NETWORK_ERROR, cause = e))
+        } catch (e: ServerResponseException) {
+            handleResponse(e.response)
+        } catch (e: Exception) {
+            Result.Failure(CLXError(CLXErrorCode.NETWORK_ERROR, e.message, e))
         }
+    }
 
-        return when (cyclingResult) {
-            is CyclingRetryResult.Success -> {
-                val bidResponse = (cyclingResult.value as BidAttemptResult.Success).bidResponse
-                val raw = cyclingResult.value.raw
-                TrackingFieldResolver.setResponseData(bidResponse.auctionId, JSONObject(raw))
-                Result.Success(bidResponse)
+    private suspend fun handleResponse(response: HttpResponse): Result<BidResponse, CLXError> {
+        val responseBody = response.bodyAsText()
+        Logger.d(tag, "Bid response ← HTTP ${response.status}\n$responseBody")
+
+        return when {
+            response.status == HttpStatusCode.OK -> {
+                when (val parseResult = jsonToBidResponse(responseBody)) {
+                    is Result.Success -> {
+                        TrackingFieldResolver.setResponseData(
+                            parseResult.value.auctionId,
+                            JSONObject(responseBody)
+                        )
+                        parseResult
+                    }
+
+                    is Result.Failure -> parseResult
+                }
             }
 
-            is CyclingRetryResult.SoftError -> {
-                val raw = (cyclingResult.value as BidAttemptResult.SoftError).raw
-                Logger.e(tag, "Soft error, no bid: $raw")
-                Result.Failure(CLXError(CLXErrorCode.NO_FILL))
+            // 204 No Bid
+            response.status == HttpStatusCode.NoContent -> {
+                val xStatus = response.headers[HEADER_CLOUDX_STATUS]
+                if (xStatus == STATUS_ADS_DISABLED) {
+                    Result.Failure(CLXError(CLXErrorCode.ADS_DISABLED))
+                } else {
+                    Result.Failure(CLXError(CLXErrorCode.NO_FILL))
+                }
             }
 
-            is CyclingRetryResult.HardError -> {
-                Logger.e(tag, "All cycling attempts failed: ${cyclingResult.error.message}")
+            // 429
+            response.status == HttpStatusCode.TooManyRequests -> {
+                Result.Failure(CLXError(CLXErrorCode.TOO_MANY_REQUESTS))
+            }
+
+            response.status.value in 400..499 -> {
+                Result.Failure(CLXError(CLXErrorCode.CLIENT_ERROR))
+            }
+
+            response.status.value in 500..599 -> {
                 Result.Failure(CLXError(CLXErrorCode.SERVER_ERROR))
+            }
+
+            else -> {
+                Result.Failure(
+                    CLXError(
+                        CLXErrorCode.UNEXPECTED_ERROR,
+                        "Unexpected status: ${response.status}"
+                    )
+                )
             }
         }
     }

@@ -470,7 +470,6 @@ CloudX.setPrivacy(
     CloudXPrivacy(
         isUserConsent = true,        // GDPR consent
         isAgeRestrictedUser = false, // COPPA compliance
-        isDoNotSell = false          // CCPA compliance
     )
 )
 
@@ -486,7 +485,7 @@ prefs.edit().apply {
     
     // GPP String (Global Privacy Platform)
     putString("IABGPP_HDR_GppString", "DBACNYA~CPXxRfAPXxRfAAfKABENB...")
-    putString("IABGPP_GppSID", "2,6")
+    putString("IABGPP_GppSID", "7_8")
     
     apply()
 }
@@ -497,8 +496,7 @@ prefs.edit().apply {
 // Set privacy preferences
 CloudX.setPrivacy(new CloudXPrivacy(
     true,  // isUserConsent (GDPR)
-    false, // isAgeRestrictedUser (COPPA)
-    false  // isDoNotSell (CCPA)
+    false // isAgeRestrictedUser (COPPA)
 ));
 
 // For IAB TCF compliance, set values in SharedPreferences
@@ -514,7 +512,7 @@ editor.putString("IABUSPrivacy_String", "1YNN");
 
 // GPP String (Global Privacy Platform)
 editor.putString("IABGPP_HDR_GppString", "DBACNYA~CPXxRfAPXxRfAAfKABENB...");
-editor.putString("IABGPP_GppSID", "2,6");
+editor.putString("IABGPP_GppSID", "7_8");
 
 editor.apply();
 ```
@@ -619,7 +617,6 @@ enableMetaAudienceNetworkTestMode(true);
 | `CloudX.initialize(context, params, listener)` | Initialize SDK with context and parameters |
 | `CloudX.isInitialized` | Check if SDK is initialized |
 | `CloudX.setPrivacy(privacy)` | Set privacy preferences |
-| `CloudX.deinitialize()` | Deinitialize SDK |
 
 ### Ad Creation Methods
 

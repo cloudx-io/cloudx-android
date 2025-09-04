@@ -42,20 +42,31 @@ internal interface SuspendableInterstitial :
  * Factory function to create a SuspendableInterstitial instance
  */
 internal fun SuspendableInterstitial(
-    price: Double?,
-    adNetwork: AdNetwork,
+    placementName: String,
     placementId: String,
+    adNetwork: AdNetwork,
+    externalPlacementId: String?,
+    price: Double?,
     createInterstitial: (listener: CloudXInterstitialAdapterListener) -> CloudXInterstitialAdapter
 ): SuspendableInterstitial =
-    SuspendableInterstitialImpl(price, adNetwork, placementId, createInterstitial)
+    SuspendableInterstitialImpl(
+        placementName = placementName,
+        placementId = placementId,
+        bidderName = adNetwork.networkName,
+        externalPlacementId = externalPlacementId,
+        revenue = price,
+        createInterstitial = createInterstitial
+    )
 
 /**
  * Implementation of SuspendableInterstitial that wraps a CloudXInterstitialAdapter
  */
 private class SuspendableInterstitialImpl(
-    override val price: Double?,
-    override val adNetwork: AdNetwork,
+    override val placementName: String,
     override val placementId: String,
+    override val bidderName: String,
+    override val externalPlacementId: String?,
+    override val revenue: Double?,
     createInterstitial: (listener: CloudXInterstitialAdapterListener) -> CloudXInterstitialAdapter,
 ) : SuspendableInterstitial {
 

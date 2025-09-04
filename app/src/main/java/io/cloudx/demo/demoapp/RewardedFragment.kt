@@ -15,7 +15,7 @@ class RewardedFragment : FullPageAdFragment() {
             override fun onUserRewarded(cloudXAd: CloudXAd) {
                 CloudXLogger.info(
                     logTag,
-                    "REWARD; placement: $placementName; network: ${cloudXAd.networkName}"
+                    "REWARD; placement: $placementName; network: ${cloudXAd.bidderName}"
                 )
             }
         }

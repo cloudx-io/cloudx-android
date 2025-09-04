@@ -47,9 +47,10 @@ internal fun BidRewardedInterstitialSource(
         metricsTrackerNew
     ) {
 
-        val price = it.price
-        val network = it.adNetwork
+        val placementName = it.placementName
         val placementId = it.placementId
+        val network = it.adNetwork
+        val price = it.price
         val bidId = it.bidId
         val adm = it.adm
         val nurl = it.nurl
@@ -57,9 +58,11 @@ internal fun BidRewardedInterstitialSource(
         val auctionId = it.auctionId
 
         SuspendableRewardedInterstitial(
-            price,
-            network,
-            placementId
+            placementName = placementName,
+            placementId = placementId,
+            adNetwork = network,
+            externalPlacementId = null,
+            price = price
         ) { listener ->
             // TODO. IMPORTANT. Explicit Result cast isn't "cool", even though there's try catch somewhere.
             (factories[network]?.create(

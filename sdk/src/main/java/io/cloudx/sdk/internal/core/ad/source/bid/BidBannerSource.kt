@@ -51,9 +51,10 @@ internal fun BidBannerSource(
         metricsTrackerNew
     ) {
 
-        val price = it.price
-        val network = it.adNetwork
+        val placementName = it.placementName
         val placementId = it.placementId
+        val network = it.adNetwork
+        val price = it.price
         val bidId = it.bidId
         val adm = it.adm
         val nurl = it.nurl
@@ -61,7 +62,15 @@ internal fun BidBannerSource(
         val params = it.params
         val auctionId = it.auctionId
 
-        SuspendableBanner(price, network, placementId, nurl, lurl) { listener ->
+        SuspendableBanner(
+            placementName = placementName,
+            placementId = placementId,
+            adNetwork = network,
+            externalPlacementId = null,
+            price = price,
+            nurl = nurl,
+            lurl = lurl
+        ) { listener ->
             // TODO. Explicit Result cast isn't "cool", even though there's try catch somewhere.
             (factories[network]?.create(
                 activity, adViewContainer, refreshSeconds, placementId, bidId,

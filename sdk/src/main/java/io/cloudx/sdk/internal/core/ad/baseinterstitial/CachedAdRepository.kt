@@ -8,7 +8,7 @@ import io.cloudx.sdk.internal.bid.LossReporter
 import io.cloudx.sdk.internal.common.BidBackoffAlgorithm
 import io.cloudx.sdk.internal.common.service.AppLifecycleService
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
-import io.cloudx.sdk.internal.core.ad.AdMetaData
+import io.cloudx.sdk.CloudXAd
 import io.cloudx.sdk.internal.core.ad.source.bid.BidAdSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -49,7 +49,7 @@ internal class CachedAdRepository<SuspendableAd: Destroyable, C: CacheableAd>(
 
     val hasAds: StateFlow<Boolean> = cachedQueue.hasItems
 
-    val topAdMetaData: AdMetaData? get() = cachedQueue.topAdMeta
+    val topCloudXAd: CloudXAd? get() = cachedQueue.topCloudXAd
 
     fun popAd(): C? = cachedQueue.popAd()
 

@@ -13,7 +13,6 @@ import io.cloudx.sdk.internal.gaid.GAIDProvider
 import io.cloudx.sdk.internal.geo.GeoInfoHolder
 import io.cloudx.sdk.internal.httpclient.UserAgentProvider
 import io.cloudx.sdk.internal.PlacementLoopIndexTracker
-import io.cloudx.sdk.internal.location.LocationProvider
 import io.cloudx.sdk.internal.nativead.NativeAdSpecs
 import io.cloudx.sdk.internal.privacy.PrivacyService
 import io.cloudx.sdk.internal.screen.ScreenService
@@ -36,7 +35,6 @@ internal class BidRequestProviderImpl(
     private val provideUserAgent: UserAgentProvider,
     private val provideGAID: GAIDProvider,
     private val privacyService: PrivacyService,
-    private val locationProvider: LocationProvider,
     private val bidRequestExtrasProviders: Map<AdNetwork, CloudXAdapterBidRequestExtrasProvider>
 ) : BidRequestProvider {
 
@@ -100,12 +98,10 @@ internal class BidRequestProviderImpl(
 
                     put("ifa", if (piiRemove) "" else ifaOverride.ifEmpty { adPrivacyData.gaid })
                     put("geo", JSONObject().apply {
-                        val ld = locationProvider()
-                        if (piiRemove.not() && ld != null) {
-                            put("lat", ld.lat)
-                            put("lon", ld.lon)
-                            put("accuracy", ld.accuracy)
-                            put("type", 1) // 1 - gps/location services source.
+                        if (piiRemove.not()) {
+                            put("lat", GeoInfoHolder.getLat())
+                            put("lon", GeoInfoHolder.getLon())
+                            put("type", 1)
                         }
                         put(
                             "utcoffset",

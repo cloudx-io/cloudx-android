@@ -10,7 +10,6 @@ import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.deviceinfo.DeviceInfoProvider
 import io.cloudx.sdk.internal.gaid.GAIDProvider
 import io.cloudx.sdk.internal.httpclient.UserAgentProvider
-import io.cloudx.sdk.internal.location.LocationProvider
 import io.cloudx.sdk.internal.privacy.PrivacyService
 import io.cloudx.sdk.internal.screen.ScreenService
 import io.cloudx.sdk.internal.PlacementLoopIndexTracker
@@ -53,6 +52,5 @@ internal fun BidRequestProvider(
     UserAgentProvider(),
     GAIDProvider(),
     PrivacyService(),
-    LocationProvider(),
     bidRequestExtrasProviders
 )

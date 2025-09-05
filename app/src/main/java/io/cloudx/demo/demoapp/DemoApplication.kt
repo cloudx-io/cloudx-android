@@ -36,7 +36,7 @@ class DemoApplication : Application() {
             val message = if (result.initialized) {
                 "✅ CloudX SDK initialized successfully"
             } else {
-                "❌ CloudX SDK initialization failed: ${result.description}"
+                "❌ CloudX SDK initialization failed: ${result.description} (Error code: ${result.errorCode})"
             }
             
             CloudXLogger.i(TAG, message)

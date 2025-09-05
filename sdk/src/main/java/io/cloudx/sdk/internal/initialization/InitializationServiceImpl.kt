@@ -6,7 +6,10 @@ import io.cloudx.sdk.BuildConfig
 import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.CLXError
+import io.cloudx.sdk.internal.CLXErrorCode
 import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.HEADER_CLOUDX_STATUS
+import io.cloudx.sdk.internal.STATUS_SDK_DISABLED
 import io.cloudx.sdk.internal.adfactory.AdFactory
 import io.cloudx.sdk.internal.bid.BidRequestProvider
 import io.cloudx.sdk.internal.common.service.ActivityLifecycleService
@@ -90,6 +93,13 @@ internal class InitializationServiceImpl(
             val configApiResult: Result<Config, CLXError>
             val configApiRequestMillis = measureTimeMillis {
                 configApiResult = configApi.invoke(appKey, provideConfigRequest())
+            }
+
+            if (configApiResult is Result.Failure ) {
+                if (configApiResult.value.code == CLXErrorCode.SDK_DISABLED) {
+                    CloudXLogger.w(TAG, "SDK disabled by server via traffic control (0%). No ads this session.")
+                }
+                return configApiResult
             }
 
             if (configApiResult is Result.Success) {

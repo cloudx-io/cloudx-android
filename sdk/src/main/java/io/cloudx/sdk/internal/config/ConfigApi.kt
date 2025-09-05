@@ -21,11 +21,9 @@ internal fun interface ConfigApi {
 internal fun ConfigApi(
     endpointUrl: String,
     timeoutMillis: Long = 60_000,
-    retryMax: Int = 1,
     httpClient: HttpClient = CloudXHttpClient()
 ): ConfigApi = ConfigApiImpl(
     endpointUrl = endpointUrl,
     timeoutMillis = timeoutMillis,
-    retryMax = retryMax,
     httpClient = httpClient
 )

@@ -4,17 +4,16 @@ import android.content.Context
 import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.CLXError
 import io.cloudx.sdk.internal.adfactory.AdFactory
-import io.cloudx.sdk.internal.appinfo.AppInfoProvider
 import io.cloudx.sdk.internal.config.Config
 import io.cloudx.sdk.internal.config.ConfigApi
 import io.cloudx.sdk.internal.config.ConfigRequestProvider
 import io.cloudx.sdk.internal.core.resolver.AdapterFactoryResolver
+import io.cloudx.sdk.internal.crash.CrashReportingService
 import io.cloudx.sdk.internal.deviceinfo.DeviceInfoProvider
 import io.cloudx.sdk.internal.geo.GeoApi
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTrackerNew
 import io.cloudx.sdk.internal.privacy.PrivacyService
-import io.cloudx.sdk.internal.crash.CrashReportingService
 
 /**
  * Initialization service - responsible for all CloudX initialization related things, notably - configuration fetching.
@@ -51,7 +50,6 @@ internal fun InitializationService(
     privacyService: PrivacyService = PrivacyService(),
     metricsTrackerNew: MetricsTrackerNew = MetricsTrackerNew(),
     eventTracker: EventTracker = EventTracker(),
-    appInfoProvider: AppInfoProvider = AppInfoProvider(),
     deviceInfoProvider: DeviceInfoProvider = DeviceInfoProvider(),
     geoApi: GeoApi = GeoApi(),
     crashReportingService: CrashReportingService = CrashReportingService()
@@ -64,7 +62,6 @@ internal fun InitializationService(
         privacyService,
         metricsTrackerNew,
         eventTracker,
-        appInfoProvider,
         deviceInfoProvider,
         geoApi,
         crashReportingService

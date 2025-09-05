@@ -5,10 +5,9 @@ import com.xor.XorEncryption
 import io.cloudx.sdk.BuildConfig
 import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.AdType
-import io.cloudx.sdk.internal.CloudXLogger
 import io.cloudx.sdk.internal.CLXError
+import io.cloudx.sdk.internal.CloudXLogger
 import io.cloudx.sdk.internal.adfactory.AdFactory
-import io.cloudx.sdk.internal.appinfo.AppInfoProvider
 import io.cloudx.sdk.internal.bid.BidRequestProvider
 import io.cloudx.sdk.internal.common.service.ActivityLifecycleService
 import io.cloudx.sdk.internal.common.service.AppLifecycleService
@@ -19,8 +18,8 @@ import io.cloudx.sdk.internal.config.ResolvedEndpoints
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.core.resolver.AdapterFactoryResolver
 import io.cloudx.sdk.internal.core.resolver.BidAdNetworkFactories
-import io.cloudx.sdk.internal.deviceinfo.DeviceInfoProvider
 import io.cloudx.sdk.internal.crash.CrashReportingService
+import io.cloudx.sdk.internal.deviceinfo.DeviceInfoProvider
 import io.cloudx.sdk.internal.geo.GeoApi
 import io.cloudx.sdk.internal.geo.GeoInfoHolder
 import io.cloudx.sdk.internal.imp_tracker.ClickCounterTracker
@@ -50,36 +49,41 @@ internal class InitializationServiceImpl(
     private val privacyService: PrivacyService,
     private val _metricsTrackerNew: MetricsTrackerNew,
     private val eventTracker: EventTracker,
-    private val provideAppInfo: AppInfoProvider,
     private val provideDeviceInfo: DeviceInfoProvider,
     private val geoApi: GeoApi,
     private val crashReportingService: CrashReportingService
 ) : InitializationService {
 
+    private val TAG = "InitializationService"
+
     private val context: Context = context.applicationContext
-    override val initialized: Boolean
-        get() = config != null
+    private val mutex = Mutex()
 
     private var config: Config? = null
     private var appKey: String = ""
     private var basePayload: String = ""
-    
-    private val mutex = Mutex()
+    private var factories: BidAdNetworkFactories? = null
 
-
+    override val initialized: Boolean
+        get() = config != null
 
     override val metricsTrackerNew: MetricsTrackerNew
         get() = _metricsTrackerNew
 
+    override var adFactory: AdFactory? = null
+        private set
+
 
     override suspend fun initialize(appKey: String): Result<Config, CLXError> =
         mutex.withLock {
+            CloudXLogger.i(TAG, "Starting SDK initialization with appKey: $appKey")
             this.appKey = appKey
 
             crashReportingService.registerSdkCrashHandler()
 
             val config = this.config
             if (config != null) {
+                CloudXLogger.i(TAG, "SDK already initialized, returning cached config")
                 return Result.Success(config)
             }
 
@@ -121,15 +125,15 @@ internal class InitializationServiceImpl(
                     // TODO: Hardcoded for now, should be configurable later via config CX-919.
                     val userGeoIp = headersMap["x-amzn-remapped-x-forwarded-for"]
                     val hashedGeoIp = userGeoIp?.let { normalizeAndHash(userGeoIp) } ?: ""
-                    CloudXLogger.i("MainActivity", "User Geo IP: $userGeoIp")
-                    CloudXLogger.i("MainActivity", "Hashed Geo IP: $hashedGeoIp")
+                    CloudXLogger.i(TAG, "User Geo IP: $userGeoIp")
+                    CloudXLogger.i(TAG, "Hashed Geo IP: $hashedGeoIp")
                     TrackingFieldResolver.setHashedGeoIp(hashedGeoIp)
 
-                    CloudXLogger.i("MainActivity", "geo data: $geoInfo")
+                    CloudXLogger.i(TAG, "geo data: $geoInfo")
                     GeoInfoHolder.setGeoInfo(geoInfo, headersMap)
 
                     val removePii = privacyService.shouldClearPersonalData()
-                    CloudXLogger.i("MainActivity", "PII remove: $removePii")
+                    CloudXLogger.i(TAG, "PII remove: $removePii")
 
                     sendInitSDKEvent(cfg, appKey)
 
@@ -154,6 +158,7 @@ internal class InitializationServiceImpl(
         }
 
     override fun deinitialize() {
+        CloudXLogger.i(TAG, "Deinitializing SDK")
         ResolvedEndpoints.reset()
         ClickCounterTracker.reset()
         config = null
@@ -162,10 +167,6 @@ internal class InitializationServiceImpl(
         metricsTrackerNew.stop()
         TrackingFieldResolver.clear()
     }
-
-    private var factories: BidAdNetworkFactories? = null
-    override var adFactory: AdFactory? = null
-        private set
 
     // TODO. Replace with LazyAdapterResolver
     private suspend fun resolveAdapters(config: Config): BidAdNetworkFactories =
@@ -203,10 +204,7 @@ internal class InitializationServiceImpl(
             val initializer = adapterInitializers[bidderCfg.key]
 
             if (initializer == null) {
-                CloudXLogger.w(
-                    "InitializationServiceImpl",
-                    "No initializer found for ${bidderCfg.key}"
-                )
+                CloudXLogger.w(TAG, "No initializer found for ${bidderCfg.key}")
                 return@onEach
             }
 

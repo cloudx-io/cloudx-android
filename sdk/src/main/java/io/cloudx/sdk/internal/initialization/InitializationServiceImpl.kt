@@ -1,7 +1,6 @@
 package io.cloudx.sdk.internal.initialization
 
 import android.content.Context
-import androidx.core.content.edit
 import com.xor.XorEncryption
 import io.cloudx.sdk.BuildConfig
 import io.cloudx.sdk.Result
@@ -21,7 +20,7 @@ import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.core.resolver.AdapterFactoryResolver
 import io.cloudx.sdk.internal.core.resolver.BidAdNetworkFactories
 import io.cloudx.sdk.internal.deviceinfo.DeviceInfoProvider
-import io.cloudx.sdk.internal.exception.SdkCrashHandler
+import io.cloudx.sdk.internal.crash.CrashReportingService
 import io.cloudx.sdk.internal.geo.GeoApi
 import io.cloudx.sdk.internal.geo.GeoInfoHolder
 import io.cloudx.sdk.internal.imp_tracker.ClickCounterTracker
@@ -37,7 +36,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import org.json.JSONObject
 import java.util.UUID
 import kotlin.system.measureTimeMillis
 
@@ -54,7 +52,8 @@ internal class InitializationServiceImpl(
     private val eventTracker: EventTracker,
     private val provideAppInfo: AppInfoProvider,
     private val provideDeviceInfo: DeviceInfoProvider,
-    private val geoApi: GeoApi
+    private val geoApi: GeoApi,
+    private val crashReportingService: CrashReportingService
 ) : InitializationService {
 
     private val context: Context = context.applicationContext
@@ -64,89 +63,20 @@ internal class InitializationServiceImpl(
     private var config: Config? = null
     private var appKey: String = ""
     private var basePayload: String = ""
-
+    
     private val mutex = Mutex()
 
 
-    fun isSdkRelatedError(throwable: Throwable): Boolean {
-        return throwable.stackTrace.any { it.className.startsWith("io.cloudx.sdk") }
-    }
-
-    private fun registerSdkCrashHandler() {
-        val currentHandler = Thread.getDefaultUncaughtExceptionHandler()
-        if (currentHandler !is SdkCrashHandler) {  // <---- Only set if not already set by us
-            Thread.setDefaultUncaughtExceptionHandler(
-                SdkCrashHandler { thread, throwable ->
-                    currentHandler?.uncaughtException(thread, throwable)
-                    if (!isSdkRelatedError(throwable)) return@SdkCrashHandler
-
-                    config?.let {
-                        val sessionId = it.sessionId
-                        val errorMessage = throwable.message
-                        val stackTrace = throwable.stackTraceToString()
-
-                        val pendingReport = PendingCrashReport(
-                            sessionId = sessionId,
-                            errorMessage = errorMessage ?: "Unknown error",
-                            errorDetails = stackTrace,
-                            basePayload = basePayload,
-                        )
-
-                        savePendingCrashReport(pendingReport)
-                    }
-                }
-            )
-        }
-    }
 
     override val metricsTrackerNew: MetricsTrackerNew
         get() = _metricsTrackerNew
 
-    data class PendingCrashReport(
-        val sessionId: String,
-        val errorMessage: String,
-        val errorDetails: String,
-        val basePayload: String
-    )
-
-    private fun PendingCrashReport.toJson(): JSONObject {
-        return JSONObject().apply {
-            put("sessionId", sessionId)
-            put("errorMessage", errorMessage)
-            put("errorDetails", errorDetails)
-            put("basePayload", basePayload)
-        }
-    }
-
-    private fun savePendingCrashReport(report: PendingCrashReport) {
-        val json = report.toJson().toString()
-        val prefs = context.getSharedPreferences("cloudx_crash_store", Context.MODE_PRIVATE)
-        prefs.edit(commit = true) { putString("pending_crash", json) }
-    }
-
-    private fun getPendingCrashIfAny(): PendingCrashReport? {
-        val prefs = context.getSharedPreferences("cloudx_crash_store", Context.MODE_PRIVATE)
-        val pendingJson = prefs?.getString("pending_crash", null) ?: return null
-
-        val pending = JSONObject(pendingJson).let { json ->
-            PendingCrashReport(
-                sessionId = json.getString("sessionId"),
-                errorMessage = json.getString("errorMessage"),
-                errorDetails = json.getString("errorDetails"),
-                basePayload = json.getString("basePayload")
-            )
-        }
-
-        prefs.edit(commit = true) { remove("pending_crash") }
-
-        return pending
-    }
 
     override suspend fun initialize(appKey: String): Result<Config, CLXError> =
         mutex.withLock {
             this.appKey = appKey
 
-            registerSdkCrashHandler()
+            crashReportingService.registerSdkCrashHandler()
 
             val config = this.config
             if (config != null) {
@@ -161,6 +91,7 @@ internal class InitializationServiceImpl(
             if (configApiResult is Result.Success) {
                 val cfg = configApiResult.value
                 this.config = cfg
+                crashReportingService.setConfig(cfg)
 
                 eventTracker.setEndpoint(cfg.trackingEndpointUrl)
                 eventTracker.trySendingPendingTrackingEvents()
@@ -202,9 +133,9 @@ internal class InitializationServiceImpl(
 
                     sendInitSDKEvent(cfg, appKey)
 
-                    val pendingCrash = getPendingCrashIfAny()
+                    val pendingCrash = crashReportingService.getPendingCrashIfAny()
                     pendingCrash?.let {
-                        sendErrorEvent(it)
+                        crashReportingService.sendErrorEvent(it)
                     }
                 }
 
@@ -321,6 +252,7 @@ internal class InitializationServiceImpl(
 
         if (payload != null && accountId != null) {
             basePayload = payload.replace(eventId, ARG_PLACEHOLDER_EVENT_ID)
+            crashReportingService.setBasePayload(basePayload)
             metricsTrackerNew.setBasicData(sessionId, accountId, basePayload)
 
             val secret = XorEncryption.generateXorSecret(accountId)
@@ -330,30 +262,6 @@ internal class InitializationServiceImpl(
         }
     }
 
-    private fun sendErrorEvent(
-        pendingCrashReport: PendingCrashReport
-    ) {
-        val eventId = UUID.randomUUID().toString()
-
-        var payload = if (pendingCrashReport.basePayload.isEmpty()) {
-            basePayload.replace(ARG_PLACEHOLDER_EVENT_ID, eventId)
-        } else {
-            pendingCrashReport.basePayload.replace(ARG_PLACEHOLDER_EVENT_ID, eventId)
-        }
-
-        payload = payload.plus(";")
-            .plus(pendingCrashReport.errorMessage).plus(";")
-            .plus(pendingCrashReport.errorDetails)
-
-        val accountId = TrackingFieldResolver.getAccountId()
-
-        if (accountId != null) {
-            val secret = XorEncryption.generateXorSecret(accountId)
-            val campaignId = XorEncryption.generateCampaignIdBase64(accountId)
-            val impressionId = XorEncryption.encrypt(payload, secret)
-            eventTracker.send(impressionId, campaignId, "1", EventType.SDK_ERROR)
-        }
-    }
 
     companion object {
         private const val ARG_PLACEHOLDER_EVENT_ID = "{eventId}"

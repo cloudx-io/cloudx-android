@@ -14,6 +14,7 @@ import io.cloudx.sdk.internal.geo.GeoApi
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTrackerNew
 import io.cloudx.sdk.internal.privacy.PrivacyService
+import io.cloudx.sdk.internal.crash.CrashReportingService
 
 /**
  * Initialization service - responsible for all CloudX initialization related things, notably - configuration fetching.
@@ -52,7 +53,8 @@ internal fun InitializationService(
     eventTracker: EventTracker = EventTracker(),
     appInfoProvider: AppInfoProvider = AppInfoProvider(),
     deviceInfoProvider: DeviceInfoProvider = DeviceInfoProvider(),
-    geoApi: GeoApi = GeoApi()
+    geoApi: GeoApi = GeoApi(),
+    crashReportingService: CrashReportingService = CrashReportingService()
 ): InitializationService =
     InitializationServiceImpl(
         context,
@@ -64,5 +66,6 @@ internal fun InitializationService(
         eventTracker,
         appInfoProvider,
         deviceInfoProvider,
-        geoApi
+        geoApi,
+        crashReportingService
     )

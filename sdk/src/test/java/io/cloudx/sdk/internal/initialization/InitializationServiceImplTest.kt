@@ -6,6 +6,7 @@ import android.content.SharedPreferences
 import io.cloudx.sdk.Result
 import io.cloudx.sdk.RoboMockkTest
 import io.cloudx.sdk.internal.appinfo.AppInfoProvider
+import io.cloudx.sdk.internal.crash.CrashReportingService
 import io.cloudx.sdk.internal.deviceinfo.DeviceInfoProvider
 import io.cloudx.sdk.internal.geo.GeoApi
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
@@ -61,7 +62,8 @@ class InitializationServiceImplTest : RoboMockkTest() {
             provideDeviceInfo = DeviceInfoProvider(),
             eventTracker = EventTracker(),
             geoApi = GeoApi(),
-            context = activity.applicationContext // or just appCtx
+            context = activity.applicationContext, // or just appCtx
+            crashReportingService = CrashReportingService()
         )
 
         val result = svc.initialize("random_app_key")

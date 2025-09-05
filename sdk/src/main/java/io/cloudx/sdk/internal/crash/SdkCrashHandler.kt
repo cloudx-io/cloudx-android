@@ -1,4 +1,4 @@
-package io.cloudx.sdk.internal.exception
+package io.cloudx.sdk.internal.crash
 
 internal class SdkCrashHandler(
     private val reportCrash: (Thread, Throwable) -> Unit

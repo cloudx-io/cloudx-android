@@ -27,7 +27,14 @@ internal class ConfigApiImpl(
     ): Result<Config, CLXError> = httpCatching(
         tag = tag,
         onOk = { json -> jsonToConfig(json) },
-        onNoContent = { _, _ -> Result.Failure(CLXError(CLXErrorCode.NO_FILL)) }
+        onNoContent = { response, _ ->
+            val xStatus = response.headers[HEADER_CLOUDX_STATUS]
+            when (xStatus) {
+                STATUS_SDK_DISABLED -> Result.Failure(CLXError(CLXErrorCode.SDK_DISABLED))
+                STATUS_ADS_DISABLED -> Result.Failure(CLXError(CLXErrorCode.ADS_DISABLED))
+                else -> Result.Failure(CLXError(CLXErrorCode.NO_FILL))
+            }
+        }
     ) {
         val body = withContext(Dispatchers.IO) {
             configRequest.toJson().also { CloudXLogger.d(tag, "Serialized body (${it.length} chars)") }

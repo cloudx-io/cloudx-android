@@ -12,4 +12,4 @@ fun interface CloudXInitializationListener {
     fun onCloudXInitializationStatus(status: CloudXInitializationStatus)
 }
 
-class CloudXInitializationStatus(val initialized: Boolean, val description: String)
+class CloudXInitializationStatus(val initialized: Boolean, val description: String, val errorCode: Int? = null)

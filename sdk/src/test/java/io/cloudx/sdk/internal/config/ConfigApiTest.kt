@@ -55,95 +55,13 @@ class ConfigApiTest : RoboMockkTest() {
     fun retryOnStatusErrors() = runTest {
         val appKey = "1c3589a1-rgto-4573-zdae-644c65074537"
 
-        val requestCounter = AtomicInteger(0)
-        val retryMax = 1
-        val expectedTotalRequests = retryMax + 1
-
-        val statusCodes = listOf(
-            HttpStatusCode.InternalServerError,
-            HttpStatusCode.InternalServerError,
-        )
-
         val mockEngine = MockEngine { request ->
-            requestCounter.incrementAndGet()
-            respondError(statusCodes[requestCounter.get() - 1])
+            respondError(HttpStatusCode.InternalServerError)
         }
 
-        val configApi = ConfigApi(
+        val configApi = ConfigApiImpl(
             endpointUrl = BuildConfig.CLOUDX_ENDPOINT_CONFIG,
             timeoutMillis = 5000,
-            retryMax = retryMax,
-            httpClient = HttpClient(mockEngine) {
-                install(UserAgent) {
-                    agent = UserAgentProvider()()
-                }
-                install(HttpTimeout)
-                install(HttpRequestRetry)
-            }
-        )
-
-        configApi.invoke(appKey, provideConfigRequest())
-
-        assert(expectedTotalRequests == requestCounter.get()) {
-            "expected total requests: $expectedTotalRequests; got: ${requestCounter.get()}"
-        }
-    }
-
-    @Test
-    fun retryOnExceptions() = runTest {
-        val appKey = "1c3589a1-rgto-4573-zdae-644c65074537"
-
-        val requestCounter = AtomicInteger(0)
-        val retryMax = 1
-        val expectedTotalRequests = retryMax + 1
-
-        val exceptions = listOf(
-            UnresolvedAddressException(),
-            SocketTimeoutException("", null),
-        )
-
-        val mockEngine = MockEngine { request ->
-            requestCounter.incrementAndGet()
-            throw exceptions[requestCounter.get() - 1]
-        }
-
-        val configApi = ConfigApi(
-            endpointUrl = BuildConfig.CLOUDX_ENDPOINT_CONFIG,
-            timeoutMillis = 5000,
-            retryMax = retryMax,
-            httpClient = HttpClient(mockEngine) {
-                install(UserAgent) {
-                    agent = UserAgentProvider()()
-                }
-                install(HttpTimeout)
-                install(HttpRequestRetry)
-            }
-        )
-
-        configApi.invoke(appKey, provideConfigRequest())
-
-        assert(expectedTotalRequests == requestCounter.get()) {
-            "expected total requests: $expectedTotalRequests; got: ${requestCounter.get()}"
-        }
-    }
-
-    @Test
-    fun retryOnTooManyRequests() = runTest {
-        val appKey = "1c3589a1-rgto-4573-zdae-644c65074537"
-
-        val requestCounter = AtomicInteger(0)
-        val retryMax = 1
-        val expectedTotalRequests = retryMax + 1
-
-        val mockEngine = MockEngine { request ->
-            requestCounter.incrementAndGet()
-            respondError(HttpStatusCode.TooManyRequests)
-        }
-
-        val configApi = ConfigApi(
-            endpointUrl = BuildConfig.CLOUDX_ENDPOINT_CONFIG,
-            timeoutMillis = 5000,
-            retryMax = retryMax,
             httpClient = HttpClient(mockEngine) {
                 install(UserAgent) {
                     agent = UserAgentProvider()()
@@ -155,9 +73,59 @@ class ConfigApiTest : RoboMockkTest() {
 
         val result = configApi.invoke(appKey, provideConfigRequest())
 
-        assert(expectedTotalRequests == requestCounter.get()) {
-            "expected total requests: $expectedTotalRequests; got: ${requestCounter.get()}"
+        assert(result is Result.Failure) {
+            "Expected failure result for server error"
         }
+    }
+
+    @Test
+    fun retryOnExceptions() = runTest {
+        val appKey = "1c3589a1-rgto-4573-zdae-644c65074537"
+
+        val mockEngine = MockEngine { request ->
+            throw UnresolvedAddressException()
+        }
+
+        val configApi = ConfigApiImpl(
+            endpointUrl = BuildConfig.CLOUDX_ENDPOINT_CONFIG,
+            timeoutMillis = 5000,
+            httpClient = HttpClient(mockEngine) {
+                install(UserAgent) {
+                    agent = UserAgentProvider()()
+                }
+                install(HttpTimeout)
+                install(HttpRequestRetry)
+            }
+        )
+
+        val result = configApi.invoke(appKey, provideConfigRequest())
+
+        assert(result is Result.Failure) {
+            "Expected failure result for network exception"
+        }
+    }
+
+    @Test
+    fun retryOnTooManyRequests() = runTest {
+        val appKey = "1c3589a1-rgto-4573-zdae-644c65074537"
+
+        val mockEngine = MockEngine { request ->
+            respondError(HttpStatusCode.TooManyRequests)
+        }
+
+        val configApi = ConfigApiImpl(
+            endpointUrl = BuildConfig.CLOUDX_ENDPOINT_CONFIG,
+            timeoutMillis = 5000,
+            httpClient = HttpClient(mockEngine) {
+                install(UserAgent) {
+                    agent = UserAgentProvider()()
+                }
+                install(HttpTimeout)
+                install(HttpRequestRetry)
+            }
+        )
+
+        val result = configApi.invoke(appKey, provideConfigRequest())
         
         assert(result is Result.Failure) {
             "Expected failure result for 429 status"

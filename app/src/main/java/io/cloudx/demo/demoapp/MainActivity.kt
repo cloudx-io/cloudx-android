@@ -324,7 +324,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main),
                 TAG
             ) { result ->
                 val resultMsg =
-                    if (result.initialized) INIT_SUCCESS else "$INIT_FAILURE ${result.description}"
+                    if (result.initialized) INIT_SUCCESS else "$INIT_FAILURE ${result.description} (Error code: ${result.errorCode})"
 
                 if (result.initialized) {
                     CloudXLogger.i(TAG, resultMsg)

@@ -102,7 +102,6 @@ internal class AdFactoryImpl(
                     preloadTimeMillis = 5000L,
                     bidFactories = bidFactories,
                     bidRequestExtrasProviders = factories.bidRequestExtrasProviders,
-                    bidMaxBackOffTimeMillis = BID_AD_LOAD_BACKOFF_MAX_MILLIS,
                     bidAdLoadTimeoutMillis = placement.adLoadTimeoutMillis.toLong(),
                     miscParams = miscParams,
                     bidApi = createBidApi(placement.bidResponseTimeoutMillis),

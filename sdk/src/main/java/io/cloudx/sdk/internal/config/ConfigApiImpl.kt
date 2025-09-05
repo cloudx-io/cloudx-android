@@ -4,17 +4,24 @@ import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.CLXError
 import io.cloudx.sdk.internal.CLXErrorCode
 import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.CLOUDX_DEFAULT_RETRY_MS
+import io.cloudx.sdk.internal.requestTimeoutMillis
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.HttpRequestTimeoutException
+import io.ktor.client.plugins.ServerResponseException
 import io.ktor.client.plugins.retry
-import io.ktor.client.plugins.timeout
-import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.io.IOException
+import kotlin.coroutines.cancellation.CancellationException
 
 internal class ConfigApiImpl(
     private val endpointUrl: String,
@@ -29,88 +36,83 @@ internal class ConfigApiImpl(
         appKey: String,
         configRequest: ConfigRequest
     ): Result<Config, CLXError> {
-        CloudXLogger.d(tag, buildString {
-            appendLine("Attempting config request:")
-            appendLine("  Endpoint: $endpointUrl")
-            appendLine("  AppKey: $appKey")
-            appendLine("  Request Body: ${configRequest.toJson()}")
-        })
 
-        val isStatic = endpointUrl.contains("type=static")
+        val requestBody = withContext(Dispatchers.IO) { configRequest.toJson() }
+        CloudXLogger.d(tag, "Config request → $endpointUrl\nBody: $requestBody")
 
+        return makeRequest(appKey, requestBody)
+    }
+
+    private suspend fun makeRequest(
+        appKey: String,
+        body: String
+    ): Result<Config, CLXError> {
         return try {
-            val response = if (isStatic) {
-                httpClient.get(endpointUrl) {
-                    headers {
-                        append("Authorization", "Bearer $appKey")
+            val response = httpClient.post(endpointUrl) {
+                headers { append("Authorization", "Bearer $appKey") }
+                contentType(ContentType.Application.Json)
+                setBody(body)
+                requestTimeoutMillis(timeoutMillis)
+                retry {
+                    maxRetries = retryMax
+                    retryOnExceptionOrServerErrors()
+                    retryIf { _, response ->
+                        response.status.value == 429 // Too Many Requests
                     }
-
-                    timeout {
-                        requestTimeoutMillis = timeoutMillis
-                    }
-
-                    retry {
-                        maxRetries = retryMax
-                        exponentialDelay()
-                        retryOnException(retryOnTimeout = true)
-                        retryIf { _, httpResponse ->
-                            httpResponse.status.value in 500..599 ||
-                                    httpResponse.status == HttpStatusCode.RequestTimeout ||
-                                    httpResponse.status == HttpStatusCode.NotFound
-                        }
-                    }
+                    constantDelay(
+                        millis = CLOUDX_DEFAULT_RETRY_MS,
+                        randomizationMs = 1000L,
+                        respectRetryAfterHeader = true
+                    )
                 }
-            } else {
-                httpClient.post(endpointUrl) {
-                    headers {
-                        append("Authorization", "Bearer $appKey")
-                    }
+            }
+            handleResponse(response)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: HttpRequestTimeoutException) {
+            Result.Failure(CLXError(CLXErrorCode.NETWORK_TIMEOUT, cause = e))
+        } catch (e: IOException) {
+            Result.Failure(CLXError(CLXErrorCode.NETWORK_ERROR, cause = e))
+        } catch (e: ServerResponseException) {
+            handleResponse(e.response)
+        } catch (e: Exception) {
+            Result.Failure(CLXError(CLXErrorCode.NETWORK_ERROR, e.message, e))
+        }
+    }
 
-                    contentType(ContentType.Application.Json)
-                    setBody(configRequest.toJson())
+    private suspend fun handleResponse(response: HttpResponse): Result<Config, CLXError> {
+        val responseBody = response.bodyAsText()
+        CloudXLogger.d(tag, "Config response ← HTTP ${response.status}\n$responseBody")
 
-                    timeout {
-                        requestTimeoutMillis = timeoutMillis
-                    }
-
-                    retry {
-                        maxRetries = retryMax
-                        exponentialDelay()
-                        retryOnException(retryOnTimeout = true)
-                        retryIf { _, httpResponse ->
-                            httpResponse.status.value in 500..599 ||
-                                    httpResponse.status == HttpStatusCode.RequestTimeout ||
-                                    httpResponse.status == HttpStatusCode.NotFound
-                        }
-                    }
+        return when {
+            response.status == HttpStatusCode.OK -> {
+                when (val parseResult = jsonToConfig(responseBody)) {
+                    is Result.Success -> parseResult
+                    is Result.Failure -> parseResult
                 }
             }
 
-            val responseBody = response.bodyAsText()
-            CloudXLogger.d(tag, buildString {
-                appendLine("Received response:")
-                appendLine("  Status: ${response.status}")
-                appendLine("  Body: $responseBody")
-            })
+            // 429
+            response.status == HttpStatusCode.TooManyRequests -> {
+                Result.Failure(CLXError(CLXErrorCode.TOO_MANY_REQUESTS))
+            }
 
-            if (response.status == HttpStatusCode.OK) {
-                when (val result = jsonToConfig(responseBody)) {
-                    is Result.Success -> Result.Success(result.value)
-                    is Result.Failure -> {
-                        CloudXLogger.e(tag, "Failed to parse config: ${result.value.effectiveMessage}")
-                        Result.Failure(result.value)
-                    }
-                }
-            } else {
-                val errStr = "Bad response status: ${response.status}"
-                CloudXLogger.e(tag, errStr)
+            response.status.value in 400..499 -> {
+                Result.Failure(CLXError(CLXErrorCode.CLIENT_ERROR))
+            }
+
+            response.status.value in 500..599 -> {
                 Result.Failure(CLXError(CLXErrorCode.SERVER_ERROR))
             }
 
-        } catch (e: Exception) {
-            val errStr = "Request failed: ${e.message}"
-            CloudXLogger.e(tag, errStr)
-            Result.Failure(CLXError(CLXErrorCode.NETWORK_ERROR))
+            else -> {
+                Result.Failure(
+                    CLXError(
+                        CLXErrorCode.UNEXPECTED_ERROR,
+                        "Unexpected status: ${response.status}"
+                    )
+                )
+            }
         }
     }
 }

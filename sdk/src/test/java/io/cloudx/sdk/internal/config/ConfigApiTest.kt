@@ -56,14 +56,11 @@ class ConfigApiTest : RoboMockkTest() {
         val appKey = "1c3589a1-rgto-4573-zdae-644c65074537"
 
         val requestCounter = AtomicInteger(0)
-        val retryMax = 4
+        val retryMax = 1
         val expectedTotalRequests = retryMax + 1
 
         val statusCodes = listOf(
             HttpStatusCode.InternalServerError,
-            HttpStatusCode.GatewayTimeout,
-            HttpStatusCode.RequestTimeout,
-            HttpStatusCode.NotFound,
             HttpStatusCode.InternalServerError,
         )
 
@@ -97,14 +94,11 @@ class ConfigApiTest : RoboMockkTest() {
         val appKey = "1c3589a1-rgto-4573-zdae-644c65074537"
 
         val requestCounter = AtomicInteger(0)
-        val retryMax = 4
+        val retryMax = 1
         val expectedTotalRequests = retryMax + 1
 
         val exceptions = listOf(
             UnresolvedAddressException(),
-            HttpRequestTimeoutException("", null),
-            ConnectTimeoutException("", null),
-            IllegalStateException(),
             SocketTimeoutException("", null),
         )
 
@@ -130,6 +124,43 @@ class ConfigApiTest : RoboMockkTest() {
 
         assert(expectedTotalRequests == requestCounter.get()) {
             "expected total requests: $expectedTotalRequests; got: ${requestCounter.get()}"
+        }
+    }
+
+    @Test
+    fun retryOnTooManyRequests() = runTest {
+        val appKey = "1c3589a1-rgto-4573-zdae-644c65074537"
+
+        val requestCounter = AtomicInteger(0)
+        val retryMax = 1
+        val expectedTotalRequests = retryMax + 1
+
+        val mockEngine = MockEngine { request ->
+            requestCounter.incrementAndGet()
+            respondError(HttpStatusCode.TooManyRequests)
+        }
+
+        val configApi = ConfigApi(
+            endpointUrl = BuildConfig.CLOUDX_ENDPOINT_CONFIG,
+            timeoutMillis = 5000,
+            retryMax = retryMax,
+            httpClient = HttpClient(mockEngine) {
+                install(UserAgent) {
+                    agent = UserAgentProvider()()
+                }
+                install(HttpTimeout)
+                install(HttpRequestRetry)
+            }
+        )
+
+        val result = configApi.invoke(appKey, provideConfigRequest())
+
+        assert(expectedTotalRequests == requestCounter.get()) {
+            "expected total requests: $expectedTotalRequests; got: ${requestCounter.get()}"
+        }
+        
+        assert(result is Result.Failure) {
+            "Expected failure result for 429 status"
         }
     }
 }

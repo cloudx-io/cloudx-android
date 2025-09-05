@@ -79,7 +79,7 @@ abstract class FullPageAdFragment : Fragment(R.layout.fragment_fullscreen_ad) {
     abstract val logTag: String
     open fun logTagRule(forTag: String): String? =
         commonLogTagListRules(forTag) ?: when (forTag) {
-            logTag -> adType
+            "CX:$logTag" -> adType
             else -> null
         }
 

@@ -13,7 +13,6 @@ fun commonLogTagListRules(forTag: String): String? {
     
     return when (component) {
         MainActivity.TAG -> SDK
-        "SDK" -> SDK
         "BidAdSourceImpl" -> "Bidding"
         "Endpoints" -> "SDK"
         else -> if (component.endsWith("Initializer")) component else null

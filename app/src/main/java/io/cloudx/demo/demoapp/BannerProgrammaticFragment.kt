@@ -196,7 +196,7 @@ class StandardBannerProgrammaticFragment: BannerProgrammaticFragment() {
 
     override fun logTagFilterRule(logTag: String, forTag: String): String? =
         commonLogTagListRules(forTag) ?: when (forTag) {
-            logTag, "BannerImpl" -> "Banner"
+            "CX:$logTag", "CX:BannerManager" -> "Banner"
             else -> null
         }
 
@@ -212,7 +212,7 @@ class MRECProgrammaticFragment: BannerProgrammaticFragment() {
 
     override fun logTagFilterRule(logTag: String, forTag: String): String? =
         commonLogTagListRules(forTag) ?: when (forTag) {
-            logTag, "BannerImpl" -> "MREC"
+            "CX:$logTag", "CX:BannerManager" -> "MREC"
             else -> null
         }
 
@@ -227,7 +227,7 @@ class NativeAdSmallProgrammaticFragment: BannerProgrammaticFragment() {
 
     override fun logTagFilterRule(logTag: String, forTag: String): String? =
         commonLogTagListRules(forTag) ?: when (forTag) {
-            logTag, "BannerImpl" -> "NativeAdSmall"
+            "CX:$logTag", "CX:BannerManager" -> "NativeAdSmall"
             else -> null
         }
 
@@ -243,7 +243,7 @@ class NativeAdMediumProgrammaticFragment: BannerProgrammaticFragment() {
 
     override fun logTagFilterRule(logTag: String, forTag: String): String? =
         commonLogTagListRules(forTag) ?: when (forTag) {
-            logTag, "BannerImpl" -> "NativeAdMedium"
+            "CX:$logTag", "CX:BannerManager" -> "NativeAdMedium"
             else -> null
         }
 

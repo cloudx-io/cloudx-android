@@ -102,6 +102,8 @@ internal fun BannerManager(
 
     return BannerManagerImpl(
         activity = activity,
+        placementId = placementId,
+        placementName = placementName,
         bidAdSource = bidSource,
         bannerVisibility = bannerVisibility,
         refreshSeconds = refreshSeconds,
@@ -118,6 +120,8 @@ internal fun BannerManager(
 
 private class BannerManagerImpl(
     private val activity: Activity,
+    private val placementId: String,
+    private val placementName: String,
     private val bidAdSource: BidAdSource<BannerAdapterDelegate>,
     bannerVisibility: StateFlow<Boolean>,
     private val refreshSeconds: Int,
@@ -131,7 +135,7 @@ private class BannerManagerImpl(
     private val metricsTrackerNew: MetricsTrackerNew,
 ) : BannerManager {
 
-    private val TAG = "BannerImpl"
+    private val TAG = "BannerManager"
 
     private val scope = CoroutineScope(Dispatchers.Main)
 
@@ -143,6 +147,12 @@ private class BannerManagerImpl(
         }
 
     init {
+        CloudXLogger.i(
+            TAG,
+            placementName,
+            placementId,
+            "BannerManager initialized - refresh: ${refreshSeconds}s, preload: ${preloadTimeMillis}ms, timeout: ${bidAdLoadTimeoutMillis}ms"
+        )
         restartBannerRefresh()
     }
 
@@ -174,7 +184,12 @@ private class BannerManagerImpl(
 
                 metricsTrackerNew.trackMethodCall(MetricsType.Method.BannerRefresh)
 
-                CloudXLogger.d(TAG, "Banner refresh scheduled in ${refreshSeconds}s")
+                CloudXLogger.d(
+                    TAG,
+                    placementName,
+                    placementId,
+                    "Banner refresh scheduled in ${refreshSeconds}s"
+                )
                 bannerRefreshTimer.awaitTimeout(refreshDelayMillis)
             }
         }
@@ -195,6 +210,12 @@ private class BannerManagerImpl(
             return
         }
 
+        CloudXLogger.d(
+            TAG,
+            placementName,
+            placementId,
+            "Loading backup banner with ${delayLoadMillis}ms delay"
+        )
         backupBannerLoadJob = scope.launch {
             backupBannerLoadTimer.awaitTimeout(delayLoadMillis)
 
@@ -207,11 +228,18 @@ private class BannerManagerImpl(
     private var backupBannerErrorHandlerJob: Job? = null
 
     private fun preserveBackupBanner(banner: BannerAdapterDelegate) {
+        CloudXLogger.d(TAG, placementName, placementId, "Backup banner loaded and ready")
         backupBanner.value = banner
 
         backupBannerErrorHandlerJob?.cancel()
         backupBannerErrorHandlerJob = scope.launch {
-            banner.lastErrorEvent.first { it != null }
+            val error = banner.lastErrorEvent.first { it != null }
+            CloudXLogger.w(
+                TAG,
+                placementName,
+                placementId,
+                "Backup banner error detected: $error - destroying and reloading"
+            )
             destroyBackupBanner()
             loadBackupBannerIfAbsent()
         }
@@ -221,7 +249,10 @@ private class BannerManagerImpl(
         backupBannerErrorHandlerJob?.cancel()
 
         with(backupBanner) {
-            value?.destroy()
+            value?.let {
+                CloudXLogger.d(TAG, placementName, placementId, "Destroying backup banner")
+                it.destroy()
+            }
             value = null
         }
     }
@@ -254,6 +285,22 @@ private class BannerManagerImpl(
 
             val bids: BidAdSourceResponse<BannerAdapterDelegate>? = bidAdSource.requestBid()
 
+            if (bids != null) {
+                CloudXLogger.i(
+                    TAG,
+                    placementName,
+                    placementId,
+                    "Received ${bids.bidItemsByRank.size} bids from auction"
+                )
+            } else {
+                CloudXLogger.w(
+                    TAG,
+                    placementName,
+                    placementId,
+                    "No bids available from auction - will retry"
+                )
+            }
+
             loadedBanner = bids?.loadOrDestroyBanner()
 
             if (loadedBanner == null) {
@@ -262,6 +309,8 @@ private class BannerManagerImpl(
                 // Delay after each batch of 3 fails
                 CloudXLogger.d(
                     TAG,
+                    placementName,
+                    placementId,
                     "Soft error delay for ${bidBackoffMechanism.getBatchDelay()}ms (batch)"
                 )
                 delay(bidBackoffMechanism.getBatchDelay())
@@ -269,6 +318,8 @@ private class BannerManagerImpl(
                 if (bidBackoffMechanism.isBatchEnd) {
                     CloudXLogger.d(
                         TAG,
+                        placementName,
+                        placementId,
                         "Batch of 3 soft errors: Delaying for ${bidBackoffMechanism.getBarrierDelay()}ms (barrier pause)"
                     )
 
@@ -286,54 +337,76 @@ private class BannerManagerImpl(
     /**
      * Trying to load the top rank (1) bid; load the next top one otherwise.
      */
-    private suspend fun BidAdSourceResponse<BannerAdapterDelegate>.loadOrDestroyBanner(): BannerAdapterDelegate? = coroutineScope {
-        var loadedBanner: BannerAdapterDelegate? = null
-        var winnerIndex: Int = -1
+    private suspend fun BidAdSourceResponse<BannerAdapterDelegate>.loadOrDestroyBanner(): BannerAdapterDelegate? =
+        coroutineScope {
+            var loadedBanner: BannerAdapterDelegate? = null
+            var winnerIndex: Int = -1
 
-        val lossReasons = mutableMapOf<String, LossReason>()
+            val lossReasons = mutableMapOf<String, LossReason>()
 
-        for ((index, bidItem) in bidItemsByRank.withIndex()) {
-            ensureActive()
+            for ((index, bidItem) in bidItemsByRank.withIndex()) {
+                ensureActive()
 
-            val result = loadOrDestroyBanner(bidAdLoadTimeoutMillis, bidItem.createBidAd)
-            val banner = result.banner
+                CloudXLogger.d(
+                    TAG,
+                    placementName,
+                    placementId,
+                    "Attempting to load bid: ${bidItem.adNetworkOriginal.networkName}, CPM: $${bidItem.price}, rank: ${bidItem.rank}"
+                )
 
-            if (banner != null) {
-                loadedBanner = banner
-                winnerIndex = index
-                break
-            } else {
-                lossReasons[bidItem.id] = LossReason.TechnicalError
-            }
-        }
+                val result = loadOrDestroyBanner(bidAdLoadTimeoutMillis, bidItem.createBidAd)
+                val banner = result.banner
 
-        if (winnerIndex != -1) {
-            // Mark all other bids as "Lost to higher bid"
-            bidItemsByRank.forEachIndexed { index, bidItem ->
-                if (index != winnerIndex && !lossReasons.containsKey(bidItem.id)) {
-                    lossReasons[bidItem.id] = LossReason.LostToHigherBid
+                if (banner != null) {
+                    CloudXLogger.i(
+                        TAG,
+                        placementName,
+                        placementId,
+                        "Successfully loaded bid: ${bidItem.adNetworkOriginal.networkName}, CPM: $${bidItem.price}, rank: ${bidItem.rank}"
+                    )
+                    loadedBanner = banner
+                    winnerIndex = index
+                    break
+                } else {
+                    CloudXLogger.w(
+                        TAG,
+                        placementName,
+                        placementId,
+                        "Failed to load bid: ${bidItem.adNetworkOriginal.networkName}, CPM: $${bidItem.price}, rank: ${bidItem.rank}"
+                    )
+                    lossReasons[bidItem.id] = LossReason.TechnicalError
                 }
             }
 
-            // Fire lurls
-            bidItemsByRank.forEachIndexed { index, bidItem ->
-                if (index != winnerIndex) {
-                    val reason = lossReasons[bidItem.id] ?: return@forEachIndexed
+            if (winnerIndex != -1) {
+                // Mark all other bids as "Lost to higher bid"
+                bidItemsByRank.forEachIndexed { index, bidItem ->
+                    if (index != winnerIndex && !lossReasons.containsKey(bidItem.id)) {
+                        lossReasons[bidItem.id] = LossReason.LostToHigherBid
+                    }
+                }
 
-                    if (!bidItem.lurl.isNullOrBlank()) {
-                        CloudXLogger.d(
-                            TAG,
-                            "Calling LURL for ${bidItem.adNetwork}, reason=${reason.name}, rank=${bidItem.rank}"
-                        )
+                // Fire lurls
+                bidItemsByRank.forEachIndexed { index, bidItem ->
+                    if (index != winnerIndex) {
+                        val reason = lossReasons[bidItem.id] ?: return@forEachIndexed
 
-                        LossReporter.fireLoss(bidItem.lurl, reason)
+                        if (!bidItem.lurl.isNullOrBlank()) {
+                            CloudXLogger.d(
+                                TAG,
+                                placementName,
+                                placementId,
+                                "Calling LURL for ${bidItem.adNetwork}, reason=${reason.name}, rank=${bidItem.rank}"
+                            )
+
+                            LossReporter.fireLoss(bidItem.lurl, reason)
+                        }
                     }
                 }
             }
-        }
 
-        loadedBanner
-    }
+            loadedBanner
+        }
 
     // returns: null - banner wasn't loaded.
     private suspend fun loadOrDestroyBanner(
@@ -360,15 +433,32 @@ private class BannerManagerImpl(
 
             connectionStatusService.awaitConnection()
 
+            CloudXLogger.d(
+                TAG,
+                placementName,
+                placementId,
+                "Starting banner load with ${loadTimeoutMillis}ms timeout"
+            )
             isBannerLoaded = withTimeout(loadTimeoutMillis) { banner.load() }
 
         } catch (e: TimeoutCancellationException) {
+            CloudXLogger.w(
+                TAG,
+                placementName,
+                placementId,
+                "Banner load timeout after ${loadTimeoutMillis}ms",
+                e
+            )
             banner.timeout()
             return LoadResult(null, LossReason.TechnicalError)
         } catch (e: Exception) {
+            CloudXLogger.e(TAG, placementName, placementId, "Banner load failed with exception", e)
             return LoadResult(null, LossReason.TechnicalError)
         } finally {
-            if (!isBannerLoaded) banner.destroy()
+            if (!isBannerLoaded) {
+                CloudXLogger.d(TAG, placementName, placementId, "Destroying failed banner")
+                banner.destroy()
+            }
         }
 
         return LoadResult(banner, null) // No loss reason, we have a winner
@@ -378,6 +468,7 @@ private class BannerManagerImpl(
     private var currentBannerEventHandlerJob: Job? = null
 
     private fun showNewBanner(banner: BannerAdapterDelegate) {
+        CloudXLogger.d(TAG, placementName, placementId, "Displaying new banner")
         listener?.onAdDisplayed(banner)
 
         currentBanner = banner
@@ -386,11 +477,18 @@ private class BannerManagerImpl(
         currentBannerEventHandlerJob = scope.launch {
             launch {
                 banner.event.filter { it == BannerAdapterDelegateEvent.Click }.collect {
+                    CloudXLogger.i(TAG, placementName, placementId, "Banner clicked by user")
                     listener?.onAdClicked(banner)
                 }
             }
             launch {
-                banner.lastErrorEvent.first { it != null }
+                val error = banner.lastErrorEvent.first { it != null }
+                CloudXLogger.w(
+                    TAG,
+                    placementName,
+                    placementId,
+                    "Banner error detected: $error - restarting refresh cycle"
+                )
                 hideAndDestroyCurrentBanner()
                 restartBannerRefresh()
             }
@@ -398,14 +496,20 @@ private class BannerManagerImpl(
     }
 
     private fun hideAndDestroyCurrentBanner() {
-        currentBanner?.let { listener?.onAdHidden(it) }
+        currentBanner?.let {
+            CloudXLogger.d(TAG, placementName, placementId, "Hiding current banner")
+            listener?.onAdHidden(it)
+        }
         destroyCurrentBanner()
     }
 
     private fun destroyCurrentBanner() {
         currentBannerEventHandlerJob?.cancel()
 
-        currentBanner?.destroy()
+        currentBanner?.let {
+            CloudXLogger.d(TAG, placementName, placementId, "Destroying current banner")
+            it.destroy()
+        }
         currentBanner = null
     }
 

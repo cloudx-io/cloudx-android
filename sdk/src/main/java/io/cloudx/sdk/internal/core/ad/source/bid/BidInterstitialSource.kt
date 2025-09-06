@@ -1,6 +1,5 @@
 package io.cloudx.sdk.internal.core.ad.source.bid
 
-import android.app.Activity
 import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.AdType
@@ -8,16 +7,16 @@ import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapterFactory
 import io.cloudx.sdk.internal.bid.BidApi
 import io.cloudx.sdk.internal.bid.BidRequestProvider
 import io.cloudx.sdk.internal.cdp.CdpApi
+import io.cloudx.sdk.internal.context.ContextProvider
+import io.cloudx.sdk.internal.core.ad.adapter_delegate.InterstitialAdapterDelegate
 import io.cloudx.sdk.internal.core.ad.source.adapterLoggingDecoration
 import io.cloudx.sdk.internal.core.ad.source.baseAdDecoration
 import io.cloudx.sdk.internal.core.ad.source.bidAdDecoration
 import io.cloudx.sdk.internal.core.ad.source.decorate
-import io.cloudx.sdk.internal.core.ad.adapter_delegate.InterstitialAdapterDelegate
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTrackerNew
 
 internal fun BidInterstitialSource(
-    activity: Activity,
     factories: Map<AdNetwork, CloudXInterstitialAdapterFactory>,
     placementId: String,
     placementName: String,
@@ -66,7 +65,7 @@ internal fun BidInterstitialSource(
         ) { listener ->
             // TODO. IMPORTANT. Explicit Result cast isn't "cool", even though there's try catch somewhere.
             (factories[adNetwork]?.create(
-                activity,
+                ContextProvider(),
                 placementId,
                 bidId,
                 adm,

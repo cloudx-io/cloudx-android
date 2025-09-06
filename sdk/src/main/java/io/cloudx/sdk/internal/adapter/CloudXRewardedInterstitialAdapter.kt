@@ -1,13 +1,13 @@
 package io.cloudx.sdk.internal.adapter
 
-import android.app.Activity
 import io.cloudx.sdk.Destroyable
 import io.cloudx.sdk.Result
+import io.cloudx.sdk.internal.context.ContextProvider
 
 interface CloudXRewardedInterstitialAdapterFactory : CloudXAdapterMetaData {
 
     fun create(
-        activity: Activity,
+        contextProvider: ContextProvider,
         placementId: String,
         bidId: String,
         adm: String,

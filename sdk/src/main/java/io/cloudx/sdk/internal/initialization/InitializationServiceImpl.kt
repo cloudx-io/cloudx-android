@@ -249,7 +249,6 @@ internal class InitializationServiceImpl(
             appKey = appKey
         )
         val bidRequestProvider = BidRequestProvider(
-            context,
             emptyMap()
         )
         val bidRequestParamsJson = bidRequestProvider.invoke(bidRequestParams, eventId)

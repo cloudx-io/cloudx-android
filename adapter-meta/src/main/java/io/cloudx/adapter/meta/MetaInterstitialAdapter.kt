@@ -1,6 +1,5 @@
 package io.cloudx.adapter.meta
 
-import android.app.Activity
 import androidx.annotation.Keep
 import com.facebook.ads.Ad
 import com.facebook.ads.AdError
@@ -14,6 +13,7 @@ import io.cloudx.sdk.internal.adapter.CloudXAdapterMetaData
 import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapter
 import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapterFactory
 import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapterListener
+import io.cloudx.sdk.internal.context.ContextProvider
 
 @Keep
 internal object InterstitialFactory :
@@ -21,7 +21,7 @@ internal object InterstitialFactory :
     CloudXAdapterMetaData by CloudXAdapterMetaData(AudienceNetworkAdsVersion) {
 
     override fun create(
-        activity: Activity,
+        contextProvider: ContextProvider,
         placementId: String,
         bidId: String,
         adm: String,
@@ -29,7 +29,7 @@ internal object InterstitialFactory :
         listener: CloudXInterstitialAdapterListener,
     ): Result<CloudXInterstitialAdapter, String> = Result.Success(
         MetaInterstitialAdapter(
-            activity,
+            contextProvider,
             adUnitId = adm,
             listener
         )
@@ -37,7 +37,7 @@ internal object InterstitialFactory :
 }
 
 internal class MetaInterstitialAdapter(
-    private val activity: Activity,
+    private val contextProvider: ContextProvider,
     private val adUnitId: String,
     private var listener: CloudXInterstitialAdapterListener?
 ) : CloudXInterstitialAdapter, CloudXAdLoadOperationAvailability by AlwaysReadyToLoadAd {
@@ -53,7 +53,7 @@ internal class MetaInterstitialAdapter(
             return
         }
 
-        val interstitialAd = InterstitialAd(activity, adUnitId)
+        val interstitialAd = InterstitialAd(contextProvider.getContext(), adUnitId)
         this.interstitialAd = interstitialAd
 
         // Check if the newly constructed ad is already loaded

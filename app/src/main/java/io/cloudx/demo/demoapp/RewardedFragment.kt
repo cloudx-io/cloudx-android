@@ -9,7 +9,6 @@ import io.cloudx.sdk.internal.CloudXLogger
 class RewardedFragment : FullPageAdFragment() {
 
     override fun createAd(listener: CloudXAdListener) = CloudX.createRewardedInterstitial(
-        requireActivity(),
         placementName,
         object : RewardedInterstitialListener, CloudXAdListener by listener {
             override fun onUserRewarded(cloudXAd: CloudXAd) {

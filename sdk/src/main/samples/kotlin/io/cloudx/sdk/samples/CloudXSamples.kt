@@ -106,10 +106,9 @@ internal fun cloudXCreateAdView(activity: Activity, frameLayout: FrameLayout) {
     }
 }
 
-internal fun createInterstitial(activity: Activity, placementName: String) {
+internal fun createInterstitial(placementName: String) {
     var ad: CloudXInterstitialAd? = null
     ad = CloudX.createInterstitial(
-        activity,
         placementName,
         // Track events if necessary.
         object : CloudXInterstitialListener {
@@ -171,10 +170,9 @@ internal fun createInterstitial(activity: Activity, placementName: String) {
     ad?.destroy()
 }
 
-internal fun createRewarded(activity: Activity, placementName: String) {
+internal fun createRewarded(placementName: String) {
     var ad: CloudXRewardedAd? = null
     ad = CloudX.createRewardedInterstitial(
-        activity,
         placementName,
         // Track events if necessary.
         object : RewardedInterstitialListener {

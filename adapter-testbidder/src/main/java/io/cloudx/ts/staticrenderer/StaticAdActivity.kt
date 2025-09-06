@@ -1,10 +1,8 @@
 package io.cloudx.ts.staticrenderer
 
-import android.app.Activity
+import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.Gravity
 import android.view.View.VISIBLE
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
@@ -14,7 +12,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.widget.AppCompatButton
 import androidx.core.view.ViewCompat
-import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -107,10 +104,12 @@ internal class StaticAdActivity : ComponentActivity() {
         }
 
         // Doesn't support parallel calls, not required though.
-        suspend fun show(activity: Activity, staticWebView: StaticWebView) {
+        suspend fun show(context: Context, staticWebView: StaticWebView) {
             try {
                 Companion.staticWebView = staticWebView
-                activity.startActivity(Intent(activity, StaticAdActivity::class.java))
+                val intent = Intent(context, StaticAdActivity::class.java)
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                context.startActivity(intent)
 
                 dismiss.first { it }
 

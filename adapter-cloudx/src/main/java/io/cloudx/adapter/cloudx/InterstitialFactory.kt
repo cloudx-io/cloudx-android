@@ -1,15 +1,18 @@
 package io.cloudx.adapter.cloudx
 
-import android.app.Activity
-import io.cloudx.sdk.internal.adapter.*
 import io.cloudx.sdk.Result
+import io.cloudx.sdk.internal.adapter.CloudXAdapterMetaData
+import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapter
+import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapterFactory
+import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapterListener
+import io.cloudx.sdk.internal.context.ContextProvider
 
 internal object InterstitialFactory :
     CloudXInterstitialAdapterFactory,
     CloudXAdapterMetaData by CloudXAdapterMetaData("cloudxdsp-version") {
 
     override fun create(
-        activity: Activity,
+        contextProvider: ContextProvider,
         placementId: String,
         bidId: String,
         adm: String,
@@ -17,7 +20,7 @@ internal object InterstitialFactory :
         listener: CloudXInterstitialAdapterListener,
     ): Result<CloudXInterstitialAdapter, String> = Result.Success(
         StaticBidInterstitial(
-            activity,
+            contextProvider.getContext(),
             adm,
             listener
         )

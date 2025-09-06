@@ -29,18 +29,17 @@ internal interface AdFactory {
     fun createRewarded(params: CreateAdParams<RewardedInterstitialListener>): CloudXRewardedAd?
 
     open class CreateAdParams<T>(
-        val activity: Activity,
         val placementName: String,
         val listener: T?
     )
 
     class CreateBannerParams(
         val adType: AdType,
-        activity: Activity,
+        val activity: Activity,
         placementName: String,
         listener: CloudXAdViewListener?,
     ) : CreateAdParams<CloudXAdViewListener>(
-        activity, placementName, listener
+        placementName, listener
     )
 }
 

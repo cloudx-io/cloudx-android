@@ -1,6 +1,5 @@
 package io.cloudx.adapter.meta
 
-import android.app.Activity
 import androidx.annotation.Keep
 import com.facebook.ads.Ad
 import com.facebook.ads.AdError
@@ -14,6 +13,7 @@ import io.cloudx.sdk.internal.adapter.CloudXAdapterMetaData
 import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapter
 import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapterFactory
 import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapterListener
+import io.cloudx.sdk.internal.context.ContextProvider
 
 @Keep
 internal object RewardedInterstitialFactory :
@@ -21,7 +21,7 @@ internal object RewardedInterstitialFactory :
     CloudXAdapterMetaData by CloudXAdapterMetaData(AudienceNetworkAdsVersion) {
 
     override fun create(
-        activity: Activity,
+        contextProvider: ContextProvider,
         placementId: String,
         bidId: String,
         adm: String,
@@ -29,7 +29,7 @@ internal object RewardedInterstitialFactory :
         listener: CloudXRewardedInterstitialAdapterListener,
     ): Result<CloudXRewardedInterstitialAdapter, String> = Result.Success(
         MetaRewardedInterstitialAdapter(
-            activity,
+            contextProvider,
             adUnitId = adm,
             listener
         )
@@ -37,7 +37,7 @@ internal object RewardedInterstitialFactory :
 }
 
 internal class MetaRewardedInterstitialAdapter(
-    private val activity: Activity,
+    private val contextProvider: ContextProvider,
     private val adUnitId: String,
     private var listener: CloudXRewardedInterstitialAdapterListener?
 ) : CloudXRewardedInterstitialAdapter, CloudXAdLoadOperationAvailability by AlwaysReadyToLoadAd {
@@ -45,7 +45,7 @@ internal class MetaRewardedInterstitialAdapter(
     private var ad: RewardedInterstitialAd? = null
 
     override fun load() {
-        val ad = RewardedInterstitialAd(activity, adUnitId)
+        val ad = RewardedInterstitialAd(contextProvider.getContext(), adUnitId)
         this.ad = ad
 
         ad.loadAd(ad.buildLoadAdConfig().withAdListener(object : RewardedInterstitialAdListener {

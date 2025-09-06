@@ -7,7 +7,6 @@ import io.cloudx.sdk.CloudXInterstitialListener
 class InterstitialFragment : FullPageAdFragment() {
 
     override fun createAd(listener: CloudXAdListener) = CloudX.createInterstitial(
-        requireActivity(),
         placementName,
         object : CloudXInterstitialListener, CloudXAdListener by listener {}
     )

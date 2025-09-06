@@ -135,7 +135,6 @@ internal class AdFactoryImpl(
         val bidApi = createBidApi(placement.bidResponseTimeoutMillis)
 
         return Interstitial(
-            params.activity,
             placementId = placement.id,
             placementName = placement.name,
             cacheSize = config.precacheSize,
@@ -168,7 +167,6 @@ internal class AdFactoryImpl(
         val bidApi = createBidApi(placement.bidResponseTimeoutMillis)
 
         return RewardedInterstitial(
-            params.activity,
             placementId = placement.id,
             placementName = placement.name,
             cacheSize = config.precacheSize,

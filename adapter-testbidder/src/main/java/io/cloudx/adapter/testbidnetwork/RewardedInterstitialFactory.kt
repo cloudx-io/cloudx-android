@@ -1,15 +1,18 @@
 package io.cloudx.adapter.testbidnetwork
 
-import android.app.Activity
-import io.cloudx.sdk.internal.adapter.*
 import io.cloudx.sdk.Result
+import io.cloudx.sdk.internal.adapter.CloudXAdapterMetaData
+import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapter
+import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapterFactory
+import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapterListener
+import io.cloudx.sdk.internal.context.ContextProvider
 
 internal object RewardedInterstitialFactory :
     CloudXRewardedInterstitialAdapterFactory,
     CloudXAdapterMetaData by CloudXAdapterMetaData("test-bid-network-version") {
 
     override fun create(
-        activity: Activity,
+        contextProvider: ContextProvider,
         placementId: String,
         bidId: String,
         adm: String,
@@ -17,7 +20,7 @@ internal object RewardedInterstitialFactory :
         listener: CloudXRewardedInterstitialAdapterListener
     ): Result<CloudXRewardedInterstitialAdapter, String> = Result.Success(
         StaticBidRewardedInterstitial(
-            activity,
+            contextProvider.getContext(),
             adm,
             listener
         )

@@ -11,7 +11,6 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import androidx.core.view.setPadding
 import io.cloudx.sdk.internal.AdViewSize
-import io.cloudx.sdk.internal.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -19,23 +18,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import io.cloudx.sdk.internal.CloudXLogger
-import io.cloudx.sdk.internal.ad_banner.BannerManager
+import io.cloudx.sdk.internal.ads.banner.BannerManager
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
 import io.cloudx.sdk.internal.common.createViewabilityTracker
 import io.cloudx.sdk.internal.common.dpToPx
 import io.cloudx.sdk.internal.PlacementLoopIndexTracker
-
-interface CloudXAdViewListener : CloudXAdListener{
-    /**
-     * User manually expanded the ad banner.
-     */
-    fun onAdExpanded(placementName: String)
-
-    /**
-     * User manually closed the ad banner. It is the responsibility of the publisher to reload it again.
-     */
-    fun onAdCollapsed(placementName: String)
-}
 
 @SuppressLint("ViewConstructor")
 class CloudXAdView internal constructor(

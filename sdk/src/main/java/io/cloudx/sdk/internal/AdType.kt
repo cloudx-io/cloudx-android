@@ -1,8 +1,8 @@
 package io.cloudx.sdk.internal
 
-import io.cloudx.sdk.internal.nativead.NativeAdSpecs
-import io.cloudx.sdk.internal.nativead.NativeMediumImage
-import io.cloudx.sdk.internal.nativead.NativeSmall
+import io.cloudx.sdk.internal.ads.native.NativeAdSpecs
+import io.cloudx.sdk.internal.ads.native.NativeMediumImage
+import io.cloudx.sdk.internal.ads.native.NativeSmall
 
 sealed class AdType {
     /**

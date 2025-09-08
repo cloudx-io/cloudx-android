@@ -64,7 +64,7 @@ private class GPPProviderImpl(context: Context) : GPPProvider {
             when (target) {
                 GppTarget.US_CA       -> decodeIfPresent(gpp, sids, 8, ::decodeUsCa)
                 GppTarget.US_NATIONAL -> decodeIfPresent(gpp, sids, 7, ::decodeUsNational)
-            }?.takeIf { it.requiresPiiRemoval() } // keep your current filter
+            }?.takeIf { it.requiresPiiRemoval() }
         }
     }
 

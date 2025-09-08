@@ -28,15 +28,15 @@ internal class BidApiImpl(
     ): Result<BidResponse, CLXError> = httpCatching(
         tag = tag,
         onOk = { json -> 
-//            val parseResult = jsonToBidResponse(json)
-//            if (parseResult is Result.Success) {
-//                TrackingFieldResolver.setResponseData(
-//                    parseResult.value.auctionId,
-//                    JSONObject(json)
-//                )
-//            }
-//            parseResult
-            Result.Failure(CLXError(CLXErrorCode.ADS_DISABLED))
+            val parseResult = jsonToBidResponse(json)
+            if (parseResult is Result.Success) {
+                TrackingFieldResolver.setResponseData(
+                    parseResult.value.auctionId,
+                    JSONObject(json)
+                )
+            }
+            parseResult
+//            Result.Failure(CLXError(CLXErrorCode.ADS_DISABLED))
         },
         onNoContent = { response, _ ->
             val xStatus = response.headers[HEADER_CLOUDX_STATUS]

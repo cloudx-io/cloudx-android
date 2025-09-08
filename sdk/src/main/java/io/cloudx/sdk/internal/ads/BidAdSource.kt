@@ -4,8 +4,10 @@ import com.xor.XorEncryption
 import io.cloudx.sdk.Destroyable
 import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.AdNetwork
-import io.cloudx.sdk.internal.CloudXLogger
 import io.cloudx.sdk.internal.CLXError
+import io.cloudx.sdk.internal.CLXErrorCode
+import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.PlacementLoopIndexTracker
 import io.cloudx.sdk.internal.bid.BidApi
 import io.cloudx.sdk.internal.bid.BidRequestProvider
 import io.cloudx.sdk.internal.bid.BidResponse
@@ -14,10 +16,8 @@ import io.cloudx.sdk.internal.config.ResolvedEndpoints
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.EventType
 import io.cloudx.sdk.internal.imp_tracker.TrackingFieldResolver
-import io.cloudx.sdk.internal.imp_tracker.TrackingFieldResolver.SDK_PARAM_RESPONSE_IN_MILLIS
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTrackerNew
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsType
-import io.cloudx.sdk.internal.PlacementLoopIndexTracker
 import io.cloudx.sdk.internal.state.SdkKeyValueState
 import org.json.JSONObject
 import java.util.UUID
@@ -28,7 +28,8 @@ internal interface BidAdSource<T : Destroyable> {
     /**
      * @return the bid or null if no bid
      */
-    suspend fun requestBid(): BidAdSourceResponse<T>?
+    suspend fun requestBid(): BidSourceResult<T>
+
 }
 
 internal open class BidAdSourceResponse<T : Destroyable>(
@@ -92,7 +93,7 @@ private class BidAdSourceImpl<T : Destroyable>(
 
     private val logTag = "BidAdSourceImpl"
 
-    override suspend fun requestBid(): BidAdSourceResponse<T>? {
+    override suspend fun requestBid(): BidSourceResult<T>  {
         val auctionId = UUID.randomUUID().toString()
         val bidRequestParamsJson = provideBidRequest.invoke(bidRequestParams, auctionId)
 
@@ -105,7 +106,7 @@ private class BidAdSourceImpl<T : Destroyable>(
         val userParams = SdkKeyValueState.userKeyValues
         CloudXLogger.d(logTag, "user params: $userParams")
 
-        val appParams = SdkKeyValueState.userKeyValues
+        val appParams = SdkKeyValueState.appKeyValues
         CloudXLogger.d(logTag, "app params: $appParams")
 
         val isCdpDisabled = ResolvedEndpoints.cdpEndpoint.isBlank()
@@ -173,33 +174,25 @@ private class BidAdSourceImpl<T : Destroyable>(
         }
 
         return when (result) {
-            is Result.Failure -> {
-                CloudXLogger.e(logTag, result.value.effectiveMessage)
-                null
+            is Result.Success -> {
+                val resp = result.value.toBidAdSourceResponse(bidRequestParams, createBidAd)
+                if (resp.bidItemsByRank.isEmpty()) {
+                    CloudXLogger.d(logTag, "NO_BID")
+                    BidSourceResult.NoFill()
+                } else {
+                    // (optional logging/tracking)
+                    BidSourceResult.Success(resp)
+                }
             }
 
-            is Result.Success -> {
-                val bidAdSourceResponse = result.value.toBidAdSourceResponse(bidRequestParams, createBidAd)
-
-                if (bidAdSourceResponse.bidItemsByRank.isEmpty()) {
-                    CloudXLogger.d(logTag, "NO_BID")
-                } else {
-                    val bidDetails = bidAdSourceResponse.bidItemsByRank.joinToString(separator = ",\n") {
-                            "\"bidder\": \"${it.adNetworkOriginal}\", cpm: ${it.priceRaw}, rank: ${it.rank}"
-                        }
-                    CloudXLogger.d(
-                        logTag,
-                        "Bid Success — received ${bidAdSourceResponse.bidItemsByRank.size} bid(s): [$bidDetails]"
-                    )
-
-                    TrackingFieldResolver.setSdkParam(
-                        auctionId,
-                        SDK_PARAM_RESPONSE_IN_MILLIS,
-                        bidRequestLatencyMillis.toString()
-                    )
+            is Result.Failure -> {
+                val e = result.value
+                when (e.code) {
+                    CLXErrorCode.ADS_DISABLED -> BidSourceResult.TrafficControl(e.effectiveMessage)
+                    CLXErrorCode.NO_FILL      -> BidSourceResult.NoFill()
+                    CLXErrorCode.CLIENT_ERROR -> BidSourceResult.PermanentFailure(e.effectiveMessage, e.code.code) // 4xx (except 429)
+                    else -> BidSourceResult.TransientFailure(e.effectiveMessage) // 5xx / network / timeout (after retries)
                 }
-
-                bidAdSourceResponse
             }
         }
     }

@@ -5,11 +5,13 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.ProcessLifecycleOwner
 import io.cloudx.sdk.internal.common.CloudXMainScope
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 internal interface AppLifecycleService {
 
+    val isResumed: StateFlow<Boolean>
     suspend fun awaitAppResume()
 }
 
@@ -21,15 +23,14 @@ private val LazySingleInstance by lazy {
 
 private class AndroidAppLifecycleService : AppLifecycleService {
 
-    private val isResumed = MutableStateFlow(false)
+    private val _isResumed = MutableStateFlow(false)
+    override val isResumed: StateFlow<Boolean> get() = _isResumed
 
     private val processLifecycleObserver = LifecycleEventObserver { _, event ->
         when (event) {
-            Lifecycle.Event.ON_START -> isResumed.value = true
-            Lifecycle.Event.ON_STOP -> isResumed.value = false
-            else -> {
-                // Nothing to see here.
-            }
+            Lifecycle.Event.ON_START -> _isResumed.value = true
+            Lifecycle.Event.ON_STOP  -> _isResumed.value = false
+            else -> Unit
         }
     }.also {
         CloudXMainScope.launch {

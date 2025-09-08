@@ -3,6 +3,7 @@ package io.cloudx.sdk.internal.ads.banner
 import io.cloudx.sdk.internal.CloudXLogger
 import io.cloudx.sdk.internal.ads.BidAdSource
 import io.cloudx.sdk.internal.ads.BidAdSourceResponse
+import io.cloudx.sdk.internal.ads.BidSourceResult
 import io.cloudx.sdk.internal.bid.LoadResult
 import io.cloudx.sdk.internal.bid.LossReason
 import io.cloudx.sdk.internal.bid.LossReporter
@@ -20,21 +21,20 @@ internal class BannerAdLoader(
     private val TAG = "BannerAdLoader"
 
     /** Single non-retrying attempt per MVP. Returns a loaded banner or null (no fill / failure). */
-    suspend fun loadOnce(): BannerAdapterDelegate? { // TODO: return MONAD
-        val bids: BidAdSourceResponse<BannerAdapterDelegate>? = try {
-            bidAdSource.requestBid()
-        } catch (t: Throwable) {
-            CloudXLogger.e(TAG, placementName, placementId, "Bid request failed", t)
-            null
-        }
+    suspend fun loadOnce(): BannerLoadOutcome {
+        return when (val bid = bidAdSource.requestBid()) {
 
-        if (bids == null) {
-            CloudXLogger.i(TAG, placementName, placementId, "No bids from auction (no fill).")
-            return null
-        }
+            is BidSourceResult.Success -> {
+                val banner = loadWinnerFrom(bid.response)
+                if (banner != null) BannerLoadOutcome.Success(banner)
+                else BannerLoadOutcome.NoFill // all candidates failed to load
+            }
 
-        CloudXLogger.i(TAG, placementName, placementId, "Received ${bids.bidItemsByRank.size} bids.")
-        return loadWinnerFrom(bids)
+            is BidSourceResult.NoFill -> BannerLoadOutcome.NoFill
+            is BidSourceResult.TrafficControl -> BannerLoadOutcome.TrafficControl
+            is BidSourceResult.PermanentFailure -> BannerLoadOutcome.PermanentFailure
+            is BidSourceResult.TransientFailure -> BannerLoadOutcome.TransientFailure
+        }
     }
 
     private suspend fun loadWinnerFrom(
@@ -97,7 +97,12 @@ internal class BannerAdLoader(
 
         var loaded = false
         return try {
-            CloudXLogger.d(TAG, placementName, placementId, "Loading banner (timeout=${timeoutMs}ms)")
+            CloudXLogger.d(
+                TAG,
+                placementName,
+                placementId,
+                "Loading banner (timeout=${timeoutMs}ms)"
+            )
             loaded = withTimeout(timeoutMs) { banner.load() }
             if (loaded) LoadResult(banner, null) else LoadResult(null, LossReason.TechnicalError)
         } catch (e: TimeoutCancellationException) {
@@ -111,4 +116,12 @@ internal class BannerAdLoader(
             if (!loaded) banner.destroy()
         }
     }
+}
+
+internal sealed class BannerLoadOutcome {
+    data class Success(val banner: BannerAdapterDelegate) : BannerLoadOutcome()
+    data object NoFill : BannerLoadOutcome()
+    data object TransientFailure : BannerLoadOutcome()
+    data object PermanentFailure : BannerLoadOutcome()
+    data object TrafficControl : BannerLoadOutcome()
 }

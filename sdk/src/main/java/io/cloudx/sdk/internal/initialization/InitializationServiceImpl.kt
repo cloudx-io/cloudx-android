@@ -10,7 +10,6 @@ import io.cloudx.sdk.internal.CLXErrorCode
 import io.cloudx.sdk.internal.CloudXLogger
 import io.cloudx.sdk.internal.ads.AdFactory
 import io.cloudx.sdk.internal.bid.BidRequestProvider
-import io.cloudx.sdk.internal.common.service.ActivityLifecycleService
 import io.cloudx.sdk.internal.common.service.AppLifecycleService
 import io.cloudx.sdk.internal.config.Config
 import io.cloudx.sdk.internal.config.ConfigApi
@@ -195,8 +194,7 @@ internal class InitializationServiceImpl(
             metricsTrackerNew,
             eventTracker,
             ConnectionStatusService(),
-            AppLifecycleService(),
-            ActivityLifecycleService()
+            AppLifecycleService()
         )
     }
 

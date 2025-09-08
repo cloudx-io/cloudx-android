@@ -1,17 +1,14 @@
 package io.cloudx.sdk.internal.ads.banner
 
 import VisibilityAwareOneQueuedClock
-import android.app.Activity
 import io.cloudx.sdk.CloudXAdError
 import io.cloudx.sdk.CloudXAdViewListener
 import io.cloudx.sdk.internal.CLXErrorCode
 import io.cloudx.sdk.internal.CloudXLogger
-import io.cloudx.sdk.internal.ads.BidAdSource
 import io.cloudx.sdk.internal.ads.banner.parts.BannerAdLoader
 import io.cloudx.sdk.internal.ads.banner.parts.BannerLoadOutcome
 import io.cloudx.sdk.internal.ads.banner.parts.DefaultBannerPresenter
 import io.cloudx.sdk.internal.ads.banner.parts.VisibilityGate
-import io.cloudx.sdk.internal.common.service.ActivityLifecycleService
 import io.cloudx.sdk.internal.common.service.AppLifecycleService
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.decorate
@@ -28,17 +25,11 @@ import kotlinx.coroutines.launch
 
 internal class BannerManagerImpl(
     // === keep the original signature ===
-    private val activity: Activity,
     private val placementId: String,
     private val placementName: String,
-    private val bidAdSource: BidAdSource<BannerAdapterDelegate>, // unused (intentionally kept)
     private val bannerVisibility: StateFlow<Boolean>,
     private val refreshSeconds: Int,
-    private val suspendPreloadWhenInvisible: Boolean, // unused (intentionally kept)
-    private val preloadTimeMillis: Long,             // unused (intentionally kept)
-    private val bidAdLoadTimeoutMillis: Long,
     private val connectionStatusService: ConnectionStatusService,
-    private val activityLifecycleService: ActivityLifecycleService, // unused (intentionally kept)
     private val appLifecycleService: AppLifecycleService,
     private val metricsTrackerNew: MetricsTrackerNew,
     private val loader: BannerAdLoader,

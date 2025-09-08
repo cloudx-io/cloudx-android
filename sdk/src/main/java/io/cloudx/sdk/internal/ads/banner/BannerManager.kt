@@ -13,7 +13,6 @@ import io.cloudx.sdk.internal.ads.banner.parts.BannerAdLoader
 import io.cloudx.sdk.internal.bid.BidApi
 import io.cloudx.sdk.internal.bid.BidRequestProvider
 import io.cloudx.sdk.internal.cdp.CdpApi
-import io.cloudx.sdk.internal.common.service.ActivityLifecycleService
 import io.cloudx.sdk.internal.common.service.AppLifecycleService
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
@@ -33,7 +32,6 @@ internal fun BannerManager(
     bannerVisibility: StateFlow<Boolean>,
     refreshSeconds: Int,
     adType: AdType,
-    preloadTimeMillis: Long,
     bidFactories: Map<AdNetwork, CloudXAdViewAdapterFactory>,
     bidRequestExtrasProviders: Map<AdNetwork, CloudXAdapterBidRequestExtrasProvider>,
     bidAdLoadTimeoutMillis: Long,
@@ -43,7 +41,6 @@ internal fun BannerManager(
     eventTracker: EventTracker,
     metricsTrackerNew: MetricsTrackerNew,
     connectionStatusService: ConnectionStatusService,
-    activityLifecycleService: ActivityLifecycleService,
     appLifecycleService: AppLifecycleService,
     accountId: String,
     appKey: String
@@ -81,17 +78,11 @@ internal fun BannerManager(
     )
 
     return BannerManagerImpl(
-        activity = activity,
         placementId = placementId,
         placementName = placementName,
-        bidAdSource = bidSource,
         bannerVisibility = bannerVisibility,
         refreshSeconds = refreshSeconds,
-        suspendPreloadWhenInvisible = true,
-        preloadTimeMillis = preloadTimeMillis,
-        bidAdLoadTimeoutMillis = bidAdLoadTimeoutMillis,
         connectionStatusService = connectionStatusService,
-        activityLifecycleService = activityLifecycleService,
         appLifecycleService = appLifecycleService,
         metricsTrackerNew = metricsTrackerNew,
         loader = loader

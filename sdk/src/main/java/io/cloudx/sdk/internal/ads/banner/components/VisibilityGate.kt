@@ -1,4 +1,4 @@
-package io.cloudx.sdk.internal.ads.banner.parts
+package io.cloudx.sdk.internal.ads.banner.components
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow

@@ -1,4 +1,4 @@
-package io.cloudx.sdk.internal.ads.banner.parts
+package io.cloudx.sdk.internal.ads.banner.components
 
 import io.cloudx.sdk.CloudXAdViewListener
 import io.cloudx.sdk.internal.CloudXLogger

@@ -5,10 +5,10 @@ import io.cloudx.sdk.CloudXAdError
 import io.cloudx.sdk.CloudXAdViewListener
 import io.cloudx.sdk.internal.CLXErrorCode
 import io.cloudx.sdk.internal.CloudXLogger
-import io.cloudx.sdk.internal.ads.banner.parts.BannerAdLoader
-import io.cloudx.sdk.internal.ads.banner.parts.BannerLoadOutcome
-import io.cloudx.sdk.internal.ads.banner.parts.DefaultBannerPresenter
-import io.cloudx.sdk.internal.ads.banner.parts.VisibilityGate
+import io.cloudx.sdk.internal.ads.banner.components.BannerAdLoader
+import io.cloudx.sdk.internal.ads.banner.components.BannerLoadOutcome
+import io.cloudx.sdk.internal.ads.banner.components.DefaultBannerPresenter
+import io.cloudx.sdk.internal.ads.banner.components.VisibilityGate
 import io.cloudx.sdk.internal.common.service.AppLifecycleService
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.decorate
@@ -160,7 +160,7 @@ internal class BannerManagerImpl(
         )
         destroy()
     }
-    
+
     private var isDestroyed = false
     override fun destroy() {
         if (isDestroyed) return

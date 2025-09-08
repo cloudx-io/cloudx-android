@@ -93,27 +93,22 @@ private class GPPProviderImpl(context: Context) : GPPProvider {
 
     private fun decodeUsNational(gpp: String, sids: List<Int>, sid: Int): GppConsent? {
         return try {
-            // GPP: header ~ sec1 ~ sec2 ~ ...
             val payload = selectSectionPayload(gpp, sids, sid) ?: return null
             val bits = base64UrlToBits(payload)
 
-            val sharingOptOutBit = bits.getOrNull(15)?.digitToIntOrNull()  // 0/1
-            val targetedOptOutBit = bits.getOrNull(16)?.digitToIntOrNull()  // 0/1
+            fun read2(offset: Int): Int? =
+                if (offset + 2 <= bits.length) bits.substring(offset, offset + 2)
+                    .toIntOrNull(2) else null
 
-            val sharingOptOut = when (sharingOptOutBit) {
-                1 -> 1 // Opted out
-                0 -> 2 // Did not opt out
-                else -> null
-            }
-            val sharingOptOutEffective = sharingOptOut ?: when (targetedOptOutBit) {
-                1 -> 1
-                0 -> 2
-                else -> null
-            }
+            val saleOptOut = read2(18)
+            val sharingOptOut = read2(20)
+            val targetedOptOut = read2(22)
+
+            val sharingOptOutEffective = sharingOptOut ?: targetedOptOut
 
             GppConsent(
-                saleOptOut = 0,          // unknown/N/A in this model (kept as-is)
-                sharingOptOut = sharingOptOutEffective,
+                saleOptOut = saleOptOut ?: 0,                // keep 0 when unknown/N/A
+                sharingOptOut = sharingOptOutEffective
             )
         } catch (e: Exception) {
             CloudXLogger.e(TAG, "US-National decode failed: ${e.message}")

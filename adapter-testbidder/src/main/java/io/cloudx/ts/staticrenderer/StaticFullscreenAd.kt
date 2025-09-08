@@ -1,6 +1,7 @@
 package io.cloudx.ts.staticrenderer
 
-import android.app.Activity
+import android.content.Context
+import io.cloudx.sdk.internal.FullscreenAd
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -8,21 +9,20 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import io.cloudx.sdk.internal.FullscreenAd
 
 fun StaticFullscreenAd(
-    activity: Activity,
+    context: Context,
     adm: String,
     listener: FullscreenAd.Listener?
 ): FullscreenAd<FullscreenAd.Listener> =
     StaticFullscreenAdImpl(
-        activity,
+        context,
         adm,
         listener
     )
 
 private class StaticFullscreenAdImpl(
-    private val activity: Activity,
+    private val context: Context,
     private val adm: String,
     override var listener: FullscreenAd.Listener?
 ) : FullscreenAd<FullscreenAd.Listener> {
@@ -30,7 +30,7 @@ private class StaticFullscreenAdImpl(
     private val scope = CoroutineScope(Dispatchers.Main)
 
     private val staticWebView: StaticWebView by lazy {
-        StaticWebView(activity, ExternalLinkHandlerImpl(activity))
+        StaticWebView(context, ExternalLinkHandlerImpl(context))
     }
 
     override fun load() {
@@ -58,7 +58,7 @@ private class StaticFullscreenAdImpl(
             }
 
             try {
-                StaticAdActivity.show(activity, staticWebView)
+                StaticAdActivity.show(context, staticWebView)
             } finally {
                 listener?.onComplete()
                 listener?.onHide()

@@ -1,6 +1,6 @@
 package io.cloudx.cd.staticrenderer
 
-import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.Gravity
@@ -104,10 +104,12 @@ internal class StaticAdActivity : ComponentActivity() {
         }
 
         // Doesn't support parallel calls, not required though.
-        suspend fun show(activity: Activity, staticWebView: StaticWebView) {
+        suspend fun show(context: Context, staticWebView: StaticWebView) {
             try {
                 Companion.staticWebView = staticWebView
-                activity.startActivity(Intent(activity, StaticAdActivity::class.java))
+                val intent = Intent(context, StaticAdActivity::class.java)
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                context.startActivity(intent)
 
                 dismiss.first { it }
 

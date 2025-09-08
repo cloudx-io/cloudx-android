@@ -1,6 +1,5 @@
 package io.cloudx.adapter.googleadmanager
 
-import android.app.Activity
 import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
@@ -8,14 +7,15 @@ import com.google.android.gms.ads.OnUserEarnedRewardListener
 import com.google.android.gms.ads.admanager.AdManagerAdRequest
 import com.google.android.gms.ads.rewardedinterstitial.RewardedInterstitialAd
 import com.google.android.gms.ads.rewardedinterstitial.RewardedInterstitialAdLoadCallback
-import io.cloudx.sdk.internal.adapter.CloudXAdLoadOperationAvailability
 import io.cloudx.sdk.internal.adapter.AlwaysReadyToLoadAd
+import io.cloudx.sdk.internal.adapter.CloudXAdLoadOperationAvailability
 import io.cloudx.sdk.internal.adapter.CloudXAdapterError
 import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapter
 import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapterListener
+import io.cloudx.sdk.internal.context.ContextProvider
 
 internal class RewardedInterstitialAdapter(
-    private val activity: Activity,
+    private val contextProvider: ContextProvider,
     private val adUnitId: String,
     private var listener: CloudXRewardedInterstitialAdapterListener?
 ) : CloudXRewardedInterstitialAdapter, CloudXAdLoadOperationAvailability by AlwaysReadyToLoadAd {
@@ -24,7 +24,7 @@ internal class RewardedInterstitialAdapter(
 
     override fun load() {
         RewardedInterstitialAd.load(
-            activity,
+            contextProvider.getContext(),
             adUnitId,
             AdManagerAdRequest.Builder().build(),
             object : RewardedInterstitialAdLoadCallback() {
@@ -72,7 +72,8 @@ internal class RewardedInterstitialAdapter(
             }
         }
 
-        ad.show(activity, OnUserEarnedRewardListener {
+        // Ad will still successfully show even with a null Activity
+        GoogleAdHelper.showRewardedInterstitial(ad, contextProvider.getActivityOrNull(), OnUserEarnedRewardListener {
             listener?.onEligibleForReward()
         })
     }

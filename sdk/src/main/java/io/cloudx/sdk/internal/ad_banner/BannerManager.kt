@@ -76,7 +76,6 @@ internal fun BannerManager(
 ): BannerManager {
 
     val bidRequestProvider = BidRequestProvider(
-        activity,
         bidRequestExtrasProviders
     )
 

@@ -1,9 +1,6 @@
 package io.cloudx.ts.staticrenderer
 
-import android.app.Activity
 import android.content.Context
-import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.browser.customtabs.CustomTabsIntent
 
@@ -11,9 +8,9 @@ fun interface ExternalLinkHandler {
     operator fun invoke(uri: String): Boolean
 }
 
-class ExternalLinkHandlerImpl(private val activity: Activity): ExternalLinkHandler {
+class ExternalLinkHandlerImpl(private val context: Context): ExternalLinkHandler {
     override fun invoke(uri: String): Boolean {
-        return activity.tryStartCustomTabs(uri)
+        return context.tryStartCustomTabs(uri)
     }
 }
 

@@ -1,6 +1,5 @@
 package io.cloudx.sdk
 
-import android.app.Activity
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.adapter.CloudXAdapterBidRequestExtrasProvider
@@ -10,10 +9,10 @@ import io.cloudx.sdk.internal.bid.BidRequestProvider
 import io.cloudx.sdk.internal.cdp.CdpApi
 import io.cloudx.sdk.internal.common.service.AppLifecycleService
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
-import io.cloudx.sdk.internal.core.ad.source.bid.BidAdSource
-import io.cloudx.sdk.internal.core.ad.source.bid.BidRewardedInterstitialSource
 import io.cloudx.sdk.internal.core.ad.adapter_delegate.RewardedInterstitialAdapterDelegate
 import io.cloudx.sdk.internal.core.ad.adapter_delegate.RewardedInterstitialAdapterDelegateEvent
+import io.cloudx.sdk.internal.core.ad.source.bid.BidAdSource
+import io.cloudx.sdk.internal.core.ad.source.bid.BidRewardedInterstitialSource
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTrackerNew
 
@@ -30,7 +29,6 @@ interface RewardedInterstitialListener : CloudXAdListener {
 }
 
 internal fun RewardedInterstitial(
-    activity: Activity,
     placementId: String,
     placementName: String,
     cacheSize: Int,
@@ -50,13 +48,11 @@ internal fun RewardedInterstitial(
 ): CloudXRewardedAd {
 
     val bidRequestProvider = BidRequestProvider(
-        activity,
         bidRequestExtrasProviders
     )
 
     val bidSource =
         BidRewardedInterstitialSource(
-            activity,
             bidFactories,
             placementId,
             placementName,

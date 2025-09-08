@@ -200,7 +200,6 @@ object CloudX {
      * 4. call [show()][CloudXFullscreenAd.show] when you're ready to display an ad; then wait for [onAdShowSuccess()][CloudXAdListener.onAdDisplayed] or [onAdShowFailed()][CloudXAdListener.onAdDisplayFailed] event;
      * 5. Whenever parent Activity or Fragment is destroyed; or when ads are not required anymore - release ad instance resources via calling [destroy()][Destroyable.destroy]
      *
-     * @param activity activity instance to which [CloudXInterstitialAd] ad instance is going to be attached to.
      * @param placementName identifier of CloudX placement setup on the dashboard.
      *
      * _Once SDK is [initialized][initialize] it knows which placement names are valid for ad creation_
@@ -209,15 +208,12 @@ object CloudX {
      */
     @JvmStatic
     fun createInterstitial(
-        activity: Activity,
         placementName: String,
         listener: CloudXInterstitialListener?
     ): CloudXInterstitialAd? {
         initializationService?.metricsTrackerNew?.trackMethodCall(MetricsType.Method.CreateInterstitial)
         return initializationService?.adFactory?.createInterstitial(
-            AdFactory.CreateAdParams(
-                activity, placementName, listener
-            )
+            AdFactory.CreateAdParams(placementName, listener)
         )
     }
 
@@ -237,7 +233,6 @@ object CloudX {
      * 4. call [show()][CloudXFullscreenAd.show] when you're ready to display an ad; then wait for [onAdShowSuccess()][CloudXAdListener.onAdDisplayed] or [onAdShowFailed()][CloudXAdListener.onAdDisplayFailed] event;
      * 5. Whenever parent Activity or Fragment is destroyed; or when ads are not required anymore - release ad instance resources via calling [destroy()][Destroyable.destroy]
      *
-     * @param activity activity instance to which [CloudXRewardedAd] ad instance is going to be attached to.
      * @param placementName identifier of CloudX placement setup on the dashboard.
      *
      * _Once SDK is [initialized][initialize] it knows which placement names are valid for ad creation_
@@ -246,15 +241,12 @@ object CloudX {
      */
     @JvmStatic
     fun createRewardedInterstitial(
-        activity: Activity,
         placementName: String,
         listener: RewardedInterstitialListener?
     ): CloudXRewardedAd? {
         initializationService?.metricsTrackerNew?.trackMethodCall(MetricsType.Method.CreateRewarded)
         return initializationService?.adFactory?.createRewarded(
-            AdFactory.CreateAdParams(
-                activity, placementName, listener
-            )
+            AdFactory.CreateAdParams(placementName, listener)
         )
     }
 

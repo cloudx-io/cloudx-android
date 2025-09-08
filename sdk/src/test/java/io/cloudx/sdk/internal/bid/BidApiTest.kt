@@ -1,6 +1,5 @@
 package io.cloudx.sdk.internal.bid
 
-import android.app.Activity
 import io.cloudx.sdk.Result
 import io.cloudx.sdk.RoboMockkTest
 import io.cloudx.sdk.internal.AdType
@@ -12,7 +11,6 @@ import io.cloudx.sdk.mocks.MockScreenService
 import io.cloudx.sdk.mocks.MockUserAgentProvider
 import io.mockk.InternalPlatformDsl.toStr
 import io.mockk.every
-import io.mockk.impl.annotations.MockK
 import io.mockk.mockkStatic
 import kotlinx.coroutines.test.runTest
 import org.junit.Ignore
@@ -20,10 +18,6 @@ import org.junit.Test
 import java.util.UUID
 
 class BidApiTest: RoboMockkTest() {
-
-    @MockK
-    private lateinit var activity: Activity
-
     private lateinit var provideBidRequest: BidRequestProvider
     private lateinit var bidApi: BidApi
 
@@ -48,7 +42,7 @@ class BidApiTest: RoboMockkTest() {
             } returns MockUserAgentProvider
         }
 
-        provideBidRequest = BidRequestProvider(activity, mapOf())
+        provideBidRequest = BidRequestProvider(mapOf())
         bidApi = BidApi(
             endpointUrl = "https://ads.cloudx.io/openrtb2/auction",
             10000L

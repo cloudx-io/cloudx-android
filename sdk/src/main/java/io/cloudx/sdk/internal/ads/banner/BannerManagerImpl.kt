@@ -123,13 +123,10 @@ internal class BannerManagerImpl(
                 BannerLoadOutcome.NoFill ->
                     listener?.onAdLoadFailed(CloudXAdError("No fill", CLXErrorCode.NO_FILL.code))
 
-                BannerLoadOutcome.TransientFailure ->
-                    listener?.onAdLoadFailed(
-                        CloudXAdError(
-                            "Temporary error",
-                            CLXErrorCode.SERVER_ERROR.code
-                        )
-                    )
+                BannerLoadOutcome.TransientFailure -> {
+                    stopPermanently("Permanent error", CLXErrorCode.CLIENT_ERROR.code)
+                    return@launch
+                }
 
                 BannerLoadOutcome.PermanentFailure ->
                     listener?.onAdLoadFailed(
@@ -152,7 +149,21 @@ internal class BannerManagerImpl(
         }
     }
 
+    private fun stopPermanently(userMessage: String, code: Int) {
+        // Best-effort surface the fatal error before teardown
+        listener?.onAdLoadFailed(CloudXAdError(userMessage, code))
+        CloudXLogger.e(
+            TAG,
+            placementName,
+            placementId,
+            "Permanent failure → stopping: $userMessage"
+        )
+        destroy()
+    }
+    
+    private var isDestroyed = false
     override fun destroy() {
+        if (isDestroyed) return
         scope.cancel()
         tickJob?.cancel()
         visJob?.cancel()

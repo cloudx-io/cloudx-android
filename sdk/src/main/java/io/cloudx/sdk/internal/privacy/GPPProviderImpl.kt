@@ -47,7 +47,6 @@ private class GPPProviderImpl(context: Context) : GPPProvider {
 
     /**
      * Decodes the GPP string for CCPA consent information.
-     * Keeps your original behavior:
      * - when target == null: decode US-CA(8) and US-National(7), pick first requiring PII removal, else first available
      * - when target != null: return only if requiresPiiRemoval() == true
      */

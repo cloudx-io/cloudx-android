@@ -1,13 +1,15 @@
 package io.cloudx.sdk.internal.ads.banner
 
+import VisibilityAwareOneQueuedClock
 import android.app.Activity
 import io.cloudx.sdk.CloudXAdError
 import io.cloudx.sdk.CloudXAdViewListener
 import io.cloudx.sdk.internal.CLXErrorCode
 import io.cloudx.sdk.internal.CloudXLogger
 import io.cloudx.sdk.internal.ads.BidAdSource
+import io.cloudx.sdk.internal.ads.banner.parts.BannerAdLoader
+import io.cloudx.sdk.internal.ads.banner.parts.BannerLoadOutcome
 import io.cloudx.sdk.internal.ads.banner.parts.DefaultBannerPresenter
-import io.cloudx.sdk.internal.ads.banner.parts.FreeRunningOneQueuedTickClock
 import io.cloudx.sdk.internal.ads.banner.parts.VisibilityGate
 import io.cloudx.sdk.internal.common.service.ActivityLifecycleService
 import io.cloudx.sdk.internal.common.service.AppLifecycleService
@@ -50,13 +52,10 @@ internal class BannerManagerImpl(
             field = v?.decorate()
         }
 
-    // state
-    private var inflight = false
     private var prefetched: BannerAdapterDelegate? = null
-    private var pendingTick = false
 
     // components
-    private val clock = FreeRunningOneQueuedTickClock(
+    private val clock = VisibilityAwareOneQueuedClock(
         intervalMs = (refreshSeconds.coerceAtLeast(1) * 1000L),
         scope = scope
     )
@@ -67,7 +66,7 @@ internal class BannerManagerImpl(
     private val presenter = DefaultBannerPresenter(
         placementId = placementId,
         placementName = placementName,
-        listener = listener,
+        listener = { listener },
         scope = scope
     )
 
@@ -90,15 +89,11 @@ internal class BannerManagerImpl(
         visJob?.cancel()
         visJob = scope.launch {
             gate.effective.collect { visible ->
+                // 1) inform the clock
+                clock.setVisible(visible)
+                // 2) show any prefetched immediately
                 if (visible) {
-                    prefetched?.let {
-                        presenter.show(it)
-                        prefetched = null
-                    }
-                    if (pendingTick && !inflight) {
-                        pendingTick = false
-                        launchRequest()
-                    }
+                    prefetched?.let { presenter.show(it); prefetched = null }
                 }
             }
         }
@@ -108,93 +103,60 @@ internal class BannerManagerImpl(
         tickJob?.cancel()
         tickJob = scope.launch {
             clock.ticks.collect {
-                if (inflight) return@collect
-                if (gate.effective.value) {
-                    launchRequest()
-                } else {
-                    pendingTick = true // NEW: queue exactly one when hidden
-                }
+                launchRequest()
             }
-        }
-
-        // Kickoff immediately if visible; else queue one for when it becomes visible
-        if (!inflight && gate.effective.value) {
-            launchRequest()
-        } else if (!gate.effective.value) {
-            pendingTick = true
         }
     }
 
     private fun launchRequest() {
-        inflight = true
         clock.markRequestStarted()
-
         reqJob?.cancel()
         reqJob = scope.launch {
             metricsTrackerNew.trackMethodCall(MetricsType.Method.BannerRefresh)
             try {
                 connectionStatusService.awaitConnection()
             } catch (_: CancellationException) {
-                inflight = false
                 clock.markRequestFinished()
                 return@launch
             }
+
             when (val outcome = loader.loadOnce()) {
                 is BannerLoadOutcome.Success -> {
-                    val banner = outcome.banner
-                    if (gate.effective.value) {
-                        presenter.show(banner)
-                    } else {
-                        prefetched?.destroy()
-                        prefetched = banner
+                    if (gate.effective.value) presenter.show(outcome.banner)
+                    else {
+                        prefetched?.destroy(); prefetched = outcome.banner
                         CloudXLogger.d(TAG, placementName, placementId, "Prefetched while hidden")
                     }
                 }
 
-                BannerLoadOutcome.NoFill -> {
+                BannerLoadOutcome.NoFill ->
                     listener?.onAdLoadFailed(CloudXAdError("No fill", CLXErrorCode.NO_FILL.code))
-                    CloudXLogger.i(TAG, placementName, placementId, "NO_FILL this interval")
-                }
 
-                BannerLoadOutcome.TransientFailure -> {
-                    // Retry is handled by network layer; banner waits for next tick
+                BannerLoadOutcome.TransientFailure ->
                     listener?.onAdLoadFailed(
                         CloudXAdError(
                             "Temporary error",
                             CLXErrorCode.SERVER_ERROR.code
                         )
                     )
-                    CloudXLogger.w(TAG, placementName, placementId, "Transient failure")
-                }
 
-                BannerLoadOutcome.PermanentFailure -> {
+                BannerLoadOutcome.PermanentFailure ->
                     listener?.onAdLoadFailed(
                         CloudXAdError(
                             "Permanent error",
                             CLXErrorCode.CLIENT_ERROR.code
                         )
                     )
-                    CloudXLogger.w(TAG, placementName, placementId, "Permanent failure")
-                    // optional: mark placement disabled here
-                }
 
-                BannerLoadOutcome.TrafficControl -> {
+                BannerLoadOutcome.TrafficControl ->
                     listener?.onAdLoadFailed(
                         CloudXAdError(
                             "Ads disabled",
                             CLXErrorCode.ADS_DISABLED.code
                         )
                     )
-                    CloudXLogger.w(
-                        TAG,
-                        placementName,
-                        placementId,
-                        "Traffic control (ADS disabled)"
-                    )
-                }
             }
 
-            inflight = false
             clock.markRequestFinished()
         }
     }

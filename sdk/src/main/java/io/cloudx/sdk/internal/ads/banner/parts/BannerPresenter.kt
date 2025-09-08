@@ -18,7 +18,7 @@ internal interface BannerPresenter {
 internal class DefaultBannerPresenter(
     private val placementId: String,
     private val placementName: String,
-    private val listener: CloudXAdViewListener?, // already decorated by controller
+    private val listener: () -> CloudXAdViewListener?,
     private val scope: CoroutineScope
 ) : BannerPresenter {
 
@@ -30,13 +30,13 @@ internal class DefaultBannerPresenter(
         // teardown old
         eventsJob?.cancel()
         current?.let {
-            listener?.onAdHidden(it)
+            listener()?.onAdHidden(it)
             it.destroy()
         }
         current = banner
 
         CloudXLogger.d(TAG, placementName, placementId, "Displaying banner")
-        listener?.onAdDisplayed(banner)
+        listener()?.onAdDisplayed(banner)
 
         // wire minimal events
         eventsJob = scope.launch {
@@ -44,7 +44,7 @@ internal class DefaultBannerPresenter(
             launch {
                 banner.event.collect { ev ->
                     if (ev == BannerAdapterDelegateEvent.Click) {
-                        listener?.onAdClicked(banner)
+                        listener()?.onAdClicked(banner)
                     }
                 }
             }
@@ -52,7 +52,7 @@ internal class DefaultBannerPresenter(
             launch {
                 val err = banner.lastErrorEvent.first { it != null }
                 CloudXLogger.w(TAG, placementName, placementId, "Banner error: $err → destroy current")
-                current?.let { listener?.onAdHidden(it) }
+                current?.let { listener()?.onAdHidden(it) }
                 current?.destroy()
                 current = null
                 // cadence remains controlled by clock
@@ -61,7 +61,7 @@ internal class DefaultBannerPresenter(
     }
 
     override fun hideCurrent() {
-        current?.let { listener?.onAdHidden(it) }
+        current?.let { listener()?.onAdHidden(it) }
     }
 
     override fun destroy() {

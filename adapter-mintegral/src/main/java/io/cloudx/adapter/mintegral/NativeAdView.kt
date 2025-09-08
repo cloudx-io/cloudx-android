@@ -17,7 +17,7 @@ import com.mbridge.msdk.out.MBBidNativeHandler
 import com.mbridge.msdk.out.OnMBMediaViewListener
 import com.mbridge.msdk.widget.MBAdChoice
 import io.cloudx.sdk.internal.AdType
-import io.cloudx.sdk.internal.nativead.viewtemplates.cloudXNativeAdTemplate
+import io.cloudx.sdk.internal.ads.native.viewtemplates.cloudXNativeAdTemplate
 
 internal fun Activity.createNativeAdView(
     adHandler: MBBidNativeHandler,

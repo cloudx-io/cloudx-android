@@ -11,7 +11,7 @@ import io.cloudx.sdk.CloudXInterstitialListener
 import io.cloudx.sdk.CloudXIsAdLoadedListener
 import io.cloudx.sdk.CloudXPrivacy
 import io.cloudx.sdk.CloudXRewardedAd
-import io.cloudx.sdk.RewardedInterstitialListener
+import io.cloudx.sdk.CloudXRewardedInterstitialListener
 import io.cloudx.sdk.internal.CloudXLogger
 
 internal fun cloudXSetPrivacy() {
@@ -175,7 +175,7 @@ internal fun createRewarded(placementName: String) {
     ad = CloudX.createRewardedInterstitial(
         placementName,
         // Track events if necessary.
-        object : RewardedInterstitialListener {
+        object : CloudXRewardedInterstitialListener {
             override fun onUserRewarded(cloudXAd: CloudXAd) {
                 // Track ad reward here.
             }

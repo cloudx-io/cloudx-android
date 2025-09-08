@@ -117,7 +117,6 @@ private class GPPProviderImpl(context: Context) : GPPProvider {
 
     // ---- helpers ----
 
-    // #1: choose payload by SID position (parts[0] is header → +1)
     private fun selectSectionPayload(gpp: String, sids: List<Int>, sid: Int): String? {
         val idx = sids.indexOf(sid)
         if (idx < 0) return null
@@ -134,7 +133,6 @@ private class GPPProviderImpl(context: Context) : GPPProvider {
         return if (sid in sids) decode(gpp, sids, sid) else null
     }
 
-    // #5: simple, correct URL-safe base64 → bits
     private fun base64UrlToBits(encoded: String): String {
         val pad = "=".repeat((4 - (encoded.length % 4)) % 4)
         val decoded = Base64.decode(encoded + pad, Base64.URL_SAFE or Base64.NO_WRAP)

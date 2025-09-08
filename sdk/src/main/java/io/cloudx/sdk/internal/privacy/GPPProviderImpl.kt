@@ -38,6 +38,8 @@ private class GPPProviderImpl(context: Context) : GPPProvider {
             raw?.trim()
                 ?.split(Regex("[_,]"))
                 ?.mapNotNull { it.trim().toIntOrNull() }
+                ?.distinct()
+                ?.sorted()
                 ?.takeIf { it.isNotEmpty() }
         } catch (e: Exception) {
             CloudXLogger.e(TAG, "Failed to read or parse GPP SID: ${e.message}")
@@ -62,7 +64,7 @@ private class GPPProviderImpl(context: Context) : GPPProvider {
             decodedList.find { it.requiresPiiRemoval() } ?: decodedList.firstOrNull()
         } else {
             when (target) {
-                GppTarget.US_CA       -> decodeIfPresent(gpp, sids, 8, ::decodeUsCa)
+                GppTarget.US_CA -> decodeIfPresent(gpp, sids, 8, ::decodeUsCa)
                 GppTarget.US_NATIONAL -> decodeIfPresent(gpp, sids, 7, ::decodeUsNational)
             }?.takeIf { it.requiresPiiRemoval() }
         }
@@ -117,11 +119,15 @@ private class GPPProviderImpl(context: Context) : GPPProvider {
 
     // ---- helpers ----
 
-    private fun selectSectionPayload(gpp: String, sids: List<Int>, sid: Int): String? {
-        val idx = sids.indexOf(sid)
-        if (idx < 0) return null
-        val parts = gpp.split("~")
-        return parts.getOrNull(idx + 1)?.substringBefore('.')
+    private fun selectSectionPayload(gpp: String, sidsSorted: List<Int>, sid: Int): String? {
+        val parts = gpp.split("~").filter { it.isNotBlank() }
+        if (parts.size < 2) return null
+
+        val payloads = parts.drop(1)
+        val idx = sidsSorted.indexOf(sid)
+        if (idx !in payloads.indices) return null
+
+        return payloads[idx].substringBefore('.')
     }
 
     private fun decodeIfPresent(

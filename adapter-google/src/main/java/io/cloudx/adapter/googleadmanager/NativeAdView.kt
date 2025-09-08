@@ -9,7 +9,7 @@ import com.google.android.gms.ads.nativead.MediaView
 import com.google.android.gms.ads.nativead.NativeAd
 import com.google.android.gms.ads.nativead.NativeAdView
 import io.cloudx.sdk.internal.AdType
-import io.cloudx.sdk.internal.nativead.viewtemplates.cloudXNativeAdTemplate
+import io.cloudx.sdk.internal.ads.native.viewtemplates.cloudXNativeAdTemplate
 
 internal fun Activity.createNativeAdView(adType: AdType.Native, ad: NativeAd): NativeAdView {
     val nativeAdView = NativeAdView(this)

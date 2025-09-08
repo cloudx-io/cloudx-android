@@ -8,9 +8,7 @@ import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.CLXError
 import io.cloudx.sdk.internal.CLXErrorCode
 import io.cloudx.sdk.internal.CloudXLogger
-import io.cloudx.sdk.internal.HEADER_CLOUDX_STATUS
-import io.cloudx.sdk.internal.STATUS_SDK_DISABLED
-import io.cloudx.sdk.internal.adfactory.AdFactory
+import io.cloudx.sdk.internal.ads.AdFactory
 import io.cloudx.sdk.internal.bid.BidRequestProvider
 import io.cloudx.sdk.internal.common.service.ActivityLifecycleService
 import io.cloudx.sdk.internal.common.service.AppLifecycleService
@@ -19,8 +17,6 @@ import io.cloudx.sdk.internal.config.ConfigApi
 import io.cloudx.sdk.internal.config.ConfigRequestProvider
 import io.cloudx.sdk.internal.config.ResolvedEndpoints
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
-import io.cloudx.sdk.internal.core.resolver.AdapterFactoryResolver
-import io.cloudx.sdk.internal.core.resolver.BidAdNetworkFactories
 import io.cloudx.sdk.internal.crash.CrashReportingService
 import io.cloudx.sdk.internal.deviceinfo.DeviceInfoProvider
 import io.cloudx.sdk.internal.geo.GeoApi

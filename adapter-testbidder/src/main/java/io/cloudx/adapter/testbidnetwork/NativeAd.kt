@@ -16,9 +16,9 @@ import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapter
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterListener
 import io.cloudx.sdk.internal.adapter.CloudXAdapterError
-import io.cloudx.sdk.internal.nativead.NativeAdSpecs
-import io.cloudx.sdk.internal.nativead.viewtemplates.CloudXNativeAdViewTemplate
-import io.cloudx.sdk.internal.nativead.viewtemplates.cloudXNativeAdTemplate
+import io.cloudx.sdk.internal.ads.native.NativeAdSpecs
+import io.cloudx.sdk.internal.ads.native.viewtemplates.CloudXNativeAdViewTemplate
+import io.cloudx.sdk.internal.ads.native.viewtemplates.cloudXNativeAdTemplate
 import io.cloudx.ts.staticrenderer.ExternalLinkHandlerImpl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

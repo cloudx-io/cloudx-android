@@ -61,10 +61,6 @@ internal class BannerManagerImpl(
     private var eventsJob: Job? = null
 
     init {
-        CloudXLogger.i(
-            TAG, placementName, placementId,
-            "BannerManager init (refresh=${refreshSeconds}s)"
-        )
         startTimer()
         observeVisibility()
     }
@@ -124,12 +120,10 @@ internal class BannerManagerImpl(
             if (banner == null) {
                 // emit no fill and keep cadence
 //                listener?.onAdLoadFailed(CloudXAdError())
-                CloudXLogger.i(TAG, placementName, placementId, "NO_FILL this interval")
             } else {
                 if (isVisible) show(banner) else {
                     prefetched?.destroy()
                     prefetched = banner
-                    CloudXLogger.d(TAG, placementName, placementId, "Prefetched while hidden")
                 }
             }
 
@@ -161,13 +155,6 @@ internal class BannerManagerImpl(
                 }
             }
             launch {
-                val err = banner.lastErrorEvent.first { it != null }
-                CloudXLogger.w(
-                    TAG,
-                    placementName,
-                    placementId,
-                    "Banner error: $err → destroy current"
-                )
                 eventsJob?.cancel()
                 current?.destroy()
                 current = null
@@ -188,7 +175,5 @@ internal class BannerManagerImpl(
         current?.destroy()
         prefetched = null
         current = null
-
-        CloudXLogger.d(TAG, placementName, placementId, "Destroyed")
     }
 }

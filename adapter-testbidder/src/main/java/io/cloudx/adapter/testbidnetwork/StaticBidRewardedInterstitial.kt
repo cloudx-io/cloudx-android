@@ -1,20 +1,22 @@
 package io.cloudx.adapter.testbidnetwork
 
-import io.cloudx.sdk.internal.adapter.*
-
-import android.app.Activity
+import android.content.Context
 import io.cloudx.sdk.internal.FullscreenAd
+import io.cloudx.sdk.internal.adapter.AlwaysReadyToLoadAd
+import io.cloudx.sdk.internal.adapter.CloudXAdLoadOperationAvailability
+import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapter
+import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapterListener
 import io.cloudx.ts.staticrenderer.StaticFullscreenAd
 
 internal class StaticBidRewardedInterstitial(
-    activity: Activity,
+    context: Context,
     adm: String,
     listener: CloudXRewardedInterstitialAdapterListener
 ) : CloudXRewardedInterstitialAdapter,
     CloudXAdLoadOperationAvailability by AlwaysReadyToLoadAd {
 
     private val staticFullscreenAd = StaticFullscreenAd(
-        activity,
+        context,
         adm,
         object : FullscreenAd.Listener {
             override fun onLoad() {

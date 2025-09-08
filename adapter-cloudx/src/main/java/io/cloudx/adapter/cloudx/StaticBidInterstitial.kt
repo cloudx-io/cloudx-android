@@ -1,22 +1,22 @@
 package io.cloudx.adapter.cloudx
 
-import android.app.Activity
+import android.content.Context
+import io.cloudx.cd.staticrenderer.StaticFullscreenAd
 import io.cloudx.sdk.internal.FullscreenAd
-import io.cloudx.sdk.internal.adapter.CloudXAdLoadOperationAvailability
 import io.cloudx.sdk.internal.adapter.AlwaysReadyToLoadAd
+import io.cloudx.sdk.internal.adapter.CloudXAdLoadOperationAvailability
 import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapter
 import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapterListener
-import io.cloudx.cd.staticrenderer.StaticFullscreenAd
 
 internal class StaticBidInterstitial(
-    activity: Activity,
+    context: Context,
     adm: String,
     listener: CloudXInterstitialAdapterListener
 ) : CloudXInterstitialAdapter,
     CloudXAdLoadOperationAvailability by AlwaysReadyToLoadAd {
 
     private val staticFullscreenAd = StaticFullscreenAd(
-        activity,
+        context,
         adm,
         object : FullscreenAd.Listener {
             override fun onLoad() {

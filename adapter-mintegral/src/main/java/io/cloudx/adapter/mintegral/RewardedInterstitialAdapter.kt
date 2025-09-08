@@ -1,18 +1,18 @@
 package io.cloudx.adapter.mintegral
 
-import android.app.Activity
 import com.mbridge.msdk.out.MBBidRewardVideoHandler
-import com.mbridge.msdk.out.RewardVideoListener
 import com.mbridge.msdk.out.MBridgeIds
 import com.mbridge.msdk.out.RewardInfo
-import io.cloudx.sdk.internal.adapter.CloudXAdLoadOperationAvailability
+import com.mbridge.msdk.out.RewardVideoListener
 import io.cloudx.sdk.internal.adapter.AlwaysReadyToLoadAd
+import io.cloudx.sdk.internal.adapter.CloudXAdLoadOperationAvailability
 import io.cloudx.sdk.internal.adapter.CloudXAdapterError
 import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapter
 import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapterListener
+import io.cloudx.sdk.internal.context.ContextProvider
 
 internal class RewardedInterstitialAdapter(
-    private val activity: Activity,
+    private val contextProvider: ContextProvider,
     private val placementId: String?,
     private val adUnitId: String,
     private val bidId: String?,
@@ -28,7 +28,7 @@ internal class RewardedInterstitialAdapter(
             return
         }
 
-        val adHandler = MBBidRewardVideoHandler(activity, placementId, adUnitId)
+        val adHandler = MBBidRewardVideoHandler(contextProvider.getContext(), placementId, adUnitId)
         this.adHandler = adHandler
 
         adHandler.setRewardVideoListener(object : RewardVideoListener {

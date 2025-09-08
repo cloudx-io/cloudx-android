@@ -3,11 +3,10 @@ package io.cloudx.sdk.internal.initialization
 import android.content.Context
 import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.CLXError
-import io.cloudx.sdk.internal.adfactory.AdFactory
+import io.cloudx.sdk.internal.ads.AdFactory
 import io.cloudx.sdk.internal.config.Config
 import io.cloudx.sdk.internal.config.ConfigApi
 import io.cloudx.sdk.internal.config.ConfigRequestProvider
-import io.cloudx.sdk.internal.core.resolver.AdapterFactoryResolver
 import io.cloudx.sdk.internal.crash.CrashReportingService
 import io.cloudx.sdk.internal.deviceinfo.DeviceInfoProvider
 import io.cloudx.sdk.internal.geo.GeoApi

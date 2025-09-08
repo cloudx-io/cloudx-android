@@ -4,7 +4,7 @@ import android.app.Activity
 import android.content.Context
 import io.cloudx.sdk.CloudX.initialize
 import io.cloudx.sdk.internal.AdType
-import io.cloudx.sdk.internal.adfactory.AdFactory
+import io.cloudx.sdk.internal.ads.AdFactory
 import io.cloudx.sdk.internal.config.ConfigApi
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsType
 import io.cloudx.sdk.internal.initialization.InitializationService
@@ -200,24 +200,20 @@ object CloudX {
      * 4. call [show()][CloudXFullscreenAd.show] when you're ready to display an ad; then wait for [onAdShowSuccess()][CloudXAdListener.onAdDisplayed] or [onAdShowFailed()][CloudXAdListener.onAdDisplayFailed] event;
      * 5. Whenever parent Activity or Fragment is destroyed; or when ads are not required anymore - release ad instance resources via calling [destroy()][Destroyable.destroy]
      *
-     * @param activity activity instance to which [CloudXInterstitialAd] ad instance is going to be attached to.
      * @param placementName identifier of CloudX placement setup on the dashboard.
      *
      * _Once SDK is [initialized][initialize] it knows which placement names are valid for ad creation_
-     * @return _null_ - if SDK didn't [initialize] successfully/yet or [placementName] doesn't exist, else [Interstitial] ad instance.
+     * @return _null_ - if SDK didn't [initialize] successfully/yet or [placementName] doesn't exist
      * @sample io.cloudx.sdk.samples.createInterstitial
      */
     @JvmStatic
     fun createInterstitial(
-        activity: Activity,
         placementName: String,
         listener: CloudXInterstitialListener?
     ): CloudXInterstitialAd? {
         initializationService?.metricsTrackerNew?.trackMethodCall(MetricsType.Method.CreateInterstitial)
         return initializationService?.adFactory?.createInterstitial(
-            AdFactory.CreateAdParams(
-                activity, placementName, listener
-            )
+            AdFactory.CreateAdParams(placementName, listener)
         )
     }
 
@@ -226,7 +222,7 @@ object CloudX {
      *
      * _General usage guideline:_
      * 1. Create [CloudXRewardedAd] instance via invoking this function.
-     * 2. If created successfully, consider attaching an optional [listener][RewardedInterstitialListener] which is then can be used for tracking ad events (impression, click, hidden, etc)
+     * 2. If created successfully, consider attaching an optional [listener][CloudXRewardedInterstitialListener] which is then can be used for tracking ad events (impression, click, hidden, etc)
      * 3. _Fullscreen ad implementations start precaching logic internally automatically in an optimised way, so you don't have to worry about any ad loading complexities.
      * We provide several APIs, use any appropriate ones for your use-cases:_
      *
@@ -237,24 +233,20 @@ object CloudX {
      * 4. call [show()][CloudXFullscreenAd.show] when you're ready to display an ad; then wait for [onAdShowSuccess()][CloudXAdListener.onAdDisplayed] or [onAdShowFailed()][CloudXAdListener.onAdDisplayFailed] event;
      * 5. Whenever parent Activity or Fragment is destroyed; or when ads are not required anymore - release ad instance resources via calling [destroy()][Destroyable.destroy]
      *
-     * @param activity activity instance to which [CloudXRewardedAd] ad instance is going to be attached to.
      * @param placementName identifier of CloudX placement setup on the dashboard.
      *
      * _Once SDK is [initialized][initialize] it knows which placement names are valid for ad creation_
-     * @return _null_ - if SDK didn't [initialize] successfully/yet or [placementName] doesn't exist, else [RewardedInterstitial] ad instance.
+     * @return _null_ - if SDK didn't [initialize] successfully/yet or [placementName] doesn't exist
      * @sample io.cloudx.sdk.samples.createRewarded
      */
     @JvmStatic
     fun createRewardedInterstitial(
-        activity: Activity,
         placementName: String,
-        listener: RewardedInterstitialListener?
+        listener: CloudXRewardedInterstitialListener?
     ): CloudXRewardedAd? {
         initializationService?.metricsTrackerNew?.trackMethodCall(MetricsType.Method.CreateRewarded)
         return initializationService?.adFactory?.createRewarded(
-            AdFactory.CreateAdParams(
-                activity, placementName, listener
-            )
+            AdFactory.CreateAdParams(placementName, listener)
         )
     }
 

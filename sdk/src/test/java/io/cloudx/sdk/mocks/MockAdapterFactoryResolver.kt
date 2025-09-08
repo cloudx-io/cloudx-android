@@ -1,8 +1,8 @@
 package io.cloudx.sdk.mocks
 
 import io.cloudx.sdk.internal.AdNetwork
-import io.cloudx.sdk.internal.core.resolver.AdapterFactoryResolver
-import io.cloudx.sdk.internal.core.resolver.BidAdNetworkFactories
+import io.cloudx.sdk.internal.initialization.AdapterFactoryResolver
+import io.cloudx.sdk.internal.initialization.BidAdNetworkFactories
 import io.mockk.mockk
 
 internal class MockAdapterFactoryResolver : AdapterFactoryResolver {

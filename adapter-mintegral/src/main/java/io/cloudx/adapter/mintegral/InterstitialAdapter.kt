@@ -1,18 +1,18 @@
 package io.cloudx.adapter.mintegral
 
-import android.app.Activity
 import com.mbridge.msdk.newinterstitial.out.MBBidNewInterstitialHandler
 import com.mbridge.msdk.newinterstitial.out.NewInterstitialListener
 import com.mbridge.msdk.out.MBridgeIds
 import com.mbridge.msdk.out.RewardInfo
-import io.cloudx.sdk.internal.adapter.CloudXAdLoadOperationAvailability
 import io.cloudx.sdk.internal.adapter.AlwaysReadyToLoadAd
+import io.cloudx.sdk.internal.adapter.CloudXAdLoadOperationAvailability
 import io.cloudx.sdk.internal.adapter.CloudXAdapterError
 import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapter
 import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapterListener
+import io.cloudx.sdk.internal.context.ContextProvider
 
 internal class InterstitialAdapter(
-    private val activity: Activity,
+    private val contextProvider: ContextProvider,
     private val placementId: String?,
     private val adUnitId: String,
     private val bidId: String?,
@@ -28,7 +28,7 @@ internal class InterstitialAdapter(
             return
         }
 
-        val adHandler = MBBidNewInterstitialHandler(activity, placementId, adUnitId)
+        val adHandler = MBBidNewInterstitialHandler(contextProvider.getContext(), placementId, adUnitId)
         this.adHandler = adHandler
 
         adHandler.setInterstitialVideoListener(object : NewInterstitialListener {

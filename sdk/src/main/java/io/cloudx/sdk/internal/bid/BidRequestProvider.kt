@@ -1,19 +1,18 @@
 package io.cloudx.sdk.internal.bid
 
-import android.content.Context
 import io.cloudx.sdk.BuildConfig
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.AdType
+import io.cloudx.sdk.internal.ApplicationContext
+import io.cloudx.sdk.internal.PlacementLoopIndexTracker
 import io.cloudx.sdk.internal.adapter.CloudXAdapterBidRequestExtrasProvider
 import io.cloudx.sdk.internal.appinfo.AppInfoProvider
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.deviceinfo.DeviceInfoProvider
 import io.cloudx.sdk.internal.gaid.GAIDProvider
 import io.cloudx.sdk.internal.httpclient.UserAgentProvider
-import io.cloudx.sdk.internal.location.LocationProvider
 import io.cloudx.sdk.internal.privacy.PrivacyService
 import io.cloudx.sdk.internal.screen.ScreenService
-import io.cloudx.sdk.internal.PlacementLoopIndexTracker
 import org.json.JSONObject
 
 // TODO. Separate Json conversion logic from business logic.
@@ -41,18 +40,16 @@ internal fun BidRequestProvider.Params.withEffectivePlacementId(): String {
 
 
 internal fun BidRequestProvider(
-    context: Context,
     bidRequestExtrasProviders: Map<AdNetwork, CloudXAdapterBidRequestExtrasProvider>
 ) = BidRequestProviderImpl(
-    context.applicationContext,
+    ApplicationContext(),
     BuildConfig.SDK_VERSION_NAME,
     AppInfoProvider(),
     DeviceInfoProvider(),
-    ScreenService(context),
+    ScreenService(ApplicationContext()),
     ConnectionStatusService(),
     UserAgentProvider(),
     GAIDProvider(),
     PrivacyService(),
-    LocationProvider(),
     bidRequestExtrasProviders
 )

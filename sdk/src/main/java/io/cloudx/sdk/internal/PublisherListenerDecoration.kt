@@ -4,7 +4,7 @@ import io.cloudx.sdk.CloudXAdViewListener
 import io.cloudx.sdk.CloudXAd
 import io.cloudx.sdk.CloudXAdError
 import io.cloudx.sdk.CloudXInterstitialListener
-import io.cloudx.sdk.RewardedInterstitialListener
+import io.cloudx.sdk.CloudXRewardedInterstitialListener
 
 // TODO. Refactor. Ugly Naming is ugh. Functionality isn't better.
 
@@ -42,8 +42,8 @@ internal fun CloudXInterstitialListener?.decorate(): CloudXInterstitialListener 
         override fun onAdClicked(cloudXAd: CloudXAd) {}
     }
 
-internal fun RewardedInterstitialListener?.decorate(): RewardedInterstitialListener =
-    this ?: object : RewardedInterstitialListener {
+internal fun CloudXRewardedInterstitialListener?.decorate(): CloudXRewardedInterstitialListener =
+    this ?: object : CloudXRewardedInterstitialListener {
 
         override fun onUserRewarded(cloudXAd: CloudXAd) {}
 

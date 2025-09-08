@@ -1,20 +1,20 @@
 package io.cloudx.adapter.googleadmanager
 
-import android.app.Activity
 import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.admanager.AdManagerAdRequest
 import com.google.android.gms.ads.admanager.AdManagerInterstitialAd
 import com.google.android.gms.ads.admanager.AdManagerInterstitialAdLoadCallback
-import io.cloudx.sdk.internal.adapter.CloudXAdLoadOperationAvailability
 import io.cloudx.sdk.internal.adapter.AlwaysReadyToLoadAd
+import io.cloudx.sdk.internal.adapter.CloudXAdLoadOperationAvailability
 import io.cloudx.sdk.internal.adapter.CloudXAdapterError
 import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapter
 import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapterListener
+import io.cloudx.sdk.internal.context.ContextProvider
 
 internal class InterstitialAdapter(
-    private val activity: Activity,
+    private val contextProvider: ContextProvider,
     private val adUnitId: String,
     private var listener: CloudXInterstitialAdapterListener?
 ) : CloudXInterstitialAdapter, CloudXAdLoadOperationAvailability by AlwaysReadyToLoadAd {
@@ -23,7 +23,7 @@ internal class InterstitialAdapter(
 
     override fun load() {
         AdManagerInterstitialAd.load(
-            activity,
+            contextProvider.getContext(),
             adUnitId,
             AdManagerAdRequest.Builder().build(),
             object : AdManagerInterstitialAdLoadCallback() {
@@ -71,7 +71,8 @@ internal class InterstitialAdapter(
             }
         }
 
-        ad.show(activity)
+        // Ad will still successfully show even with a null Activity
+        GoogleAdHelper.showInterstitial(ad, contextProvider.getActivityOrNull())
     }
 
     override fun destroy() {

@@ -78,15 +78,10 @@ private class GPPProviderImpl(context: Context) : GPPProvider {
                 if (start + len <= bits.length) bits.substring(start, start + len)
                     .toIntOrNull(2) else null
 
-            val version = read(0, 6)   // (not used)
-            val saleOptOutNotice = read(6, 2)
-            val sharingOptOutNotice = read(8, 2)
             val saleOptOut = read(12, 2)
             val sharingOptOut = read(14, 2)
 
             GppConsent(
-                saleOptOutNotice = saleOptOutNotice,
-                sharingOptOutNotice = sharingOptOutNotice,
                 saleOptOut = saleOptOut,
                 sharingOptOut = sharingOptOut
             )
@@ -102,15 +97,9 @@ private class GPPProviderImpl(context: Context) : GPPProvider {
             val payload = selectSectionPayload(gpp, sids, sid) ?: return null
             val bits = base64UrlToBits(payload)
 
-            val saleOptOutNoticeBit = bits.getOrNull(8)?.digitToIntOrNull()   // 0/1
             val sharingOptOutBit = bits.getOrNull(15)?.digitToIntOrNull()  // 0/1
             val targetedOptOutBit = bits.getOrNull(16)?.digitToIntOrNull()  // 0/1
 
-            val saleOptOutNotice = when (saleOptOutNoticeBit) {
-                1 -> 1 // "Yes"
-                0 -> 2 // "No"
-                else -> null
-            }
             val sharingOptOut = when (sharingOptOutBit) {
                 1 -> 1 // Opted out
                 0 -> 2 // Did not opt out
@@ -123,8 +112,6 @@ private class GPPProviderImpl(context: Context) : GPPProvider {
             }
 
             GppConsent(
-                saleOptOutNotice = saleOptOutNotice,
-                sharingOptOutNotice = 1, // assumed "notice provided" (per your current approach)
                 saleOptOut = 0,          // unknown/N/A in this model (kept as-is)
                 sharingOptOut = sharingOptOutEffective,
             )
@@ -168,14 +155,10 @@ private class GPPProviderImpl(context: Context) : GPPProvider {
 }
 
 internal data class GppConsent(
-    // USCA (SID=8) core:
-    val saleOptOutNotice: Int?,        // 0=N/A, 1=Yes, 2=No // Not being used in `requiresPiiRemoval` logic for now according to Product Team
-    val sharingOptOutNotice: Int?,     // 0=N/A, 1=Yes, 2=No // Not being used in `requiresPiiRemoval` logic for now according to Product Team
     val saleOptOut: Int?,              // 0=N/A, 1=OptOut, 2=DidNotOptOut
     val sharingOptOut: Int?,           // 0=N/A, 1=OptOut, 2=DidNotOptOut
 ) {
     fun requiresPiiRemoval(): Boolean {
-        // - If SharingOptOut == 1 OR SaleOptOut == 1 -> obfuscate PII
         return (saleOptOut == 1) || (sharingOptOut == 1)
     }
 }

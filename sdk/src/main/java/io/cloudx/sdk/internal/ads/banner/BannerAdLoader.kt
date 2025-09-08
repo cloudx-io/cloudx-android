@@ -1,11 +1,11 @@
 package io.cloudx.sdk.internal.ads.banner
 
 import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.ads.BidAdSource
+import io.cloudx.sdk.internal.ads.BidAdSourceResponse
 import io.cloudx.sdk.internal.bid.LoadResult
 import io.cloudx.sdk.internal.bid.LossReason
 import io.cloudx.sdk.internal.bid.LossReporter
-import io.cloudx.sdk.internal.core.ad.source.bid.BidAdSource
-import io.cloudx.sdk.internal.core.ad.source.bid.BidAdSourceResponse
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.ensureActive

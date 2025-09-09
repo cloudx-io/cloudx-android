@@ -17,14 +17,12 @@ internal interface CadenceClock {
 }
 
 /**
- * Free-running wall clock.
- * - If a tick happens while a request is in-flight -> queue EXACTLY ONE.
- * - If a tick happens while hidden -> queue EXACTLY ONE.
- * - When finishing in-flight:
- *      - if visible and queuedInFlight -> emit one and clear.
- *      - if hidden -> keep hidden queue until visible.
- * - When becoming visible:
- *      - if not in-flight and queuedHidden -> emit one and clear.
+ * Visibility-aware refresh clock aligned with MVP cadence:
+ * - Emits immediately if already visible on start; otherwise queues one for when visible.
+ * - While hidden: queues exactly one tick (wall-clock continues while hidden).
+ * - While a request is in-flight: does not queue in-flight ticks (avoids stacking).
+ * - On request finish: restarts the interval; however, if we became visible while in-flight
+ *   and a hidden tick was queued, emit it immediately (earliest feasible time).
  */
 internal class VisibilityAwareRefreshClock(
     private val intervalMs: Long,

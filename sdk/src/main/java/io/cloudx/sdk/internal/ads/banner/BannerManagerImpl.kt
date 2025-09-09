@@ -42,7 +42,6 @@ import kotlinx.coroutines.launch
  * 4. BannerManagerImpl - Orchestrates the above components + handles business logic
  */
 internal class BannerManagerImpl(
-    // === keep the original signature ===
     private val placementId: String,
     private val placementName: String,
     private val bannerVisibility: StateFlow<Boolean>,

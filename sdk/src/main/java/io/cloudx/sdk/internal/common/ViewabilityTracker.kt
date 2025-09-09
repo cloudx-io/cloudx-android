@@ -20,12 +20,23 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 
-// Use this approach to get/listen to real state of visibility of the view.
-// It means, it checks whether activity is resumed, view isShows, view's area is on-the-screen.
-// Feel free to improve/extend/optimize it.
-
+/**
+ * ViewabilityTracker provides comprehensive view visibility tracking by monitoring:
+ * - Activity lifecycle state (resumed/paused)
+ * - View attachment to window
+ * - View's actual visible area on screen (any visible pixels)
+ * - Custom view shown state from external sources
+ * 
+ * A view is considered "viewable" when ALL conditions are met:
+ * - The containing activity is resumed (or lifecycle unavailable for Unity)
+ * - The view is attached to the window
+ * - At least one pixel of the view is visible on screen (uses getGlobalVisibleRect)
+ * - The external isViewShown state is true
+ */
 internal interface ViewabilityTracker : Destroyable {
-
+    /**
+     * StateFlow that emits true when the view meets all viewability criteria
+     */
     val isViewable: StateFlow<Boolean>
 }
 
@@ -38,6 +49,31 @@ private class ViewabilityTrackerImpl(
 
     private val scope = scope + Dispatchers.Main
 
+    // State tracking properties
+    private val isAttached = MutableStateFlow(view.isAttachedToWindow)
+    private val isLifecycleResumed =
+        MutableStateFlow<Boolean?>(null) // Null - lifecycle tracking is unavailable (because unity uses Activity instead of Compat Activity)
+    private val isEnoughAreaVisible = MutableStateFlow(isEnoughAreaVisible())
+    private val _isViewable = MutableStateFlow(false)
+
+    // Job tracking properties
+    private var layoutRecalculationJob: Job? = null
+    private val lifecycleOwnerUpdateJob = isAttached.onEach {
+        currentLifecycleOwner = if (it) view.findViewTreeLifecycleOwner() else null
+    }.launchIn(scope)
+    // TODO. Profile, optimize if needed.
+    private val isViewableJob = isViewShown.combine(isAttached) { isViewShown, isAttached ->
+        isViewShown && isAttached
+    }.combine(isEnoughAreaVisible) { prevResult, isEnoughAreaVisible ->
+        prevResult && isEnoughAreaVisible
+    }.combine(isLifecycleResumed) { prevResult, isLifecycleResumed ->
+        // Pass if lifecycle state is at least RESUMED or lifecycle data absent (99% Unity case).
+        prevResult && isLifecycleResumed != false
+    }.onEach {
+        _isViewable.value = it
+    }.launchIn(scope)
+
+    // Lifecycle management
     private val lifecycleObserver = LifecycleEventObserver { _, event ->
         when (event) {
             Lifecycle.Event.ON_PAUSE -> isLifecycleResumed.value = false
@@ -47,10 +83,6 @@ private class ViewabilityTrackerImpl(
             }
         }
     }
-
-    // Null - lifecycle tracking is unavailable (because unity uses Activity instead of Compat Activity).
-    private val isLifecycleResumed = MutableStateFlow<Boolean?>(null)
-
     private var currentLifecycleOwner: LifecycleOwner? = null
         set(value) {
             val oldLifecycleOwner = field
@@ -67,12 +99,7 @@ private class ViewabilityTrackerImpl(
             newLifecycleOwner?.lifecycle?.addObserver(lifecycleObserver)
         }
 
-    private val isAttached = MutableStateFlow(view.isAttachedToWindow)
-
-    private val lifecycleOwnerUpdateJob = isAttached.onEach {
-        currentLifecycleOwner = if (it) view.findViewTreeLifecycleOwner() else null
-    }.launchIn(scope)
-
+    // View listeners
     private val onWindowAttachListener = object : View.OnAttachStateChangeListener {
         override fun onViewAttachedToWindow(p0: View) {
             isAttached.value = true
@@ -84,55 +111,23 @@ private class ViewabilityTrackerImpl(
     }.also {
         view.addOnAttachStateChangeListener(it)
     }
-
     private val onScrollChangedListener = ViewTreeObserver.OnScrollChangedListener {
         recalculateIsEnoughAreaVisible()
     }.also {
         view.viewTreeObserver.addOnScrollChangedListener(it)
     }
-
     private val onGlobalLayoutListener = ViewTreeObserver.OnGlobalLayoutListener {
         recalculateIsEnoughAreaVisible()
     }.also {
         view.viewTreeObserver.addOnGlobalLayoutListener(it)
     }
 
-    private val isEnoughAreaVisible = MutableStateFlow(isEnoughAreaVisible())
-
-    private var layoutRecalculationJob: Job? = null
-
-    private fun recalculateIsEnoughAreaVisible() {
-        // TODO. Profile.
-        layoutRecalculationJob?.cancel()
-        layoutRecalculationJob = scope.launch {
-            delay(500)
-            // At least some part of the view is currently on the screen.
-            isEnoughAreaVisible.value = isEnoughAreaVisible()
-        }
-    }
-
+    // Utility properties
     // TODO. For optimization purposes.
     private val globalVisibleRect: Rect = Rect(0, 0, 0, 0)
 
-    private fun isEnoughAreaVisible(): Boolean = view.getGlobalVisibleRect(globalVisibleRect)
-
-    // TODO. Ideally, I should calculate it here correctly,
-    //  but it doesn't really matter in the use-case.
-    private var _isViewable = MutableStateFlow(false)
-
+    // Public API
     override val isViewable: StateFlow<Boolean> = _isViewable
-
-    // TODO. Profile, optimize if needed.
-    private val isViewableJob = isViewShown.combine(isAttached) { isViewShown, isAttached ->
-        isViewShown && isAttached
-    }.combine(isEnoughAreaVisible) { prevResult, isEnoughAreaVisible ->
-        prevResult && isEnoughAreaVisible
-    }.combine(isLifecycleResumed) { prevResult, isLifecycleResumed ->
-        // Pass if lifecycle state is at least RESUMED or lifecycle data absent (99% Unity case).
-        prevResult && isLifecycleResumed != false
-    }.onEach {
-        _isViewable.value = it
-    }.launchIn(scope)
 
     override fun destroy() {
         // Scope should be cancelled externally since it came from outside.
@@ -150,6 +145,23 @@ private class ViewabilityTrackerImpl(
         lifecycleOwnerUpdateJob.cancel()
         layoutRecalculationJob?.cancel()
     }
+
+    // Private methods
+    private fun recalculateIsEnoughAreaVisible() {
+        // TODO. Profile.
+        layoutRecalculationJob?.cancel()
+        layoutRecalculationJob = scope.launch {
+            delay(500) // Debounce rapid layout/scroll changes for performance
+            // Check if any pixels of the view are visible on screen
+            isEnoughAreaVisible.value = isEnoughAreaVisible()
+        }
+    }
+
+    /**
+     * Returns true if any pixels of the view are visible on screen.
+     * Uses Android's getGlobalVisibleRect which returns true even if only 1 pixel is visible.
+     */
+    private fun isEnoughAreaVisible(): Boolean = view.getGlobalVisibleRect(globalVisibleRect)
 }
 
 internal fun View.createViewabilityTracker(

@@ -41,17 +41,22 @@ class CloudXAdView internal constructor(
     private val TAG = "CloudXAdView"
     private val mainScope = CoroutineScope(Dispatchers.Main)
 
-    private var bannerManager: BannerManager? = null
-
-    override fun onVisibilityChanged(changedView: View, visibility: Int) {
-        super.onVisibilityChanged(changedView, visibility)
-
-        isBannerShown.value = visibility == VISIBLE
-    }
-
+    // State management
     private val isBannerShown = MutableStateFlow(isShown)
-
     private val viewabilityTracker = createViewabilityTracker(mainScope, isBannerShown)
+    
+    // Banner management
+    private var bannerManager: BannerManager? = null
+    
+    // Banner container tracking - ordered by layer: background first, foreground last
+    // TODO. View is null for acquireBannerContainer() call... Fyber... ugh.
+    private val orderedBannerToContainerList = mutableListOf<Pair<View?, ViewGroup>>()
+
+    var listener: CloudXAdViewListener? = null
+        set(value) {
+            field = value
+            updateBannerListener()
+        }
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
@@ -66,6 +71,12 @@ class CloudXAdView internal constructor(
         updateBannerListener()
     }
 
+    override fun onVisibilityChanged(changedView: View, visibility: Int) {
+        super.onVisibilityChanged(changedView, visibility)
+        isBannerShown.value = visibility == VISIBLE
+    }
+
+    // Public API
     fun show() {
         mainScope.launch {
             visibility = View.VISIBLE
@@ -93,16 +104,12 @@ class CloudXAdView internal constructor(
         }
     }
 
-    var listener: CloudXAdViewListener? = null
-        set(value) {
-            field = value
-            updateBannerListener()
-        }
-
+    // Private methods - Banner management
     private fun updateBannerListener() {
         bannerManager?.listener = listener
     }
 
+    // Banner container creation
     // So the idea is to create a banner container per each onAdd() call
     // and put the created invisible container with the banner view inside and put it to the "back" of the view.
     // So that we can have some sort of a banner collection / precaching kind of thing
@@ -125,10 +132,7 @@ class CloudXAdView internal constructor(
         }
     }
 
-    // Ordered by layer: background first, foreground - last.
-    // TODO. View is null for acquireBannerContainer() call... Fyber... ugh.
-    private val orderedBannerToContainerList = mutableListOf<Pair<View?, ViewGroup>>()
-
+    // Banner container management
     private fun updateForegroundBannerVisibility() {
         orderedBannerToContainerList.lastOrNull()?.second?.visibility = VISIBLE
     }
@@ -206,6 +210,7 @@ class CloudXAdView internal constructor(
         return bannerContainer
     }
 
+    // Banner removal methods
     private fun removeBanner(bannerView: View) =
         removeBanner(orderedBannerToContainerList.indexOfFirst { it.first == bannerView })
 
@@ -214,7 +219,6 @@ class CloudXAdView internal constructor(
 
     private fun removeBanner(idx: Int) {
         if (idx >= 0) removeView(orderedBannerToContainerList.removeAt(idx).second)
-
         updateForegroundBannerVisibility()
     }
 }

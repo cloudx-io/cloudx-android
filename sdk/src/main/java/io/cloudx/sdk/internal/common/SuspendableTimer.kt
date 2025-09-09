@@ -17,13 +17,15 @@ internal class SuspendableTimer : Destroyable {
     // TODO. Consider reusing scopes from outside via lambda creator or something
     //  in order to prevent multiple coroutine scopes. I'm not sure if it's even important for now.
     private val scope = CoroutineScope(Dispatchers.Main)
+    private val isTimeout = MutableStateFlow(false)
+    private var timeoutJob: Job? = null
+    private var remainingTimeMillis: Long? = null
+    private var startMillis = 0L
 
+    // Public API
     suspend fun awaitTimeout() {
         isTimeout.first { it }
     }
-
-    private val isTimeout = MutableStateFlow(false)
-    private var remainingTimeMillis: Long? = null
 
     // TODO. Rename.
     fun reset(millis: Long, autoStart: Boolean = true) {
@@ -33,19 +35,6 @@ internal class SuspendableTimer : Destroyable {
         remainingTimeMillis = millis
 
         if (autoStart) resume(millis)
-    }
-
-    private var timeoutJob: Job? = null
-
-    private fun resume(millis: Long) {
-        timeoutJob = scope.launch {
-            startElapsedTimeCount()
-
-            delay(millis)
-
-            isTimeout.value = true
-            remainingTimeMillis = null
-        }
     }
 
     // TODO. Refactor if.
@@ -74,7 +63,17 @@ internal class SuspendableTimer : Destroyable {
         scope.cancel()
     }
 
-    private var startMillis = 0L
+    // Private implementation
+    private fun resume(millis: Long) {
+        timeoutJob = scope.launch {
+            startElapsedTimeCount()
+
+            delay(millis)
+
+            isTimeout.value = true
+            remainingTimeMillis = null
+        }
+    }
 
     private fun startElapsedTimeCount() {
         startMillis = utcNowEpochMillis()

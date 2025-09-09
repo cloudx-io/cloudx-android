@@ -3,8 +3,6 @@ package io.cloudx.sdk
 import android.content.Context
 import io.cloudx.sdk.internal.ApplicationContext
 import org.junit.Before
-import org.junit.Ignore
-import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
@@ -23,12 +21,5 @@ open class RoboMockkTest : MockkTest() {
     open fun before() {
         // Initiate app context first; otherwise crashes are inevitable during other components initialization.
         ApplicationContext(appContext)
-    }
-
-    // TODO. Better solution?
-    @Ignore("stubForBypassingGradleAllTestRunFailing")
-    @Test
-    fun stubForBypassingGradleAllTestRunFailing() {
-
     }
 }

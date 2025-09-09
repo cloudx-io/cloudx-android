@@ -1,5 +1,6 @@
 package io.cloudx.sdk.internal.bid
 
+import android.os.Bundle
 import io.cloudx.sdk.internal.AdNetwork
 
 internal data class NoBidResponse(val id: String, val noBidResponseCode: Int, val ext: String?)
@@ -29,7 +30,7 @@ internal class Bid(
     /**
      * auth keys and other data required for ad network's adapter to load and show ads properly.
      */
-    val adapterExtras: Map<String, String>,
+    val adapterExtras: Bundle,
     val dealId: String?,
     val creativeId: String?,
     val auctionId: String,

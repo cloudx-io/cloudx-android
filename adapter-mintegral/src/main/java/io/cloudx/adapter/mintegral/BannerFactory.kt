@@ -1,13 +1,14 @@
 package io.cloudx.adapter.mintegral
 
 import android.app.Activity
-import io.cloudx.sdk.internal.AdViewSize
+import android.os.Bundle
 import io.cloudx.sdk.Result
+import io.cloudx.sdk.internal.AdViewSize
+import io.cloudx.sdk.internal.adapter.BannerFactoryMiscParams
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapter
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
-import io.cloudx.sdk.internal.adapter.BannerFactoryMiscParams
-import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterListener
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterFactory
+import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterListener
 import io.cloudx.sdk.internal.adapter.CloudXAdapterMetaData
 
 internal object BannerFactory : CloudXAdViewAdapterFactory,
@@ -20,7 +21,7 @@ internal object BannerFactory : CloudXAdViewAdapterFactory,
         placementId: String,
         bidId: String,
         adm: String,
-        params: Map<String, String>?,
+        serverExtras: Bundle,
         miscParams: BannerFactoryMiscParams,
         listener: CloudXAdViewAdapterListener,
     ): Result<CloudXAdViewAdapter, String> = Result.Success(
@@ -28,9 +29,9 @@ internal object BannerFactory : CloudXAdViewAdapterFactory,
         BannerAdapter(
             activity,
             adViewContainer,
-            placementId = params?.placementId(),
+            placementId = serverExtras.placementId(),
             adUnitId = adm,
-            bidId = params?.bidId(),
+            bidId = serverExtras.bidId(),
             miscParams.adViewSize,
             listener,
         )

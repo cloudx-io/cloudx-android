@@ -1,6 +1,7 @@
 package io.cloudx.adapter.mintegral
 
 import android.content.Context
+import android.os.Bundle
 import com.mbridge.msdk.MBridgeConstans
 import com.mbridge.msdk.foundation.same.net.Aa
 import com.mbridge.msdk.out.MBConfiguration
@@ -8,8 +9,8 @@ import com.mbridge.msdk.out.MBridgeSDKFactory
 import com.mbridge.msdk.out.SDKInitStatusListener
 import io.cloudx.sdk.CloudXPrivacy
 import io.cloudx.sdk.internal.CloudXLogger
-import io.cloudx.sdk.internal.adapter.CloudXAdapterInitializer
 import io.cloudx.sdk.internal.adapter.CloudXAdapterInitializationResult
+import io.cloudx.sdk.internal.adapter.CloudXAdapterInitializer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -20,7 +21,7 @@ internal object Initializer : CloudXAdapterInitializer {
 
     override suspend fun initialize(
         context: Context,
-        config: Map<String, String>,
+        serverExtras: Bundle,
         privacy: StateFlow<CloudXPrivacy>
     ): CloudXAdapterInitializationResult =
         withContext(Dispatchers.Main) {
@@ -37,8 +38,8 @@ internal object Initializer : CloudXAdapterInitializer {
                 suspendCancellableCoroutine<CloudXAdapterInitializationResult> { continuation ->
                     val sdk = MBridgeSDKFactory.getMBridgeSDK()
                     val map = sdk.getMBConfigurationMap(
-                        config["appID"] ?: "",
-                        config["appKey"] ?: ""
+                        serverExtras.getString("appID", ""),
+                        serverExtras.getString("appKey", "")
                     )
 
                     sdk.init(map, context, object : SDKInitStatusListener {

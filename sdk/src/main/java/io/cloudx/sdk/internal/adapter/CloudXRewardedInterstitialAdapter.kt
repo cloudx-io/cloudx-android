@@ -1,5 +1,6 @@
 package io.cloudx.sdk.internal.adapter
 
+import android.os.Bundle
 import io.cloudx.sdk.Destroyable
 import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.context.ContextProvider
@@ -11,7 +12,7 @@ interface CloudXRewardedInterstitialAdapterFactory : CloudXAdapterMetaData {
         placementId: String,
         bidId: String,
         adm: String,
-        params: Map<String, String>?,
+        serverExtras: Bundle,
         listener: CloudXRewardedInterstitialAdapterListener
     ): Result<CloudXRewardedInterstitialAdapter, String>
 }

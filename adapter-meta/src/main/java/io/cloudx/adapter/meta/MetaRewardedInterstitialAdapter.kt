@@ -1,5 +1,6 @@
 package io.cloudx.adapter.meta
 
+import android.os.Bundle
 import androidx.annotation.Keep
 import com.facebook.ads.Ad
 import com.facebook.ads.AdError
@@ -25,12 +26,13 @@ internal object RewardedInterstitialFactory :
         placementId: String,
         bidId: String,
         adm: String,
-        params: Map<String, String>?,
+        serverExtras: Bundle,
         listener: CloudXRewardedInterstitialAdapterListener,
     ): Result<CloudXRewardedInterstitialAdapter, String> = Result.Success(
         MetaRewardedInterstitialAdapter(
             contextProvider,
-            adUnitId = adm,
+            serverExtras,
+            adm = adm,
             listener
         )
     )
@@ -38,14 +40,23 @@ internal object RewardedInterstitialFactory :
 
 internal class MetaRewardedInterstitialAdapter(
     private val contextProvider: ContextProvider,
-    private val adUnitId: String,
+    private val serverExtras: Bundle,
+    private val adm: String,
     private var listener: CloudXRewardedInterstitialAdapterListener?
 ) : CloudXRewardedInterstitialAdapter, CloudXAdLoadOperationAvailability by AlwaysReadyToLoadAd {
 
+    private val TAG = "MetaRewardedInterstitialAdapter"
     private var ad: RewardedInterstitialAd? = null
 
     override fun load() {
-        val ad = RewardedInterstitialAd(contextProvider.getContext(), adUnitId)
+        val placementId = serverExtras.getPlacementId()
+        if (placementId == null) {
+            log(TAG, "Placement ID is null")
+            listener?.onError(CloudXAdapterError(description = "Placement ID is null"))
+            return
+        }
+
+        val ad = RewardedInterstitialAd(contextProvider.getContext(), placementId)
         this.ad = ad
 
         ad.loadAd(ad.buildLoadAdConfig().withAdListener(object : RewardedInterstitialAdListener {
@@ -72,9 +83,9 @@ internal class MetaRewardedInterstitialAdapter(
             override fun onRewardedInterstitialClosed() {
                 listener?.onHide()
             }
-
-
-        }).build())
+        })
+            .withBid(adm)
+            .build())
     }
 
     override fun show() {

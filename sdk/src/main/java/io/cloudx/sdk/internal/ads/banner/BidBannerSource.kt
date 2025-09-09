@@ -59,7 +59,7 @@ internal fun BidBannerSource(
         val adm = it.adm
         val nurl = it.nurl
         val lurl = it.lurl
-        val params = it.params
+        val params = it.adapterExtras
         val auctionId = it.auctionId
 
         BannerAdapterDelegate(

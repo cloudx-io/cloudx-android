@@ -1,5 +1,6 @@
 package io.cloudx.adapter.mintegral
 
+import android.os.Bundle
 import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.adapter.CloudXAdapterMetaData
 import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapter
@@ -16,14 +17,14 @@ internal object InterstitialFactory :
         placementId: String,
         bidId: String,
         adm: String,
-        params: Map<String, String>?,
+        serverExtras: Bundle,
         listener: CloudXInterstitialAdapterListener,
     ): Result<CloudXInterstitialAdapter, String> = Result.Success(
         InterstitialAdapter(
             contextProvider,
-            placementId = params?.placementId(),
+            placementId = serverExtras.placementId(),
             adUnitId = adm,
-            bidId = params?.bidId(),
+            bidId = serverExtras.bidId(),
             listener
         )
     )

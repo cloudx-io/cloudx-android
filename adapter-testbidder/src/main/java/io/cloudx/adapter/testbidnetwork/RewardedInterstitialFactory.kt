@@ -1,5 +1,6 @@
 package io.cloudx.adapter.testbidnetwork
 
+import android.os.Bundle
 import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.adapter.CloudXAdapterMetaData
 import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapter
@@ -16,7 +17,7 @@ internal object RewardedInterstitialFactory :
         placementId: String,
         bidId: String,
         adm: String,
-        params: Map<String, String>?,
+        serverExtras: Bundle,
         listener: CloudXRewardedInterstitialAdapterListener
     ): Result<CloudXRewardedInterstitialAdapter, String> = Result.Success(
         StaticBidRewardedInterstitial(

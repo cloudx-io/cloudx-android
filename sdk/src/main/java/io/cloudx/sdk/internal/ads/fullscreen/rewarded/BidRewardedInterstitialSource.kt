@@ -53,7 +53,7 @@ internal fun BidRewardedInterstitialSource(
         val bidId = it.bidId
         val adm = it.adm
         val nurl = it.nurl
-        val params = it.params
+        val params = it.adapterExtras
         val auctionId = it.auctionId
 
         RewardedInterstitialAdapterDelegate(

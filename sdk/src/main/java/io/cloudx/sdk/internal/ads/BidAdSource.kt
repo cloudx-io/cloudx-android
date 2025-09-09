@@ -1,5 +1,6 @@
 package io.cloudx.sdk.internal.ads
 
+import android.os.Bundle
 import com.xor.XorEncryption
 import io.cloudx.sdk.Destroyable
 import io.cloudx.sdk.Result
@@ -71,7 +72,7 @@ internal class CreateBidAdParams(
     val placementId: String,
     val bidId: String,
     val adm: String,
-    val params: Map<String, String>?,
+    val adapterExtras: Bundle,
     val burl: String?,
     val nurl: String?,
     val lurl: String?,
@@ -237,7 +238,7 @@ private fun <T : Destroyable> BidResponse.toBidAdSourceResponse(
                             placementId = bidRequestParams.placementId,
                             bidId = bid.id,
                             adm = bid.adm,
-                            params = bid.adapterExtras,
+                            adapterExtras = bid.adapterExtras,
                             burl = bid.burl,
                             nurl = bid.nurl,
                             lurl = bid.lurl,

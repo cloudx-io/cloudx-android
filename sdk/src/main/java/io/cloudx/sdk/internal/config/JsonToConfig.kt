@@ -6,7 +6,7 @@ import io.cloudx.sdk.internal.CLXError
 import io.cloudx.sdk.internal.CLXErrorCode
 import io.cloudx.sdk.internal.CloudXLogger
 import io.cloudx.sdk.internal.toAdNetwork
-import io.cloudx.sdk.internal.toStringPairMap
+import io.cloudx.sdk.internal.toBundle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -67,7 +67,7 @@ private fun JSONArray.toBidders(): Map<AdNetwork, Config.Bidder> {
 
         bidders[adNetwork] = Config.Bidder(
             adNetwork = adNetwork,
-            initData = bidder.getJSONObject("initData").toStringPairMap()
+            initData = bidder.getJSONObject("initData").toBundle()
         )
     }
 

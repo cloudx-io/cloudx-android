@@ -1,11 +1,12 @@
 package io.cloudx.adapter.meta
 
 import android.content.Context
+import android.os.Bundle
 import androidx.annotation.Keep
 import com.facebook.ads.AudienceNetworkAds
 import io.cloudx.sdk.CloudXPrivacy
-import io.cloudx.sdk.internal.adapter.CloudXAdapterInitializer
 import io.cloudx.sdk.internal.adapter.CloudXAdapterInitializationResult
+import io.cloudx.sdk.internal.adapter.CloudXAdapterInitializer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -17,7 +18,7 @@ internal object Initializer : CloudXAdapterInitializer {
 
     override suspend fun initialize(
         context: Context,
-        config: Map<String, String>,
+        serverExtras: Bundle,
         privacy: StateFlow<CloudXPrivacy>
     ): CloudXAdapterInitializationResult = withContext(Dispatchers.Main) {
         if (isInitialized) {
@@ -38,7 +39,7 @@ internal object Initializer : CloudXAdapterInitializer {
                     try {
                         continuation.resume(CloudXAdapterInitializationResult.Success)
                     } catch (e: Exception) {
-                        log(TAG, "Continuation resumed more than once: ${e.message}")
+                        log(TAG, "Continuation resumed more than once", e)
                     }
                 } else {
                     log(TAG, "Meta SDK failed to finish initialization: ${initResult.message}")
@@ -46,8 +47,15 @@ internal object Initializer : CloudXAdapterInitializer {
                 }
             }
 
+            val placementIds = serverExtras.getPlacementIds()
+            if (placementIds.isEmpty()) {
+                log(TAG, "No placement IDs found for Meta adapter initialization")
+            }
+
+            log(TAG, "Initializing Meta Audience Network SDK with placement IDs: $placementIds")
             AudienceNetworkAds.buildInitSettings(context)
                 .withMediationService("")
+                .withPlacementIds(placementIds)
                 .withInitListener(initListener)
                 .initialize()
         }

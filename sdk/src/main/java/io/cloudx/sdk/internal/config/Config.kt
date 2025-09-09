@@ -1,5 +1,6 @@
 package io.cloudx.sdk.internal.config
 
+import android.os.Bundle
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.config.Config.Placement
 import org.json.JSONObject
@@ -38,7 +39,7 @@ internal class Config(
      */
     class Bidder(
         val adNetwork: AdNetwork,
-        val initData: Map<String, String>
+        val initData: Bundle
     )
 
     /**

@@ -1,5 +1,6 @@
 package io.cloudx.sdk.testing
 
+import android.os.Bundle
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.bid.Bid
 
@@ -17,7 +18,7 @@ internal object TestBids {
                 lurl = "https://example.com/lurl/test-loser-1/lossPrice=\${AUCTION_PRICE}&lossReason=\${AUCTION_LOSS}",
                 adNetwork = AdNetwork.CloudX, // or another test one
                 rank = 2,
-                adapterExtras = emptyMap(),
+                adapterExtras = Bundle.EMPTY,
                 dealId = null,
                 creativeId = null,
                 auctionId = auctionId,
@@ -34,7 +35,7 @@ internal object TestBids {
                 lurl = "https://example.com/lurl/test-loser-2/lossPrice=\${AUCTION_PRICE}&lossReason=\${AUCTION_LOSS}",
                 adNetwork = AdNetwork.CloudX,
                 rank = 3,
-                adapterExtras = emptyMap(),
+                adapterExtras = Bundle.EMPTY,
                 dealId = null,
                 creativeId = null,
                 auctionId = auctionId,
@@ -51,7 +52,7 @@ internal object TestBids {
                 lurl = null,
                 adNetwork = AdNetwork.CloudX,
                 rank = 4,
-                adapterExtras = emptyMap(),
+                adapterExtras = Bundle.EMPTY,
                 dealId = null,
                 creativeId = null,
                 auctionId = auctionId,

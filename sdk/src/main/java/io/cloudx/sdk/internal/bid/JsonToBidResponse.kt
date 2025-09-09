@@ -1,12 +1,13 @@
 package io.cloudx.sdk.internal.bid
 
+import android.os.Bundle
 import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.CLXError
 import io.cloudx.sdk.internal.CLXErrorCode
 import io.cloudx.sdk.internal.CloudXLogger
 import io.cloudx.sdk.internal.toAdNetwork
-import io.cloudx.sdk.internal.toStringPairMap
+import io.cloudx.sdk.internal.toBundle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -111,14 +112,14 @@ private fun JSONObject.getRank(): Int =
         .getJSONObject(CLOUDX)
         .getInt(RANK)
 
-private fun JSONObject.getAdapterExtras(): Map<String, String> {
+private fun JSONObject.getAdapterExtras(): Bundle {
     val cloudX = getJSONObject(EXT)
         .getJSONObject(CLOUDX)
 
     val key = "adapter_extras"
     val adapterExtras = if (cloudX.has(key)) cloudX.getJSONObject(key) else null
 
-    return adapterExtras?.toStringPairMap() ?: mapOf()
+    return adapterExtras?.toBundle() ?: Bundle.EMPTY
 }
 
 private const val PREBID = "prebid"

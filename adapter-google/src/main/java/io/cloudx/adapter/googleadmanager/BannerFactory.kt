@@ -1,6 +1,7 @@
 package io.cloudx.adapter.googleadmanager
 
 import android.app.Activity
+import android.os.Bundle
 import io.cloudx.sdk.internal.AdViewSize
 import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapter
@@ -20,7 +21,7 @@ internal object BannerFactory : CloudXAdViewAdapterFactory,
         placementId: String,
         bidId: String,
         adm: String,
-        params: Map<String, String>?,
+        serverExtras: Bundle,
         miscParams: BannerFactoryMiscParams,
         listener: CloudXAdViewAdapterListener,
     ): Result<CloudXAdViewAdapter, String> = Result.Success(

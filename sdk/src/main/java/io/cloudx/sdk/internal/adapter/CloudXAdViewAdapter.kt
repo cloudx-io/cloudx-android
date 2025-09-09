@@ -1,6 +1,7 @@
 package io.cloudx.sdk.internal.adapter
 
 import android.app.Activity
+import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import io.cloudx.sdk.Destroyable
@@ -17,7 +18,7 @@ interface CloudXAdViewAdapterFactory : CloudXAdapterMetaData, CloudXAdViewSizeSu
         placementId: String,
         bidId: String,
         adm: String,
-        params: Map<String, String>?,
+        serverExtras: Bundle,
         miscParams: BannerFactoryMiscParams,
         listener: CloudXAdViewAdapterListener
     ): Result<CloudXAdViewAdapter, String>

@@ -10,7 +10,7 @@ internal class MockAdapterFactoryResolver : AdapterFactoryResolver {
     override fun resolveBidAdNetworkFactories(forTheseNetworks: Set<AdNetwork>): BidAdNetworkFactories {
         return BidAdNetworkFactories(
             initializers = mutableMapOf(
-                AdNetwork.TestNetwork to MockAdapterInitializer()
+                AdNetwork.CloudX to MockAdapterInitializer()
             ),
             bidRequestExtrasProviders = mockk(),
             interstitials = mockk(),

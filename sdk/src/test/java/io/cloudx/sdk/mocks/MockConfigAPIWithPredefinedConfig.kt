@@ -1,8 +1,9 @@
 package io.cloudx.sdk.mocks
 
-import io.cloudx.sdk.internal.CLXError
+import android.os.Bundle
 import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.AdNetwork
+import io.cloudx.sdk.internal.CLXError
 import io.cloudx.sdk.internal.config.Config
 import io.cloudx.sdk.internal.config.ConfigApi
 import io.cloudx.sdk.internal.config.ConfigRequest
@@ -20,8 +21,8 @@ internal class MockConfigAPIWithPredefinedConfig : ConfigApi {
             cdpEndpointUrl = Config.EndpointConfig(""),
             sessionId = "mock-sessionid-${UUID.randomUUID()}",
             // To support mock bid network adapter implementation.
-            bidders = mapOf(AdNetwork.TestNetwork.let { bidderName ->
-                bidderName to Config.Bidder(bidderName, emptyMap())
+            bidders = mapOf(AdNetwork.CloudX.let { bidderName ->
+                bidderName to Config.Bidder(bidderName, Bundle.EMPTY)
             }),
             trackingEndpointUrl = "nopoint",
             organizationId = "",

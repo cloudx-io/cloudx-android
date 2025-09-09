@@ -3,12 +3,13 @@ package io.cloudx.sdk.internal.initialization
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.AdViewSize
 import io.cloudx.sdk.internal.CloudXLogger
-import io.cloudx.sdk.internal.adapter.CloudXAdapterInitializer
-import io.cloudx.sdk.internal.adapter.CloudXAdViewSizeSupport
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterFactory
-import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapterFactory
+import io.cloudx.sdk.internal.adapter.CloudXAdViewSizeSupport
 import io.cloudx.sdk.internal.adapter.CloudXAdapterBidRequestExtrasProvider
+import io.cloudx.sdk.internal.adapter.CloudXAdapterInitializer
+import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapterFactory
 import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapterFactory
+import io.cloudx.sdk.internal.toAdapterPackagePrefix
 
 internal class AdapterFactoryResolverImpl: AdapterFactoryResolver {
 
@@ -84,18 +85,6 @@ private fun instance(className: String) = try {
 } catch (e: Exception) {
     CloudXLogger.e(TAG, e.toString())
     null
-}
-
-private fun AdNetwork.toAdapterPackagePrefix(): String? = when (this) {
-    AdNetwork.GoogleAdManager -> "googleadmanager"
-    AdNetwork.TestNetwork -> "testbidnetwork"
-    AdNetwork.Meta -> "meta"
-    AdNetwork.Mintegral -> "mintegral"
-    AdNetwork.CloudX -> "cloudx"
-    AdNetwork.CloudXSecond -> "cloudx"
-    is AdNetwork.Unknown -> null
-}?.let {
-    "io.cloudx.adapter.$it."
 }
 
 private const val TAG = "AdapterFactoryResolverImpl"

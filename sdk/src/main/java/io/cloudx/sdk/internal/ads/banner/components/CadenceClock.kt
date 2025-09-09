@@ -86,10 +86,11 @@ internal class VisibilityAwareRefreshClock(
             while (isActive) {
                 delay(intervalMs)
                 when {
-                    inflight -> {
-                        // Ignore elapsed time while a request is in-flight; do not queue an extra tick
-                    }
+                    // Prioritize hidden queue regardless of in-flight status, so wall-clock while hidden is preserved
                     !visible -> queuedHidden = true // queue exactly one while hidden
+                    inflight -> {
+                        // Ignore elapsed time while a request is in-flight; no immediate emit, hidden already handled above
+                    }
                     else -> _ticks.tryEmit(Unit)
                 }
             }

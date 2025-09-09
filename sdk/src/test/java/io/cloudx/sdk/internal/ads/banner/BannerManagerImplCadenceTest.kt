@@ -1,8 +1,7 @@
 package io.cloudx.sdk.internal.ads.banner
-
-import android.util.Log
 import io.cloudx.sdk.CloudXAdViewListener
 import io.cloudx.sdk.TestMainDispatcherRule
+import io.cloudx.sdk.internal.CloudXLogger
 import io.cloudx.sdk.internal.ads.banner.components.BannerAdLoader
 import io.cloudx.sdk.internal.ads.banner.components.BannerLoadOutcome
 import io.cloudx.sdk.internal.common.service.AppLifecycleService
@@ -15,8 +14,6 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkStatic
-import io.mockk.unmockkStatic
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -50,22 +47,42 @@ class BannerManagerImplCadenceTest {
     @Before
     fun setup() {
         MockKAnnotations.init(this)
-        mockkStatic(Log::class)
-        every { Log.v(any(), any()) } returns 0
-        every { Log.d(any(), any()) } returns 0
-        every { Log.i(any(), any()) } returns 0
-        every { Log.w(any(), any(), any()) } returns 0
-        every { Log.w(any(), any(), any()) } returns 0
-        every { Log.e(any(), any()) } returns 0
-        every { Log.e(any(), any(), any()) } returns 0
+        // Disable logger to avoid touching android.util.Log in JVM unit tests
+        CloudXLogger.isEnabled = false
 
         every { mockAppLifecycle.isResumed } returns appForeground
         coEvery { mockConnection.awaitConnection() } returns ConnectionInfo(false, ConnectionType.WIFI)
     }
 
+    @Test
+    fun `app foreground gating - fires only when app is resumed`() = runTest(mainRule.dispatcher) {
+        try {
+            // App starts in background though banner visibility is true
+            appForeground.value = false
+            coEvery { mockLoader.loadOnce() } returns BannerLoadOutcome.NoFill
+
+            createManager(refreshSeconds = 1)
+            runCurrent()
+
+            // No request should fire while app is backgrounded
+            coVerify(exactly = 0) { mockLoader.loadOnce() }
+
+            // Let interval elapse while backgrounded (should queue hidden/foreground tick)
+            advanceTimeBy(1_500)
+            runCurrent()
+            coVerify(exactly = 0) { mockLoader.loadOnce() }
+
+            // Bring app to foreground → immediate request should fire
+            appForeground.value = true
+            runCurrent()
+            coVerify(exactly = 1) { mockLoader.loadOnce() }
+        } finally {
+            mgr.destroy()
+        }
+    }
+
     @After
     fun tearDown() {
-        unmockkStatic(Log::class)
         if (this::mgr.isInitialized) mgr.destroy()
     }
 
@@ -85,6 +102,7 @@ class BannerManagerImplCadenceTest {
 
     @Test
     fun `no stacking after long in-flight`() = runTest(mainRule.dispatcher) {
+        try {
         // Arrange: visible from start; first load takes > interval
         val outcomeDeferred = CompletableDeferred<BannerLoadOutcome>()
         coEvery { mockLoader.loadOnce() } coAnswers { outcomeDeferred.await() }
@@ -109,10 +127,14 @@ class BannerManagerImplCadenceTest {
         advanceTimeBy(1_000)
         runCurrent()
         coVerify(exactly = 2) { mockLoader.loadOnce() }
+        } finally {
+            mgr.destroy()
+        }
     }
 
     @Test
     fun `hidden elapsed then visible during in-flight - immediate next on finish`() = runTest(mainRule.dispatcher) {
+        try {
         // Arrange: first request starts while visible, then we go hidden and let interval elapse
         val outcomeDeferred = CompletableDeferred<BannerLoadOutcome>()
         coEvery { mockLoader.loadOnce() } coAnswers { outcomeDeferred.await() } andThen
@@ -139,5 +161,8 @@ class BannerManagerImplCadenceTest {
         runCurrent()
 
         coVerify(exactly = 2) { mockLoader.loadOnce() }
+        } finally {
+            mgr.destroy()
+        }
     }
 }

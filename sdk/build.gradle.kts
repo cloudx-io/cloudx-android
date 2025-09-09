@@ -116,6 +116,9 @@ dependencies {
     annotationProcessor(libs.androidx.room.compiler)
     ksp(libs.androidx.room.compiler)
 
+    testImplementation("io.mockk:mockk:1.13.12")
+    testImplementation("org.slf4j:slf4j-nop:2.0.13")
+
     testImplementation(libs.bundles.test.unit)
     androidTestImplementation(libs.bundles.test.instrumentation)
 }
@@ -131,6 +134,22 @@ jacoco {
     toolVersion = libs.versions.jacoco.get()
 }
 
+tasks.withType<Test>().configureEach {
+    // Allow ByteBuddy self-attach under JDK 9+ modules
+    jvmArgs("-Djdk.attach.allowAttachSelf=true")
+
+    // Keep coverage from trying to instrument the JDK attach & internal modules
+    extensions.configure<JacocoTaskExtension> {
+        isIncludeNoLocationClasses = true
+        excludes = listOf(
+            "com/sun/tools/attach/**",
+            "jdk/internal/**",
+            "jdk/jfr/**",
+            "org/jacoco/**" // optional
+        )
+    }
+}
+
 // Register a JacocoReport task for code coverage analysis
 tasks.register<JacocoReport>("jacocoDebugCodeCoverage") {
     val exclusions = listOf(
@@ -138,6 +157,9 @@ tasks.register<JacocoReport>("jacocoDebugCodeCoverage") {
         "**/Manifest*.*",
         "**/*Test*.*",
         "**/Logger*.class",
+        "com/sun/tools/attach/**",
+        "jdk/internal/**",
+        "org/jacoco/**"
     )
 
     val unitTests = "testDebugUnitTest"

@@ -10,7 +10,7 @@ import kotlinx.coroutines.launch
  * Merges the banner's own visibility with app foreground to produce "effective visibility".
  * If your upstream already emits false on background, this is still harmless.
  */
-internal class VisibilityGate(
+internal class EffectiveVisibilityGate(
     bannerVisibility: StateFlow<Boolean>,
     appForeground: StateFlow<Boolean>, // wrap AppLifecycleService if needed
     scope: CoroutineScope

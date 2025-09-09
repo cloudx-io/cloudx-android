@@ -26,7 +26,7 @@ internal interface CadenceClock {
  * - When becoming visible:
  *      - if not in-flight and queuedHidden -> emit one and clear.
  */
-internal class VisibilityAwareOneQueuedClock(
+internal class VisibilityAwareRefreshClock(
     private val intervalMs: Long,
     private val scope: CoroutineScope
 ) : CadenceClock {

@@ -15,7 +15,7 @@ internal interface BannerPresenter {
     fun hideCurrent() // optional hook if needed
 }
 
-internal class DefaultBannerPresenter(
+internal class SwappingBannerPresenter(
     private val placementId: String,
     private val placementName: String,
     private val listener: () -> CloudXAdViewListener?,

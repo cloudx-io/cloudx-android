@@ -1,14 +1,14 @@
 package io.cloudx.sdk.internal.ads.banner
 
-import VisibilityAwareOneQueuedClock
+import VisibilityAwareRefreshClock
 import io.cloudx.sdk.CloudXAdError
 import io.cloudx.sdk.CloudXAdViewListener
 import io.cloudx.sdk.internal.CLXErrorCode
 import io.cloudx.sdk.internal.CloudXLogger
 import io.cloudx.sdk.internal.ads.banner.components.BannerAdLoader
 import io.cloudx.sdk.internal.ads.banner.components.BannerLoadOutcome
-import io.cloudx.sdk.internal.ads.banner.components.DefaultBannerPresenter
-import io.cloudx.sdk.internal.ads.banner.components.VisibilityGate
+import io.cloudx.sdk.internal.ads.banner.components.SwappingBannerPresenter
+import io.cloudx.sdk.internal.ads.banner.components.EffectiveVisibilityGate
 import io.cloudx.sdk.internal.common.service.AppLifecycleService
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.decorate
@@ -46,15 +46,15 @@ internal class BannerManagerImpl(
     private var prefetched: BannerAdapterDelegate? = null
 
     // components
-    private val clock = VisibilityAwareOneQueuedClock(
+    private val clock = VisibilityAwareRefreshClock(
         intervalMs = (refreshSeconds.coerceAtLeast(1) * 1000L),
         scope = scope
     )
 
     private val appForeground: StateFlow<Boolean> = appLifecycleService.isResumed
-    private val gate = VisibilityGate(bannerVisibility, appForeground, scope)
+    private val gate = EffectiveVisibilityGate(bannerVisibility, appForeground, scope)
 
-    private val presenter = DefaultBannerPresenter(
+    private val presenter = SwappingBannerPresenter(
         placementId = placementId,
         placementName = placementName,
         listener = { listener },

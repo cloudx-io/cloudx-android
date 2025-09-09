@@ -123,18 +123,18 @@ internal class BannerManagerImpl(
                 BannerLoadOutcome.NoFill ->
                     listener?.onAdLoadFailed(CloudXAdError("No fill", CLXErrorCode.NO_FILL.code))
 
-                BannerLoadOutcome.TransientFailure -> {
+                BannerLoadOutcome.TransientFailure ->
+                    listener?.onAdLoadFailed(
+                        CloudXAdError(
+                            "Temporary error",
+                            CLXErrorCode.SERVER_ERROR.code
+                        )
+                    )
+
+                BannerLoadOutcome.PermanentFailure -> {
                     stopPermanently("Permanent error", CLXErrorCode.CLIENT_ERROR.code)
                     return@launch
                 }
-
-                BannerLoadOutcome.PermanentFailure ->
-                    listener?.onAdLoadFailed(
-                        CloudXAdError(
-                            "Permanent error",
-                            CLXErrorCode.CLIENT_ERROR.code
-                        )
-                    )
 
                 BannerLoadOutcome.TrafficControl ->
                     listener?.onAdLoadFailed(

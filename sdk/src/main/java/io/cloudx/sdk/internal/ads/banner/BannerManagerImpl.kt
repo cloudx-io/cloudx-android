@@ -23,6 +23,24 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
+/**
+ * BannerManagerImpl implements the MVP Banner Refresh specification.
+ * 
+ * MVP Requirements implemented:
+ * - Single-flight requests (one active request per placement)
+ * - Wall-clock refresh timing that continues while hidden
+ * - Queue exactly one request when hidden, emit when visible
+ * - Complete in-flight requests even if banner becomes hidden
+ * - Prefetch successful loads while hidden, show when visible
+ * - No banner-level retries (network retries handled at lower layer)
+ * - Proper resource cleanup on destroy
+ * 
+ * Architecture: Divided into 4 specialized components for maintainability:
+ * 1. VisibilityAwareRefreshClock - Handles wall-clock timing + visibility-aware queuing
+ * 2. EffectiveVisibilityGate - Combines banner + app visibility into single effective state  
+ * 3. SwappingBannerPresenter - Manages banner display lifecycle and events
+ * 4. BannerManagerImpl - Orchestrates the above components + handles business logic
+ */
 internal class BannerManagerImpl(
     // === keep the original signature ===
     private val placementId: String,
@@ -43,17 +61,22 @@ internal class BannerManagerImpl(
             field = v?.decorate()
         }
 
+    // MVP: Cache successful loads when hidden, display when visible
     private var prefetched: BannerAdapterDelegate? = null
 
-    // components
+    // === COMPONENT ARCHITECTURE ===
+    
+    // 1. TIMING: Wall-clock refresh that continues while hidden (MVP requirement)
     private val clock = VisibilityAwareRefreshClock(
         intervalMs = (refreshSeconds.coerceAtLeast(1) * 1000L),
         scope = scope
     )
 
+    // 2. VISIBILITY: Combines banner visibility + app lifecycle (MVP requirement)
     private val appForeground: StateFlow<Boolean> = appLifecycleService.isResumed
     private val gate = EffectiveVisibilityGate(bannerVisibility, appForeground, scope)
 
+    // 3. PRESENTATION: Handles banner display/hide/events lifecycle
     private val presenter = SwappingBannerPresenter(
         placementId = placementId,
         placementName = placementName,
@@ -76,54 +99,68 @@ internal class BannerManagerImpl(
     }
 
     private fun start() {
-        // react to effective visibility
+        // === MVP: VISIBILITY HANDLING ===
+        // React to effective visibility changes (banner visible + app foreground)
         visJob?.cancel()
         visJob = scope.launch {
             gate.effective.collect { visible ->
-                // 1) inform the clock
+                // MVP: Inform clock of visibility changes for queuing logic
                 clock.setVisible(visible)
-                // 2) show any prefetched immediately
+                
+                // MVP: Show prefetched banners immediately when becoming visible
                 if (visible) {
                     prefetched?.let { presenter.show(it); prefetched = null }
                 }
             }
         }
 
+        // MVP: Start wall-clock timing (continues even while hidden)
         clock.start()
 
+        // === MVP: REQUEST TRIGGERING ===
+        // Listen to clock ticks and launch single-flight requests
         tickJob?.cancel()
         tickJob = scope.launch {
             clock.ticks.collect {
-                launchRequest()
+                launchRequest() // MVP: Single-flight - only one active at a time
             }
         }
     }
 
     private fun launchRequest() {
+        // MVP: Mark request as in-flight to prevent stacking
         clock.markRequestStarted()
-        reqJob?.cancel()
+        reqJob?.cancel() // Cancel any previous request (should not happen due to single-flight)
         reqJob = scope.launch {
             metricsTrackerNew.trackMethodCall(MetricsType.Method.BannerRefresh)
+            
+            // MVP: Wait for network connection before proceeding
             try {
                 connectionStatusService.awaitConnection()
             } catch (_: CancellationException) {
-                clock.markRequestFinished()
+                clock.markRequestFinished() // MVP: Always mark finished to restart timer
                 return@launch
             }
 
+            // MVP: Single load attempt (no banner-level retries)
             when (val outcome = loader.loadOnce()) {
                 is BannerLoadOutcome.Success -> {
-                    if (gate.effective.value) presenter.show(outcome.banner)
-                    else {
+                    // MVP: Show immediately if visible, prefetch if hidden
+                    if (gate.effective.value) {
+                        presenter.show(outcome.banner)
+                    } else {
+                        // MVP: Complete request even if hidden - cache for later display
                         prefetched?.destroy(); prefetched = outcome.banner
                         CloudXLogger.d(TAG, placementName, placementId, "Prefetched while hidden")
                     }
                 }
 
                 BannerLoadOutcome.NoFill ->
+                    // MVP: Emit error and wait for next interval (no banner retry)
                     listener?.onAdLoadFailed(CloudXAdError("No fill", CLXErrorCode.NO_FILL.code))
 
                 BannerLoadOutcome.TransientFailure ->
+                    // MVP: Network/5xx errors - emit error, continue refresh cycle
                     listener?.onAdLoadFailed(
                         CloudXAdError(
                             "Temporary error",
@@ -132,11 +169,13 @@ internal class BannerManagerImpl(
                     )
 
                 BannerLoadOutcome.PermanentFailure -> {
+                    // MVP: 4xx client errors - stop permanently 
                     stopPermanently("Permanent error", CLXErrorCode.CLIENT_ERROR.code)
                     return@launch
                 }
 
                 BannerLoadOutcome.TrafficControl ->
+                    // MVP: Ads disabled - emit error, continue refresh cycle
                     listener?.onAdLoadFailed(
                         CloudXAdError(
                             "Ads disabled",
@@ -145,6 +184,7 @@ internal class BannerManagerImpl(
                     )
             }
 
+            // MVP: Mark request finished to restart timer and avoid stacking
             clock.markRequestFinished()
         }
     }
@@ -164,12 +204,16 @@ internal class BannerManagerImpl(
     private var isDestroyed = false
     override fun destroy() {
         if (isDestroyed) return
+        isDestroyed = true
+        
+        // MVP: Cancel all timers and requests
         scope.cancel()
         tickJob?.cancel()
         visJob?.cancel()
         reqJob?.cancel()
         clock.stop()
 
+        // MVP: Clear prefetched creatives
         prefetched?.destroy()
         presenter.destroy()
         prefetched = null

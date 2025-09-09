@@ -36,8 +36,11 @@ internal suspend fun HttpClient.postJsonWithRetry(
         requestTimeoutMillis(timeoutMillis)
         retry {
             maxRetries = retryMax
-            retryOnExceptionOrServerErrors()
-            retryIf { _, resp -> extraRetryPredicate(resp) }
+            retryOnException(retryOnTimeout = true)
+            retryIf { _, httpResponse ->
+                // MVP spec: "5xx Server Errors: Retry once after 1-second delay"
+                httpResponse.status.value in 500..599 || extraRetryPredicate(httpResponse)
+            }
             constantDelay(
                 millis = CLOUDX_DEFAULT_RETRY_MS,
                 randomizationMs = 1000L,
@@ -105,8 +108,11 @@ internal suspend fun HttpClient.getWithRetry(
         requestTimeoutMillis(timeoutMillis)
         retry {
             maxRetries = retryMax
-            retryOnExceptionOrServerErrors()
-            retryIf { _, resp -> extraRetryPredicate(resp) }
+            retryOnException(retryOnTimeout = true)
+            retryIf { _, httpResponse ->
+                // MVP spec: "5xx Server Errors: Retry once after 1-second delay"
+                httpResponse.status.value in 500..599 || extraRetryPredicate(httpResponse)
+            }
             constantDelay(
                 millis = CLOUDX_DEFAULT_RETRY_MS,
                 randomizationMs = 1000L,

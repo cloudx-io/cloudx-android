@@ -1,7 +1,6 @@
 package io.cloudx.cd.staticrenderer
 
 import android.content.Context
-import io.cloudx.sdk.internal.FullscreenAd
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel

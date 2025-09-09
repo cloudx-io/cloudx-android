@@ -1,4 +1,4 @@
-package io.cloudx.sdk.internal
+package io.cloudx.cd.staticrenderer
 
 import io.cloudx.sdk.Destroyable
 
@@ -13,7 +13,7 @@ import io.cloudx.sdk.Destroyable
  *
  * CLEANING UP RESOURCES:<br>
  *
- * In case of getting [Listener.onHide], [Listener.onLoadError] or [Listener.onShowError] callback events, or simply when [Activity] is destroyed, in order to prevent memory leaks make sure to call [Destroyable.destroy] method <br>
+ * In case of getting [Listener.onHide], [Listener.onLoadError] or [Listener.onShowError] callback events, or simply when [Activity] is destroyed, in order to prevent memory leaks make sure to call [destroy] method <br>
  *
  * CAVEATS: <br>
  *

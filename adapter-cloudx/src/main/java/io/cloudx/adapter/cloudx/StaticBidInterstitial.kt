@@ -2,7 +2,7 @@ package io.cloudx.adapter.cloudx
 
 import android.content.Context
 import io.cloudx.cd.staticrenderer.StaticFullscreenAd
-import io.cloudx.sdk.internal.FullscreenAd
+import io.cloudx.cd.staticrenderer.FullscreenAd
 import io.cloudx.sdk.internal.adapter.AlwaysReadyToLoadAd
 import io.cloudx.sdk.internal.adapter.CloudXAdLoadOperationAvailability
 import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapter

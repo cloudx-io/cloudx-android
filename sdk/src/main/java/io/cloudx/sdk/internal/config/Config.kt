@@ -59,7 +59,8 @@ internal class Config(
             name: String,
             bidResponseTimeoutMillis: Int,
             adLoadTimeoutMillis: Int,
-            val refreshRateMillis: Int
+            val refreshRateMillis: Int,
+            val hasCloseButton: Boolean = false,
         ) : Placement(
             id,
             name,
@@ -72,13 +73,15 @@ internal class Config(
             name: String,
             bidResponseTimeoutMillis: Int,
             adLoadTimeoutMillis: Int,
-            refreshRateMillis: Int
+            refreshRateMillis: Int,
+            hasCloseButton: Boolean = false
         ) : Banner(
             id,
             name,
             bidResponseTimeoutMillis,
             adLoadTimeoutMillis,
-            refreshRateMillis
+            refreshRateMillis,
+            hasCloseButton
         )
 
         class Interstitial(
@@ -101,7 +104,8 @@ internal class Config(
             bidResponseTimeoutMillis: Int,
             adLoadTimeoutMillis: Int,
             val templateType: TemplateType,
-            val refreshRateMillis: Int
+            val refreshRateMillis: Int,
+            val hasCloseButton: Boolean = false,
         ) : Placement(
             id,
             name,

@@ -34,7 +34,8 @@ class CloudXAdView internal constructor(
         bannerVisibility: StateFlow<Boolean>,
         suspendPreloadWhenInvisible: Boolean,
     ) -> BannerManager,
-    private val placementName: String
+    private val placementName: String,
+    private val hasCloseButton: Boolean
 ) : FrameLayout(activity), Destroyable {
 
     private val TAG = "CloudXAdView"
@@ -152,6 +153,36 @@ class CloudXAdView internal constructor(
                         Gravity.CENTER
                     )
                 )
+
+                if (hasCloseButton) {
+                    val closeButton = ImageButton(context).apply {
+                        setImageResource(android.R.drawable.ic_menu_close_clear_cancel)
+                        background = null
+                        scaleType = ImageView.ScaleType.CENTER
+                        setOnClickListener {
+                            // TODO this will never succeed consider removing close button altogether
+//                            banner?.let {
+//                                val adNetwork = (it as? SuspendableBanner)?.bidderName
+//                                listener?.onAdHidden(CloudXAd(adNetwork))
+//                            }
+
+                            listener?.onAdCollapsed(placementName)
+                            PlacementLoopIndexTracker.reset(placementName)
+                            destroy()
+                        }
+                        setPadding(context.dpToPx(2))
+                    }
+
+                    val closeBtnSize = context.dpToPx(12)
+                    val closeBtnParams = LayoutParams(closeBtnSize, closeBtnSize).apply {
+                        gravity = Gravity.END or Gravity.TOP
+                        topMargin = context.dpToPx(4)
+                        marginEnd = context.dpToPx(4)
+                    }
+
+                    bannerContainer.addView(closeButton, closeBtnParams)
+                }
+
                 CloudXLogger.i(TAG, message = "added banner view to the background layer: ${bannerViewToAdd.javaClass.simpleName}")
 
             } catch (e: Exception) {

@@ -121,6 +121,7 @@ private fun JSONArray.toPlacements(): Map<String, Config.Placement> {
         val bidResponseTimeoutMillis = jsonPlacement.getInt("bidResponseTimeoutMs")
         val adLoadTimeoutMillis = jsonPlacement.getInt("adLoadTimeoutMs")
         val placementType = jsonPlacement.getString("type")
+        val hasCloseButton = jsonPlacement.opt("hasCloseButton") as? Boolean ?: false
 
         val placement = when (placementType.uppercase()) {
 
@@ -130,6 +131,7 @@ private fun JSONArray.toPlacements(): Map<String, Config.Placement> {
                 bidResponseTimeoutMillis,
                 adLoadTimeoutMillis,
                 refreshRateMillis = jsonPlacement.getInt("bannerRefreshRateMs"),
+                hasCloseButton
             )
 
             "MREC" -> Config.Placement.MREC(
@@ -137,7 +139,8 @@ private fun JSONArray.toPlacements(): Map<String, Config.Placement> {
                 name,
                 bidResponseTimeoutMillis,
                 adLoadTimeoutMillis,
-                refreshRateMillis = jsonPlacement.getInt("bannerRefreshRateMs")
+                refreshRateMillis = jsonPlacement.getInt("bannerRefreshRateMs"),
+                hasCloseButton
             )
 
             "INTERSTITIAL" -> Config.Placement.Interstitial(
@@ -155,7 +158,8 @@ private fun JSONArray.toPlacements(): Map<String, Config.Placement> {
                 adLoadTimeoutMillis,
                 jsonPlacement.toNativeTemplateType(),
                 // TODO. getInt() once back-end supports.
-                refreshRateMillis = jsonPlacement.optInt("bannerRefreshRateMs", 900_000)
+                refreshRateMillis = jsonPlacement.optInt("bannerRefreshRateMs", 900_000),
+                hasCloseButton
             )
 
             else -> {

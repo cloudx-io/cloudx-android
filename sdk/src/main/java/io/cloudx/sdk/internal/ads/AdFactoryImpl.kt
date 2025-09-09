@@ -77,6 +77,13 @@ internal class AdFactoryImpl(
             adViewSize = size
         )
 
+        val hasCloseButton = when (placement) {
+            is Config.Placement.MREC -> placement.hasCloseButton
+            is Config.Placement.Banner -> placement.hasCloseButton
+            is Config.Placement.Native -> placement.hasCloseButton
+            else -> false
+        }
+
         val activity = params.activity
 
         return CloudXAdView(
@@ -109,6 +116,7 @@ internal class AdFactoryImpl(
                     appKey = appKey
                 )
             },
+            hasCloseButton = hasCloseButton,
             placementName = placementName
         ).apply {
             listener = params.listener

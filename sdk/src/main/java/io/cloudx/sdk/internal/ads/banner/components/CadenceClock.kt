@@ -37,31 +37,20 @@ internal class VisibilityAwareOneQueuedClock(
     private var job: Job? = null
     private var inflight = false
     private var visible = false
-    private var queuedInFlight = false
     private var queuedHidden = false
 
     override fun start() {
         if (job != null) return
         require(intervalMs >= 1000) { "Refresh interval must be >= 1s" }
-        job = scope.launch {
-            while (isActive) {
-                delay(intervalMs)
-                when {
-                    inflight -> queuedInFlight = true
-                    !visible -> queuedHidden = true
-                    else -> _ticks.tryEmit(Unit)
-                }
-            }
-        }
-        // Optional: immediate tick if already visible
+        // Optional: immediate tick if already visible; otherwise, queue one for when it becomes visible
         if (visible) _ticks.tryEmit(Unit) else queuedHidden = true
+        scheduleLoop()
     }
 
     override fun stop() {
         job?.cancel()
         job = null
         inflight = false
-        queuedInFlight = false
         queuedHidden = false
     }
 
@@ -80,10 +69,30 @@ internal class VisibilityAwareOneQueuedClock(
 
     override fun markRequestFinished() {
         inflight = false
-        if (visible && queuedInFlight) {
-            queuedInFlight = false
+        // If we became visible while in-flight and a hidden tick is queued,
+        // emit it immediately now (earliest feasible time) and skip restarting delay.
+        if (visible && queuedHidden) {
+            queuedHidden = false
             _ticks.tryEmit(Unit)
+            return
         }
-        // if hidden we’ll emit when we become visible via setVisible()
+        // Otherwise, restart the cadence: next tick after a full interval
+        scheduleLoop()
+    }
+
+    private fun scheduleLoop() {
+        job?.cancel()
+        job = scope.launch {
+            while (isActive) {
+                delay(intervalMs)
+                when {
+                    inflight -> {
+                        // Ignore elapsed time while a request is in-flight; do not queue an extra tick
+                    }
+                    !visible -> queuedHidden = true // queue exactly one while hidden
+                    else -> _ticks.tryEmit(Unit)
+                }
+            }
+        }
     }
 }

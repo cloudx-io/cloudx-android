@@ -34,24 +34,6 @@ jobs:
             echo "tagPrefix=v-adapter-meta-" >> $GITHUB_OUTPUT
             echo "artifactName=adapter-meta-release.aar" >> $GITHUB_OUTPUT
             echo "version=${GITHUB_REF_NAME#v-adapter-meta-}" >> $GITHUB_OUTPUT
-          elif [[ "${{ github.ref_name }}" == v-adapter-google-* ]]; then
-            echo "module=adapter-google" >> $GITHUB_OUTPUT
-            echo "path=adapter-google" >> $GITHUB_OUTPUT
-            echo "tagPrefix=v-adapter-google-" >> $GITHUB_OUTPUT
-            echo "artifactName=adapter-google-release.aar" >> $GITHUB_OUTPUT
-            echo "version=${GITHUB_REF_NAME#v-adapter-google-}" >> $GITHUB_OUTPUT
-          elif [[ "${{ github.ref_name }}" == v-adapter-mintegral-* ]]; then
-            echo "module=adapter-mintegral" >> $GITHUB_OUTPUT
-            echo "path=adapter-mintegral" >> $GITHUB_OUTPUT
-            echo "tagPrefix=v-adapter-mintegral-" >> $GITHUB_OUTPUT
-            echo "artifactName=adapter-mintegral-release.aar" >> $GITHUB_OUTPUT
-            echo "version=${GITHUB_REF_NAME#v-adapter-mintegral-}" >> $GITHUB_OUTPUT
-          elif [[ "${{ github.ref_name }}" == v-adapter-testbidder-* ]]; then
-            echo "module=adapter-testbidder" >> $GITHUB_OUTPUT
-            echo "path=adapter-testbidder" >> $GITHUB_OUTPUT
-            echo "tagPrefix=v-adapter-testbidder-" >> $GITHUB_OUTPUT
-            echo "artifactName=adapter-testbidder-release.aar" >> $GITHUB_OUTPUT
-            echo "version=${GITHUB_REF_NAME#v-adapter-testbidder-}" >> $GITHUB_OUTPUT
           elif [[ "${{ github.ref_name }}" == v-adapter-all-* ]]; then
             echo "publishAll=true" >> $GITHUB_OUTPUT
             echo "version=${GITHUB_REF_NAME#v-adapter-all-}" >> $GITHUB_OUTPUT
@@ -184,18 +166,12 @@ jobs:
       - name: 🛠 Build All Adapter Release AARs
         run: |
           ./gradlew :adapter-cloudx:assembleRelease -PuseRemoteSdk=true -Pversion=${{ needs.determine-module.outputs.version }}
-          ./gradlew :adapter-google:assembleRelease -PuseRemoteSdk=true -Pversion=${{ needs.determine-module.outputs.version }}
           ./gradlew :adapter-meta:assembleRelease -PuseRemoteSdk=true -Pversion=${{ needs.determine-module.outputs.version }}
-          ./gradlew :adapter-mintegral:assembleRelease -PuseRemoteSdk=true -Pversion=${{ needs.determine-module.outputs.version }}
-          ./gradlew :adapter-testbidder:assembleRelease -PuseRemoteSdk=true -Pversion=${{ needs.determine-module.outputs.version }}
 
       - name: 📦 Publish All Adapters to Maven Central
         run: |
           ./gradlew :adapter-cloudx:publishToMavenCentral --no-daemon --stacktrace -PuseRemoteSdk=true -Pversion=${{ needs.determine-module.outputs.version }}
-          ./gradlew :adapter-google:publishToMavenCentral --no-daemon --stacktrace -PuseRemoteSdk=true -Pversion=${{ needs.determine-module.outputs.version }}
           ./gradlew :adapter-meta:publishToMavenCentral --no-daemon --stacktrace -PuseRemoteSdk=true -Pversion=${{ needs.determine-module.outputs.version }}
-          ./gradlew :adapter-mintegral:publishToMavenCentral --no-daemon --stacktrace -PuseRemoteSdk=true -Pversion=${{ needs.determine-module.outputs.version }}
-          ./gradlew :adapter-testbidder:publishToMavenCentral --no-daemon --stacktrace -PuseRemoteSdk=true -Pversion=${{ needs.determine-module.outputs.version }}
         env:
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralUsername }}
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralPassword }}
@@ -208,10 +184,7 @@ jobs:
           name: all-adapters-${{ needs.determine-module.outputs.version }}
           path: |
             adapter-cloudx/build/outputs/aar/adapter-cloudx-release.aar
-            adapter-google/build/outputs/aar/adapter-google-release.aar
             adapter-meta/build/outputs/aar/adapter-meta-release.aar
-            adapter-mintegral/build/outputs/aar/adapter-mintegral-release.aar
-            adapter-testbidder/build/outputs/aar/adapter-testbidder-release.aar
 
       - name: 📢 Slack Notification
         uses: 8398a7/action-slack@v3
@@ -233,7 +206,7 @@ jobs:
                   },
                   {
                     "title": "Adapters",
-                    "value": "All CloudX Adapters (cloudx, google, meta, mintegral, testbidder)",
+                    "value": "All CloudX Adapters (cloudx, meta)",
                     "short": true
                   },
                   {

@@ -23,7 +23,4 @@ include(":app")
 // local dev
 include(":adapter-cloudx")
 include(":adapter-meta")
-include(":adapter-google")
-include(":adapter-mintegral")
-include(":adapter-testbidder")
 include(":sdk")

@@ -39,18 +39,12 @@ android {
 dependencies {
     // publishers
 //    implementation("io.cloudx:sdk:0.0.1.36")
-//    implementation("io.cloudx:adapter-google:v0.0.1.14")
 //    implementation("io.cloudx:adapter-cloudx:0.0.1.00")
 //    implementation("io.cloudx:adapter-meta:0.0.1.00")
-//    implementation("io.cloudx:adapter-mintegral:0.0.1.00")
-//    implementation("io.cloudx:adapter-testbidder:0.0.1.27")
 
     // local dev
     implementation(project(":adapter-meta"))
     implementation(project(":adapter-cloudx"))
-    implementation(project(":adapter-google"))
-    implementation(project(":adapter-mintegral"))
-    implementation(project(":adapter-testbidder"))
     implementation(project(":sdk"))
 
     implementation(libs.core.ktx)

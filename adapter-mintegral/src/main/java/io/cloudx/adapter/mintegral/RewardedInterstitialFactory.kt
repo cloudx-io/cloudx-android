@@ -22,9 +22,9 @@ internal object RewardedInterstitialFactory :
     ): Result<CloudXRewardedInterstitialAdapter, String> = Result.Success(
         RewardedInterstitialAdapter(
             contextProvider,
-            placementId = serverExtras?.placementId(),
+            placementId = serverExtras.placementId(),
             adUnitId = adm,
-            bidId = serverExtras?.bidId(),
+            bidId = serverExtras.bidId(),
             listener
         )
     )

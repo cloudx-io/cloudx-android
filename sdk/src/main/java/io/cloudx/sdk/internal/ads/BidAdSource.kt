@@ -176,13 +176,9 @@ private class BidAdSourceImpl<T : Destroyable>(
         return when (result) {
             is Result.Success -> {
                 val resp = result.value.toBidAdSourceResponse(bidRequestParams, createBidAd)
-                if (resp.bidItemsByRank.isEmpty()) {
-                    CloudXLogger.d(logTag, "NO_BID")
-                    BidSourceResult.NoFill()
-                } else {
-                    // (optional logging/tracking)
-                    BidSourceResult.Success(resp)
-                }
+                // No-fill scenarios are handled at JSON parsing level (JsonToBidResponse)
+                // and HTTP level (BidApiImpl onNoContent), so success responses always have bids
+                BidSourceResult.Success(resp)
             }
 
             is Result.Failure -> {

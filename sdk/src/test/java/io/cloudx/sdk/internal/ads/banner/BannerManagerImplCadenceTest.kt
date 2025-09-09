@@ -10,7 +10,13 @@ import io.cloudx.sdk.internal.connectionstatus.ConnectionInfo
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.connectionstatus.ConnectionType
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTrackerNew
-import io.mockk.*
+import io.mockk.MockKAnnotations
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -48,7 +54,7 @@ class BannerManagerImplCadenceTest {
         every { Log.v(any(), any()) } returns 0
         every { Log.d(any(), any()) } returns 0
         every { Log.i(any(), any()) } returns 0
-        every { Log.w(any(), any()) } returns 0
+        every { Log.w(any(), any(), any()) } returns 0
         every { Log.w(any(), any(), any()) } returns 0
         every { Log.e(any(), any()) } returns 0
         every { Log.e(any(), any(), any()) } returns 0
@@ -78,7 +84,7 @@ class BannerManagerImplCadenceTest {
     }
 
     @Test
-    fun `no stacking after long in-flight`() = runTest {
+    fun `no stacking after long in-flight`() = runTest(mainRule.dispatcher) {
         // Arrange: visible from start; first load takes > interval
         val outcomeDeferred = CompletableDeferred<BannerLoadOutcome>()
         coEvery { mockLoader.loadOnce() } coAnswers { outcomeDeferred.await() }
@@ -106,7 +112,7 @@ class BannerManagerImplCadenceTest {
     }
 
     @Test
-    fun `hidden elapsed then visible during in-flight - immediate next on finish`() = runTest {
+    fun `hidden elapsed then visible during in-flight - immediate next on finish`() = runTest(mainRule.dispatcher) {
         // Arrange: first request starts while visible, then we go hidden and let interval elapse
         val outcomeDeferred = CompletableDeferred<BannerLoadOutcome>()
         coEvery { mockLoader.loadOnce() } coAnswers { outcomeDeferred.await() } andThen
@@ -135,4 +141,3 @@ class BannerManagerImplCadenceTest {
         coVerify(exactly = 2) { mockLoader.loadOnce() }
     }
 }
-

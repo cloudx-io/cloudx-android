@@ -1,31 +1,27 @@
 package io.cloudx.sdk.internal.ads.banner.components
 
-import kotlinx.coroutines.launch
+import VisibilityAwareRefreshClock
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import org.junit.Assert.assertEquals
 import org.junit.Test
-import kotlin.test.assertEquals
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class VisibilityAwareRefreshClockTest {
 
     @Test
-    fun `no stacking - next tick only after full interval post-finish`() = runTest(StandardTestDispatcher()) {
-        val scope = TestScope(this.testScheduler)
-        val clock = VisibilityAwareRefreshClock(intervalMs = 1_000, scope = scope)
-
-        clock.setVisible(true)
-        clock.start()
+    fun `no stacking - next tick only after full interval post-finish`() = runTest {
+        val clock = VisibilityAwareRefreshClock(intervalMs = 1_000, scope = this)
 
         var ticks = 0
-        val collectJob = scope.backgroundScope.launch {
-            clock.ticks.collect { ticks++ }
-        }
+        val collectJob = launch { clock.ticks.collect { ticks++ } }
+        // Ensure collector is active before we emit the immediate tick
+        runCurrent()
+        clock.setVisible(true)
+        clock.start()
 
         // Immediate first tick because visible at start
         runCurrent()
@@ -47,20 +43,17 @@ class VisibilityAwareRefreshClockTest {
         assertEquals(2, ticks)
 
         collectJob.cancel()
+        clock.stop()
     }
 
     @Test
-    fun `hidden elapsed, became visible during in-flight - emit on finish`() = runTest(StandardTestDispatcher()) {
-        val scope = TestScope(this.testScheduler)
-        val clock = VisibilityAwareRefreshClock(intervalMs = 1_000, scope = scope)
-
-        clock.setVisible(false)
-        clock.start()
+    fun `hidden elapsed, became visible during in-flight - emit on finish`() = runTest {
+        val clock = VisibilityAwareRefreshClock(intervalMs = 1_000, scope = this)
 
         var ticks = 0
-        val collectJob = scope.backgroundScope.launch {
-            clock.ticks.collect { ticks++ }
-        }
+        val collectJob = launch { clock.ticks.collect { ticks++ } }
+        clock.setVisible(false)
+        clock.start()
 
         // Hidden long enough to queue hidden tick
         advanceTimeBy(2_000)
@@ -80,20 +73,17 @@ class VisibilityAwareRefreshClockTest {
         assertEquals(1, ticks)
 
         collectJob.cancel()
+        clock.stop()
     }
 
     @Test
-    fun `hidden not in-flight - emit immediately on visible`() = runTest(StandardTestDispatcher()) {
-        val scope = TestScope(this.testScheduler)
-        val clock = VisibilityAwareRefreshClock(intervalMs = 1_000, scope = scope)
-
-        clock.setVisible(false)
-        clock.start()
+    fun `hidden not in-flight - emit immediately on visible`() = runTest {
+        val clock = VisibilityAwareRefreshClock(intervalMs = 1_000, scope = this)
 
         var ticks = 0
-        val collectJob = scope.backgroundScope.launch {
-            clock.ticks.collect { ticks++ }
-}
+        val collectJob = launch { clock.ticks.collect { ticks++ } }
+        clock.setVisible(false)
+        clock.start()
 
         advanceTimeBy(1_500)
         runCurrent()
@@ -104,5 +94,6 @@ class VisibilityAwareRefreshClockTest {
         assertEquals(1, ticks)
 
         collectJob.cancel()
+        clock.stop()
     }
 }

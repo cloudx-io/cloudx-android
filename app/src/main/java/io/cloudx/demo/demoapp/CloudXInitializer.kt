@@ -36,7 +36,6 @@ object CloudXInitializer {
         )
 
         CloudX.initialize(
-            context,
             CloudX.InitializationParams(
                 appKey = settings.appKey,
                 initEndpointUrl = settings.initUrl,

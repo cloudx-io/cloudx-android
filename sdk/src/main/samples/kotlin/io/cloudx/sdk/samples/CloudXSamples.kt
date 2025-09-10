@@ -23,12 +23,11 @@ internal fun cloudXSetPrivacy() {
     )
 }
 
-internal fun cloudXInitialize(activity: Activity) {
+internal fun cloudXInitialize() {
     // Consider updating privacy values first.
     // CloudX.setPrivacy(CloudXPrivacy(...))
 
     CloudX.initialize(
-        activity,
         CloudX.InitializationParams(
             appKey = "app_key",
             initEndpointUrl = "init_endpoint_url",

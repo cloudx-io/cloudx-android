@@ -1,7 +1,12 @@
 package io.cloudx.sdk
 
 import android.app.Activity
-import android.content.Context
+import io.cloudx.sdk.CloudX.createBanner
+import io.cloudx.sdk.CloudX.createInterstitial
+import io.cloudx.sdk.CloudX.createMREC
+import io.cloudx.sdk.CloudX.createNativeAdMedium
+import io.cloudx.sdk.CloudX.createNativeAdSmall
+import io.cloudx.sdk.CloudX.createRewardedInterstitial
 import io.cloudx.sdk.CloudX.initialize
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.ads.AdFactory
@@ -10,18 +15,28 @@ import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsType
 import io.cloudx.sdk.internal.initialization.InitializationService
 import io.cloudx.sdk.internal.privacy.PrivacyService
 import io.cloudx.sdk.internal.state.SdkKeyValueState
+import io.cloudx.sdk.internal.util.ThreadUtils
+import io.cloudx.sdk.internal.CloudXLogger
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import java.lang.Exception
 
 /**
  * This is an entry point to CloudX SDK.
  * Before creating any ad instances, [initialize] SDK first.
  */
 object CloudX {
+    private const val TAG = "CloudX"
 
-    // TODO. Ensure all public apis are redirected to UI thread.
+    @Volatile
+    internal var initializationService: InitializationService? = null
+
     private val scope = MainScope()
+    private var initJob: Job? = null
+    private val mutex = Mutex()
 
     private val privacyService = PrivacyService()
 
@@ -33,16 +48,6 @@ object CloudX {
     fun setPrivacy(privacy: CloudXPrivacy) {
         privacyService.cloudXPrivacy.value = privacy
     }
-
-    private var initializationService: InitializationService? = null
-
-    /**
-     * Current initialization status of CloudX SDK.
-     * @see initialize
-     */
-    @JvmStatic
-    val isInitialized: Boolean
-        get() = initializationService?.initialized ?: false
 
     /**
      * Initializes CloudX SDK; essential first step before loading and displaying any ads.
@@ -57,7 +62,7 @@ object CloudX {
      * - [createInterstitial]
      * - [createRewardedInterstitial]
      *
-     * @param initializationParams initialization credentials and misc parameters
+     * @param initParams initialization credentials and misc parameters
      * @param listener an optional listener to receive initialization status updates
      * @see isInitialized
      * @sample io.cloudx.sdk.samples.cloudXInitialize
@@ -65,57 +70,77 @@ object CloudX {
     @JvmStatic
     @JvmOverloads
     fun initialize(
-        context: Context,
-        initializationParams: InitializationParams,
+        initParams: InitializationParams,
         listener: CloudXInitializationListener? = null
     ) {
-        // Initialization is already in progress.
-        if (initJob?.isActive == true) {
-            listener?.onCloudXInitializationStatus(
-                CloudXInitializationStatus(
-                    initialized = false, "Initialization is already in progress"
+        // Already initialized.
+        initializationService?.let {
+            CloudXLogger.i(TAG, "SDK already initialized")
+            ThreadUtils.runOnMainThread {
+                listener?.onCloudXInitializationStatus(
+                    CloudXInitializationStatus(initialized = true, "Already initialized")
                 )
-            )
+            }
             return
         }
 
         initJob = scope.launch {
-            SdkKeyValueState.hashedUserId = initializationParams.hashedUserId
+            val initStatus = mutex.withLock {
+                try {
+                    // Already initialized.
+                    initializationService?.let {
+                        CloudXLogger.i(TAG, "SDK already initialized")
+                        return@withLock CloudXInitializationStatus(
+                            initialized = true,
+                            "Already initialized"
+                        )
+                    }
 
-            // Already initialized.
-            if (isInitialized) {
-                listener?.onCloudXInitializationStatus(
-                    CloudXInitializationStatus(initialized = true, "Already initialized")
-                )
-                return@launch
-            }
-
-            // Initial creation of InitializationService.
-            val initializationService = InitializationService(
-                context = context,
-                configApi = ConfigApi(initializationParams.initEndpointUrl)
-            )
-            this@CloudX.initializationService = initializationService
-            initializationService.metricsTrackerNew?.trackMethodCall(MetricsType.Method.SdkInitMethod)
-
-            // Initializing SDK...
-            val initStatus =
-                when (val result = initializationService.initialize(initializationParams.appKey)) {
-                    is Result.Failure -> CloudXInitializationStatus(
-                        initialized = false, result.value.effectiveMessage, result.value.code.code
+                    // Initial creation of InitializationService.
+                    val initService = InitializationService(
+                        configApi = ConfigApi(initParams.initEndpointUrl)
                     )
+                    initService.metricsTrackerNew?.trackMethodCall(MetricsType.Method.SdkInitMethod)
 
-                    is Result.Success -> CloudXInitializationStatus(
-                        initialized = true,
-                        "CloudX SDK is initialized v${BuildConfig.SDK_VERSION_NAME}"
-                    )
+                    // Initializing SDK...
+                    when (val result = initService.initialize(initParams.appKey)) {
+                        is Result.Failure -> {
+                            CloudXLogger.e(
+                                TAG,
+                                "SDK initialization failed: ${result.value.effectiveMessage}",
+                                result.value.cause
+                            )
+                            CloudXInitializationStatus(
+                                initialized = false,
+                                result.value.effectiveMessage,
+                                result.value.code.code
+                            )
+                        }
+
+                        is Result.Success -> {
+                            CloudXLogger.i(TAG, "SDK initializationService succeeded")
+                            SdkKeyValueState.hashedUserId = initParams.hashedUserId
+                            this@CloudX.initializationService = initService
+                            CloudXInitializationStatus(
+                                initialized = true,
+                                "CloudX SDK is initialized v${BuildConfig.SDK_VERSION_NAME}"
+                            )
+                        }
+                    }
+                } catch (e: Exception) {
+                    CloudXLogger.e(TAG, "SDK initialization failed with exception", e)
+                    CloudXInitializationStatus(false, "CloudX SDK failed to initialize")
                 }
-
-            listener?.onCloudXInitializationStatus(initStatus)
+            }
+            CloudXLogger.i(
+                TAG,
+                "Initialization complete, calling listener with status: ${initStatus.initialized}"
+            )
+            ThreadUtils.runOnMainThread {
+                listener?.onCloudXInitializationStatus(initStatus)
+            }
         }
     }
-
-    private var initJob: Job? = null
 
     /**
      * Creates a standard banner (320x50) ad placement instance which then can be added to a view hierarchy and load/render ads.
@@ -133,7 +158,7 @@ object CloudX {
      * @sample io.cloudx.sdk.samples.cloudXCreateAdView
      */
     @JvmStatic
-    // @JvmOverloads. Uncomment when optional parameters are added.
+// @JvmOverloads. Uncomment when optional parameters are added.
     fun createBanner(
         activity: Activity,
         placementName: String,
@@ -167,7 +192,7 @@ object CloudX {
      * @sample io.cloudx.sdk.samples.cloudXCreateAdView
      */
     @JvmStatic
-    // @JvmOverloads. Uncomment when optional parameters are added.
+// @JvmOverloads. Uncomment when optional parameters are added.
     fun createMREC(
         activity: Activity,
         placementName: String,
@@ -266,7 +291,7 @@ object CloudX {
      * @sample io.cloudx.sdk.samples.cloudXCreateAdView
      */
     @JvmStatic
-    // @JvmOverloads. Uncomment when optional parameters are added.
+// @JvmOverloads. Uncomment when optional parameters are added.
     fun createNativeAdSmall(
         activity: Activity,
         placementName: String,
@@ -299,7 +324,7 @@ object CloudX {
      * @sample io.cloudx.sdk.samples.cloudXCreateAdView
      */
     @JvmStatic
-    // @JvmOverloads. Uncomment when optional parameters are added.
+// @JvmOverloads. Uncomment when optional parameters are added.
     fun createNativeAdMedium(
         activity: Activity,
         placementName: String,
@@ -354,6 +379,7 @@ object CloudX {
 
     @JvmStatic
     fun deinitialize() {
+        initJob?.cancel()
         initializationService?.deinitialize()
         initializationService = null
     }

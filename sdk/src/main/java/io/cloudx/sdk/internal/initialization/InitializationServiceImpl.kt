@@ -31,8 +31,6 @@ import io.cloudx.sdk.internal.privacy.PrivacyService
 import io.cloudx.sdk.internal.state.SdkKeyValueState
 import io.cloudx.sdk.internal.util.normalizeAndHash
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.util.UUID
 import kotlin.system.measureTimeMillis
@@ -41,7 +39,7 @@ import kotlin.system.measureTimeMillis
  * Initialization service impl - initializes CloudX SDK; ignores all the following init calls after successful initialization.
  */
 internal class InitializationServiceImpl(
-    context: Context,
+    private val context: Context,
     private val configApi: ConfigApi,
     private val provideConfigRequest: ConfigRequestProvider,
     private val adapterResolver: AdapterFactoryResolver,
@@ -55,16 +53,10 @@ internal class InitializationServiceImpl(
 
     private val TAG = "InitializationService"
 
-    private val context: Context = context.applicationContext
-    private val mutex = Mutex()
-
     private var config: Config? = null
     private var appKey: String = ""
     private var basePayload: String = ""
     private var factories: BidAdNetworkFactories? = null
-
-    override val initialized: Boolean
-        get() = config != null
 
     override val metricsTrackerNew: MetricsTrackerNew
         get() = _metricsTrackerNew
@@ -73,95 +65,97 @@ internal class InitializationServiceImpl(
         private set
 
 
-    override suspend fun initialize(appKey: String): Result<Config, CLXError> =
-        mutex.withLock {
-            CloudXLogger.i(TAG, "Starting SDK initialization with appKey: $appKey")
-            this.appKey = appKey
+    override suspend fun initialize(appKey: String): Result<Config, CLXError> {
+        CloudXLogger.i(TAG, "Starting SDK initialization with appKey: $appKey")
+        this.appKey = appKey
 
-            crashReportingService.registerSdkCrashHandler()
+        crashReportingService.registerSdkCrashHandler()
 
-            val config = this.config
-            if (config != null) {
-                CloudXLogger.i(TAG, "SDK already initialized, returning cached config")
-                return Result.Success(config)
-            }
-
-            val configApiResult: Result<Config, CLXError>
-            val configApiRequestMillis = measureTimeMillis {
-                configApiResult = configApi.invoke(appKey, provideConfigRequest())
-            }
-
-            if (configApiResult is Result.Failure ) {
-                if (configApiResult.value.code == CLXErrorCode.SDK_DISABLED) {
-                    CloudXLogger.w(TAG, "SDK disabled by server via traffic control (0%). No ads this session.")
-                }
-                return configApiResult
-            }
-
-            if (configApiResult is Result.Success) {
-                val cfg = configApiResult.value
-                this.config = cfg
-                crashReportingService.setConfig(cfg)
-
-                eventTracker.setEndpoint(cfg.trackingEndpointUrl)
-                eventTracker.trySendingPendingTrackingEvents()
-
-                ResolvedEndpoints.resolveFrom(cfg)
-                SdkKeyValueState.setKeyValuePaths(cfg.keyValuePaths)
-
-                metricsTrackerNew.start(cfg)
-
-                val geoDataResult: Result<Map<String, String>, CLXError>
-                val geoRequestMillis = measureTimeMillis {
-                    geoDataResult = geoApi.fetchGeoHeaders(ResolvedEndpoints.geoEndpoint)
-                }
-                if (geoDataResult is Result.Success) {
-                    val headersMap = geoDataResult.value
-
-                    val geoInfo: Map<String, String> = cfg.geoHeaders?.mapNotNull { header ->
-                        val sourceHeader = header.source
-                        val targetField = header.target
-                        val value = headersMap[sourceHeader]
-
-                        value?.let {
-                            targetField to it
-                        }
-                    }?.toMap() ?: emptyMap()
-
-                    // TODO: Hardcoded for now, should be configurable later via config CX-919.
-                    val userGeoIp = headersMap["x-amzn-remapped-x-forwarded-for"]
-                    val hashedGeoIp = userGeoIp?.let { normalizeAndHash(userGeoIp) } ?: ""
-                    CloudXLogger.i(TAG, "User Geo IP: $userGeoIp")
-                    CloudXLogger.i(TAG, "Hashed Geo IP: $hashedGeoIp")
-                    TrackingFieldResolver.setHashedGeoIp(hashedGeoIp)
-
-                    CloudXLogger.i(TAG, "geo data: $geoInfo")
-                    GeoInfoHolder.setGeoInfo(geoInfo, headersMap)
-
-                    val removePii = privacyService.shouldClearPersonalData()
-                    CloudXLogger.i(TAG, "PII remove: $removePii")
-
-                    sendInitSDKEvent(cfg, appKey)
-
-                    val pendingCrash = crashReportingService.getPendingCrashIfAny()
-                    pendingCrash?.let {
-                        crashReportingService.sendErrorEvent(it)
-                    }
-                }
-
-                val factories = resolveAdapters(cfg)
-
-                val appKeyOverride = cfg.appKeyOverride ?: appKey
-                initAdFactory(appKeyOverride, cfg, factories)
-                initializeAdapterNetworks(cfg, context)
-
-                metricsTrackerNew.trackNetworkCall(MetricsType.Network.GeoApi, geoRequestMillis)
-            }
-
-            metricsTrackerNew.trackNetworkCall(MetricsType.Network.SdkInit, configApiRequestMillis)
-
-            configApiResult
+        val config = this.config
+        if (config != null) {
+            CloudXLogger.i(TAG, "SDK already initialized, returning cached config")
+            return Result.Success(config)
         }
+
+        val configApiResult: Result<Config, CLXError>
+        val configApiRequestMillis = measureTimeMillis {
+            configApiResult = configApi.invoke(appKey, provideConfigRequest())
+        }
+
+        if (configApiResult is Result.Failure) {
+            if (configApiResult.value.code == CLXErrorCode.SDK_DISABLED) {
+                CloudXLogger.w(
+                    TAG,
+                    "SDK disabled by server via traffic control (0%). No ads this session."
+                )
+            }
+            return configApiResult
+        }
+
+        if (configApiResult is Result.Success) {
+            val cfg = configApiResult.value
+            this.config = cfg
+            crashReportingService.setConfig(cfg)
+
+            eventTracker.setEndpoint(cfg.trackingEndpointUrl)
+            eventTracker.trySendingPendingTrackingEvents()
+
+            ResolvedEndpoints.resolveFrom(cfg)
+            SdkKeyValueState.setKeyValuePaths(cfg.keyValuePaths)
+
+            metricsTrackerNew.start(cfg)
+
+            val geoDataResult: Result<Map<String, String>, CLXError>
+            val geoRequestMillis = measureTimeMillis {
+                geoDataResult = geoApi.fetchGeoHeaders(ResolvedEndpoints.geoEndpoint)
+            }
+            if (geoDataResult is Result.Success) {
+                val headersMap = geoDataResult.value
+
+                val geoInfo: Map<String, String> = cfg.geoHeaders?.mapNotNull { header ->
+                    val sourceHeader = header.source
+                    val targetField = header.target
+                    val value = headersMap[sourceHeader]
+
+                    value?.let {
+                        targetField to it
+                    }
+                }?.toMap() ?: emptyMap()
+
+                // TODO: Hardcoded for now, should be configurable later via config CX-919.
+                val userGeoIp = headersMap["x-amzn-remapped-x-forwarded-for"]
+                val hashedGeoIp = userGeoIp?.let { normalizeAndHash(userGeoIp) } ?: ""
+                CloudXLogger.i(TAG, "User Geo IP: $userGeoIp")
+                CloudXLogger.i(TAG, "Hashed Geo IP: $hashedGeoIp")
+                TrackingFieldResolver.setHashedGeoIp(hashedGeoIp)
+
+                CloudXLogger.i(TAG, "geo data: $geoInfo")
+                GeoInfoHolder.setGeoInfo(geoInfo, headersMap)
+
+                val removePii = privacyService.shouldClearPersonalData()
+                CloudXLogger.i(TAG, "PII remove: $removePii")
+
+                sendInitSDKEvent(cfg, appKey)
+
+                val pendingCrash = crashReportingService.getPendingCrashIfAny()
+                pendingCrash?.let {
+                    crashReportingService.sendErrorEvent(it)
+                }
+            }
+
+            val factories = resolveAdapters(cfg)
+
+            val appKeyOverride = cfg.appKeyOverride ?: appKey
+            initAdFactory(appKeyOverride, cfg, factories)
+            initializeAdapterNetworks(cfg, context)
+
+            metricsTrackerNew.trackNetworkCall(MetricsType.Network.GeoApi, geoRequestMillis)
+        }
+
+        metricsTrackerNew.trackNetworkCall(MetricsType.Network.SdkInit, configApiRequestMillis)
+
+        return configApiResult
+    }
 
     override fun deinitialize() {
         CloudXLogger.i(TAG, "Deinitializing SDK")

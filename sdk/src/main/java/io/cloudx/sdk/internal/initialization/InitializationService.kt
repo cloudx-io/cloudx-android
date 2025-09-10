@@ -2,6 +2,7 @@ package io.cloudx.sdk.internal.initialization
 
 import android.content.Context
 import io.cloudx.sdk.Result
+import io.cloudx.sdk.internal.ApplicationContext
 import io.cloudx.sdk.internal.CLXError
 import io.cloudx.sdk.internal.ads.AdFactory
 import io.cloudx.sdk.internal.config.Config
@@ -19,10 +20,9 @@ import io.cloudx.sdk.internal.privacy.PrivacyService
  */
 internal interface InitializationService {
 
-    /**
-     * Initialized status of CloudX SDK
-     */
-    val initialized: Boolean
+    val adFactory: AdFactory?
+
+    val metricsTrackerNew: MetricsTrackerNew?
 
     /**
      * Initialize CloudX SDK
@@ -31,18 +31,11 @@ internal interface InitializationService {
      */
     suspend fun initialize(appKey: String): Result<Config, CLXError>
 
-    /**
-     * Ad factory - null when SDK is not [initialized]
-     */
-    val adFactory: AdFactory?
-
-    val metricsTrackerNew: MetricsTrackerNew?
-
     fun deinitialize()
 }
 
 internal fun InitializationService(
-    context: Context,
+    context: Context = ApplicationContext(),
     configApi: ConfigApi,
     provideConfigRequest: ConfigRequestProvider = ConfigRequestProvider(),
     adapterFactoryResolver: AdapterFactoryResolver = AdapterFactoryResolver(),

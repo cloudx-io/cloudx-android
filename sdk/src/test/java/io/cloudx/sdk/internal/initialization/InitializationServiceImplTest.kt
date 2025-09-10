@@ -67,6 +67,5 @@ class InitializationServiceImplTest : RoboMockkTest() {
         val result = svc.initialize("random_app_key")
 
         assert(result is Result.Success) { "expected Success result, got $result" }
-        assert(svc.initialized) { "expected initialized == true, got false" }
     }
 }

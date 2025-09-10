@@ -16,7 +16,6 @@ testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 # === Build Tools ===
 gradle = "8.2.2"
 kotlin = "1.9.22"
-dokka = "1.9.20"
 jacoco = "0.8.11"
 maven-publish = "0.34.0"
 
@@ -51,8 +50,6 @@ mintegral = "16.7.71"
 # === Build Tools & Plugins ===
 gradle = { module = "com.android.tools.build:gradle", version.ref = "gradle" }
 kotlin-gradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
-dokka-gradlePlugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
-dokka-base = { module = "org.jetbrains.dokka:dokka-base", version.ref = "dokka" }
 
 # === Kotlin & Coroutines ===
 kotlin-reflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect", version.ref = "kotlin" }
@@ -137,5 +134,3 @@ kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 androidLibrary = { id = "com.android.library", version.ref = "gradle" }
 ksp = { id = "com.google.devtools.ksp", version = "1.9.22-1.0.17" }
 mavenPublish = { id = "com.vanniktech.maven.publish", version.ref = "maven-publish" }
-# KDoc documentation generation plugin
-dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }

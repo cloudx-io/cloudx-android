@@ -2,7 +2,6 @@ plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.kotlinAndroid)
     alias(libs.plugins.mavenPublish)
-    alias(libs.plugins.dokka)
     alias(libs.plugins.ksp)
     jacoco
 }
@@ -165,31 +164,4 @@ tasks.register<JacocoReport>("jacocoDebugCodeCoverage") {
         files(
         fileTree(layout.buildDirectory) { include(listOf("**/*.exec", "**/*.ec")) }
     ))
-}
-
-tasks.withType<org.jetbrains.dokka.gradle.DokkaTask>().configureEach {
-    dokkaSourceSets.configureEach {
-        moduleName.set("CloudX SDK Android")
-
-        includes.from("dokka/module.md")
-
-        // Do not generate documentation for internal code.
-        perPackageOption {
-            matchingRegex.set("io.cloudx.sdk.internal.*")
-            suppress.set(true)
-        }
-    }
-}
-
-tasks.dokkaHtml {
-    outputDirectory.set(buildDir.resolve("dokka/html"))
-
-//    pluginConfiguration<DokkaBase, DokkaBaseConfiguration> {
-//        // Dokka's stylesheets and assets with conflicting names will be overriden.
-//        // In this particular case, logo-styles.css will be overriden and ktor-logo.png will
-//        // be added as an additional image asset
-//        // customAssets = listOf(file("dokka/logo-icon.svg"))
-//
-//        footerMessage = "© 2024 CloudX, Inc. All Rights Reserved"
-//    }
 }

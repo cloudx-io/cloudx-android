@@ -42,7 +42,7 @@ class BannerManagerImplCadenceTest {
     private val mockListener = mockk<CloudXAdViewListener>(relaxed = true)
     private val mockBanner = mockk<BannerAdapterDelegate>(relaxed = true)
 
-    private lateinit var mgr: BannerManagerImpl
+    private lateinit var mgr: BannerManager
 
     @Before
     fun setup() {
@@ -87,7 +87,7 @@ class BannerManagerImplCadenceTest {
     }
 
     private fun createManager(refreshSeconds: Int = 1) {
-        mgr = BannerManagerImpl(
+        mgr = BannerManagerTestFactory(
             placementId = "pid",
             placementName = "pname",
             bannerVisibility = bannerVisibility,
@@ -133,7 +133,7 @@ class BannerManagerImplCadenceTest {
     }
 
     @Test
-    fun `hidden elapsed then visible during in-flight - immediate next on finish`() = runTest(mainRule.dispatcher) {
+    fun `hidden elapsed then visible during in-flight - no immediate on finish, next after interval`() = runTest(mainRule.dispatcher) {
         try {
         // Arrange: first request starts while visible, then we go hidden and let interval elapse
         val outcomeDeferred = CompletableDeferred<BannerLoadOutcome>()
@@ -148,7 +148,7 @@ class BannerManagerImplCadenceTest {
         bannerVisibility.value = false
         runCurrent()
 
-        // Let the interval elapse while hidden → should queue hidden tick
+        // Let the interval elapse while hidden → cadence is paused (no hidden queue)
         advanceTimeBy(1_200)
         runCurrent()
 
@@ -156,10 +156,14 @@ class BannerManagerImplCadenceTest {
         bannerVisibility.value = true
         runCurrent()
 
-        // Complete the in-flight request now → should emit queued-hidden immediately and start next request
+        // Complete the in-flight request now → should NOT start next immediately (no hidden queue)
         outcomeDeferred.complete(BannerLoadOutcome.NoFill)
         runCurrent()
 
+        // After a full visible interval, next request should fire
+        coVerify(exactly = 1) { mockLoader.loadOnce() }
+        advanceTimeBy(1_000)
+        runCurrent()
         coVerify(exactly = 2) { mockLoader.loadOnce() }
         } finally {
             mgr.destroy()

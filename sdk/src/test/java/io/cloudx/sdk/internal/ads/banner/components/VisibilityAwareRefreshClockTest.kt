@@ -18,21 +18,20 @@ class VisibilityAwareRefreshClockTest {
 
         var ticks = 0
         val collectJob = launch { clock.ticks.collect { ticks++ } }
-        // Ensure collector is active before we emit the immediate tick
         runCurrent()
+
+        // Become visible: immediate first tick
         clock.setVisible(true)
         clock.start()
-
-        // Immediate first tick because visible at start
         runCurrent()
         assertEquals(1, ticks)
 
-        // Simulate in-flight request longer than interval
+        // Simulate in-flight longer than interval
         clock.markRequestStarted()
         advanceTimeBy(5_000)
         runCurrent()
 
-        // Finish request → should NOT emit immediately (no stacking)
+        // Finish → do NOT emit immediately
         clock.markRequestFinished()
         runCurrent()
         assertEquals(1, ticks)
@@ -42,38 +41,7 @@ class VisibilityAwareRefreshClockTest {
         runCurrent()
         assertEquals(2, ticks)
 
-        collectJob.cancel()
-        clock.stop()
-    }
-
-    @Test
-    fun `hidden elapsed, became visible during in-flight - emit on finish`() = runTest {
-        val clock = VisibilityAwareRefreshClock(intervalMs = 1_000, scope = this)
-
-        var ticks = 0
-        val collectJob = launch { clock.ticks.collect { ticks++ } }
-        clock.setVisible(false)
-        clock.start()
-
-        // Hidden long enough to queue hidden tick
-        advanceTimeBy(2_000)
-        runCurrent()
-
-        // Request starts while still hidden
-        clock.markRequestStarted()
-
-        // Become visible during in-flight -> do not emit yet
-        clock.setVisible(true)
-        runCurrent()
-        assertEquals(0, ticks)
-
-        // Finish request -> should emit immediately now
-        clock.markRequestFinished()
-        runCurrent()
-        assertEquals(1, ticks)
-
-        collectJob.cancel()
-        clock.stop()
+        collectJob.cancel(); clock.stop()
     }
 
     @Test
@@ -82,18 +50,19 @@ class VisibilityAwareRefreshClockTest {
 
         var ticks = 0
         val collectJob = launch { clock.ticks.collect { ticks++ } }
-        clock.setVisible(false)
-        clock.start()
-
-        advanceTimeBy(1_500)
         runCurrent()
 
-        // Become visible (not in-flight) -> emit immediate tick
+        // Hidden initially
+        clock.setVisible(false)
+        clock.start()
+        runCurrent()
+
+        // Become visible (not in-flight) -> immediate tick
         clock.setVisible(true)
         runCurrent()
         assertEquals(1, ticks)
 
-        collectJob.cancel()
-        clock.stop()
+        collectJob.cancel(); clock.stop()
     }
 }
+

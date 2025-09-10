@@ -17,12 +17,11 @@ internal interface CadenceClock {
 }
 
 /**
- * Visibility-aware refresh clock aligned with MVP cadence:
- * - Emits immediately if already visible on start; otherwise queues one for when visible.
- * - While hidden: queues exactly one tick (wall-clock continues while hidden).
- * - While a request is in-flight: does not queue in-flight ticks (avoids stacking).
- * - On request finish: restarts the interval; however, if we became visible while in-flight
- *   and a hidden tick was queued, emit it immediately (earliest feasible time).
+ * Visibility-driven refresh clock (updated MVP):
+ * - Emits an immediate tick when becoming visible and not in-flight.
+ * - Pauses completely while hidden (no queuing and no accrual).
+ * - Does not accrue delay while a request is in-flight (prevents stacking).
+ * - After a request finishes, if still visible, waits a full interval before next tick.
  */
 internal class VisibilityAwareRefreshClock(
     private val intervalMs: Long,
@@ -35,62 +34,58 @@ internal class VisibilityAwareRefreshClock(
     private var job: Job? = null
     private var inflight = false
     private var visible = false
-    private var queuedHidden = false
 
     override fun start() {
         if (job != null) return
         require(intervalMs >= 1000) { "Refresh interval must be >= 1s" }
-        // Optional: immediate tick if already visible; otherwise, queue one for when it becomes visible
-        if (visible) _ticks.tryEmit(Unit) else queuedHidden = true
-        scheduleLoop()
+        if (visible && !inflight) {
+            // Immediate first-visible tick, then start interval loop
+            _ticks.tryEmit(Unit)
+            scheduleLoop()
+        }
     }
 
     override fun stop() {
-        job?.cancel()
-        job = null
+        job?.cancel(); job = null
         inflight = false
-        queuedHidden = false
     }
 
     override fun setVisible(v: Boolean) {
-        val wasVisible = visible
+        val was = visible
         visible = v
-        if (visible && !wasVisible && !inflight && queuedHidden) {
-            queuedHidden = false
-            _ticks.tryEmit(Unit)
+        when {
+            // Became visible: immediate tick if not inflight, then start loop
+            visible && !was && !inflight -> {
+                _ticks.tryEmit(Unit)
+                scheduleLoop()
+            }
+            // Became hidden: pause cadence
+            !visible && was -> {
+                job?.cancel(); job = null
+            }
         }
     }
 
     override fun markRequestStarted() {
         inflight = true
+        // Do not accrue delay while in-flight
+        job?.cancel(); job = null
     }
 
     override fun markRequestFinished() {
         inflight = false
-        // If we became visible while in-flight and a hidden tick is queued,
-        // emit it immediately now (earliest feasible time) and skip restarting delay.
-        if (visible && queuedHidden) {
-            queuedHidden = false
-            _ticks.tryEmit(Unit)
-            return
-        }
-        // Otherwise, restart the cadence: next tick after a full interval
-        scheduleLoop()
+        // Restart cadence from completion if visible
+        if (visible) scheduleLoop()
     }
 
     private fun scheduleLoop() {
         job?.cancel()
+        if (!visible || inflight) return
         job = scope.launch {
-            while (isActive) {
+            while (isActive && visible && !inflight) {
                 delay(intervalMs)
-                when {
-                    // Prioritize hidden queue regardless of in-flight status, so wall-clock while hidden is preserved
-                    !visible -> queuedHidden = true // queue exactly one while hidden
-                    inflight -> {
-                        // Ignore elapsed time while a request is in-flight; no immediate emit, hidden already handled above
-                    }
-                    else -> _ticks.tryEmit(Unit)
-                }
+                if (!visible || inflight) break
+                _ticks.tryEmit(Unit)
             }
         }
     }

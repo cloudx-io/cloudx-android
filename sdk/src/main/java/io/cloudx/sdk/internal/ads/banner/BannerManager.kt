@@ -110,15 +110,15 @@ internal fun BannerManager(
  *
  * MVP Requirements implemented:
  * - Single-flight requests (one active request per placement)
- * - Wall-clock refresh timing that continues while hidden
- * - Queue exactly one request when hidden, emit when visible
+ * - Visibility-driven refresh timing that pauses while hidden
+ * - No hidden queuing; requests are driven only while visible
  * - Complete in-flight requests even if banner becomes hidden
  * - Prefetch successful loads while hidden, show when visible
  * - No banner-level retries (network retries handled at lower layer)
  * - Proper resource cleanup on destroy
  *
  * Architecture: Divided into 4 specialized components for maintainability:
- * 1. VisibilityAwareRefreshClock - Handles wall-clock timing + visibility-aware queuing
+ * 1. VisibilityAwareRefreshClock - Handles visibility-driven timing (pause while hidden, no queuing)
  * 2. EffectiveVisibilityGate - Combines banner + app visibility into single effective state
  * 3. SwappingBannerPresenter - Manages banner display lifecycle and events
  * 4. BannerManagerImpl - Orchestrates the above components + handles business logic
@@ -147,7 +147,7 @@ private class BannerManagerImpl(
 
     // === COMPONENT ARCHITECTURE ===
 
-    // 1. TIMING: Wall-clock refresh that continues while hidden (MVP requirement)
+    // 1. TIMING: Visibility-driven refresh that pauses while hidden (MVP requirement)
     private val clock = VisibilityAwareRefreshClock(
         intervalMs = (refreshSeconds.coerceAtLeast(1) * 1000L),
         scope = scope
@@ -195,7 +195,7 @@ private class BannerManagerImpl(
             }
         }
 
-        // MVP: Start wall-clock timing (continues even while hidden)
+    // MVP: Start visibility-driven timing (pauses while hidden)
         clock.start()
 
         // === MVP: REQUEST TRIGGERING ===
@@ -303,3 +303,24 @@ private class BannerManagerImpl(
     }
 }
 
+// Test-only factory to allow injecting a mock loader while keeping the implementation private.
+@Suppress("TestFunctionName")
+internal fun BannerManagerTestFactory(
+    placementId: String,
+    placementName: String,
+    bannerVisibility: StateFlow<Boolean>,
+    refreshSeconds: Int,
+    connectionStatusService: ConnectionStatusService,
+    appLifecycleService: AppLifecycleService,
+    metricsTrackerNew: MetricsTrackerNew,
+    loader: BannerAdLoader,
+): BannerManager = BannerManagerImpl(
+    placementId = placementId,
+    placementName = placementName,
+    bannerVisibility = bannerVisibility,
+    refreshSeconds = refreshSeconds,
+    connectionStatusService = connectionStatusService,
+    appLifecycleService = appLifecycleService,
+    metricsTrackerNew = metricsTrackerNew,
+    loader = loader
+)

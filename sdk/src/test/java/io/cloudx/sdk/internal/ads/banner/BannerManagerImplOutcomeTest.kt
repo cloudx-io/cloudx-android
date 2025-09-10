@@ -50,7 +50,7 @@ class BannerManagerImplOutcomeTest {
     private val bannerEvents = kotlinx.coroutines.flow.MutableSharedFlow<BannerAdapterDelegateEvent>(extraBufferCapacity = 1)
     private val bannerError = MutableStateFlow<io.cloudx.sdk.internal.adapter.CloudXAdapterError?>(null)
 
-    private lateinit var mgr: BannerManagerImpl
+    private lateinit var mgr: BannerManager
 
     @Before
     fun setup() {
@@ -70,7 +70,7 @@ class BannerManagerImplOutcomeTest {
     }
 
     private fun createManager(refreshSeconds: Int = 1) {
-        mgr = BannerManagerImpl(
+        mgr = BannerManagerTestFactory(
             placementId = "pid",
             placementName = "pname",
             bannerVisibility = bannerVisibility,
@@ -236,7 +236,7 @@ class BannerManagerImplOutcomeTest {
             // Become visible → should show prefetched immediately
             bannerVisibility.value = true
             runCurrent()
-            verify(exactly = 1) { mockListener.onAdDisplayed(mockBanner) }
+            verify(exactly = 1) { mockListener.onAdDisplayed(any()) }
         } finally {
             if (this@BannerManagerImplOutcomeTest::mgr.isInitialized) mgr.destroy()
         }

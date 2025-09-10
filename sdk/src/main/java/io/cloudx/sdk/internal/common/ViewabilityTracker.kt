@@ -106,7 +106,7 @@ private class ViewabilityTrackerImpl(
         layoutRecalculationJob?.cancel()
         layoutRecalculationJob = scope.launch {
             delay(500)
-            // At least some part of the view is currently on the screen.
+            // At least 50% of the view area should be visible.
             isEnoughAreaVisible.value = isEnoughAreaVisible()
         }
     }
@@ -114,7 +114,22 @@ private class ViewabilityTrackerImpl(
     // TODO. For optimization purposes.
     private val globalVisibleRect: Rect = Rect(0, 0, 0, 0)
 
-    private fun isEnoughAreaVisible(): Boolean = view.getGlobalVisibleRect(globalVisibleRect)
+    private fun isEnoughAreaVisible(): Boolean {
+        if (!view.isShown) return false
+        val totalW = view.width
+        val totalH = view.height
+        if (totalW <= 0 || totalH <= 0) return false
+
+        val anyVisible = view.getGlobalVisibleRect(globalVisibleRect)
+        if (!anyVisible) return false
+
+        val visibleArea = (globalVisibleRect.width().coerceAtLeast(0)) * (globalVisibleRect.height().coerceAtLeast(0))
+        val totalArea = totalW * totalH
+        if (totalArea <= 0) return false
+
+        val ratio = visibleArea.toDouble() / totalArea.toDouble()
+        return ratio >= 0.5
+    }
 
     // TODO. Ideally, I should calculate it here correctly,
     //  but it doesn't really matter in the use-case.

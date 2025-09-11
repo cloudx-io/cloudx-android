@@ -43,4 +43,7 @@
     <string name="hint_iab_tcfv2_gdpr">IAB TCFv2 (GDPR)</string>
     <string name="hint_iab_ccpa">IAB CCPA</string>
     <string name="ask_location_permission">Ask location permission</string>
+    
+    <!-- Meta Audience Network App ID - Replace with your actual Meta App ID from Meta Developer Dashboard -->
+    <string name="facebook_app_id">1477955076736171</string>
 </resources>

@@ -7,8 +7,8 @@ import androidx.fragment.app.Fragment
 import com.google.android.material.color.MaterialColors
 import io.cloudx.demo.demoapp.loglistview.commonLogTagListRules
 import io.cloudx.demo.demoapp.loglistview.setupLogListView
-import io.cloudx.sdk.CloudXFullscreenAd
 import io.cloudx.sdk.CloudXAdListener
+import io.cloudx.sdk.CloudXFullscreenAd
 import io.cloudx.sdk.CloudXIsAdLoadedListener
 import io.cloudx.sdk.internal.CloudXLogger
 import kotlinx.coroutines.flow.first

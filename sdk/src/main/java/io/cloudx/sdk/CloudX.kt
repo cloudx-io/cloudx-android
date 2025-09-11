@@ -2,7 +2,6 @@ package io.cloudx.sdk
 
 import android.app.Activity
 import io.cloudx.sdk.CloudX.createBanner
-import io.cloudx.sdk.CloudX.createInterstitial
 import io.cloudx.sdk.CloudX.createMREC
 import io.cloudx.sdk.CloudX.createNativeAdMedium
 import io.cloudx.sdk.CloudX.createNativeAdSmall
@@ -20,6 +19,7 @@ import io.cloudx.sdk.internal.state.SdkKeyValueState
 import io.cloudx.sdk.internal.util.ThreadUtils
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -35,9 +35,9 @@ object CloudX {
     private const val TAG = "CloudX"
 
     private val initializationService
-        get() = (state.value as? InitializationState.Initialized)?.initializationService
-    private val _state = MutableStateFlow<InitializationState>(InitializationState.Uninitialized)
-    internal val state: StateFlow<InitializationState> = _state.asStateFlow()
+        get() = (initState.value as? InitializationState.Initialized)?.initializationService
+    private val _initState = MutableStateFlow<InitializationState>(InitializationState.Uninitialized)
+    internal val initState: StateFlow<InitializationState> = _initState.asStateFlow()
 
     private val scope = MainScope()
     private var initJob: Job? = null
@@ -64,7 +64,6 @@ object CloudX {
      * - [createMREC]
      * - [createNativeAdSmall]
      * - [createNativeAdMedium]
-     * - [createInterstitial]
      * - [createRewardedInterstitial]
      *
      * @param initParams initialization credentials and misc parameters
@@ -78,12 +77,12 @@ object CloudX {
         initParams: InitializationParams,
         listener: CloudXInitializationListener? = null
     ) {
-        if (!_state.compareAndSet(
+        if (!_initState.compareAndSet(
                 expect = InitializationState.Uninitialized,
                 update = InitializationState.Initializing
             )
         ) {
-            val status = when (state.value) {
+            val status = when (initState.value) {
                 InitializationState.Uninitialized -> {
                     // Uninitialized/Failed due to a race; let caller try again
                     CloudXInitializationStatus(
@@ -130,7 +129,7 @@ object CloudX {
                             "SDK initialization failed: ${result.value.effectiveMessage}",
                             result.value.cause
                         )
-                        _state.value = InitializationState.Uninitialized
+                        _initState.value = InitializationState.Uninitialized
                         CloudXInitializationStatus(
                             initialized = false,
                             result.value.effectiveMessage,
@@ -149,11 +148,11 @@ object CloudX {
                 }
             } catch (ce: CancellationException) {
                 // Don’t swallow coroutine cancellation
-                _state.value = InitializationState.Uninitialized
+                _initState.value = InitializationState.Uninitialized
                 throw ce
             } catch (e: Exception) {
                 CloudXLogger.e(TAG, "SDK initialization failed with exception", e)
-                _state.value = InitializationState.Uninitialized
+                _initState.value = InitializationState.Uninitialized
                 CloudXInitializationStatus(false, "CloudX SDK failed to initialize")
             }
             CloudXLogger.i(
@@ -230,39 +229,6 @@ object CloudX {
                 placementName,
                 listener
             )
-        )
-    }
-
-    /**
-     * Creates [CloudXInterstitialAd] ad instance responsible for rendering non-rewarded fullscreen ads.
-     *
-     * _General usage guideline:_
-     * 1. Create [CloudXInterstitialAd] instance via invoking this function.
-     * 2. If created successfully, consider attaching an optional [listener][CloudXInterstitialListener] which is then can be used for tracking ad events (impression, click, hidden, etc)
-     * 3. _Fullscreen ad implementations start precaching logic internally automatically in an optimised way, so you don't have to worry about any ad loading complexities.
-     * We provide several APIs, use any appropriate ones for your use-cases:_
-     *
-     * - call [load()][CloudXFullscreenAd.load]; then wait for [onAdLoadSuccess()][CloudXAdListener.onAdLoaded] or [onAdLoadFailed()][CloudXAdListener.onAdLoadFailed] event;
-     * - alternatively, check [isAdLoaded][CloudXFullscreenAd.isAdLoaded] property: if _true_ feel free to [show()][CloudXFullscreenAd.show] the ad;
-     * - another option is to [setIsAdLoadedListener][CloudXFullscreenAd.setIsAdLoadedListener], which then always fires event upon internal loaded ad cache size changes.
-     *
-     * 4. call [show()][CloudXFullscreenAd.show] when you're ready to display an ad; then wait for [onAdShowSuccess()][CloudXAdListener.onAdDisplayed] or [onAdShowFailed()][CloudXAdListener.onAdDisplayFailed] event;
-     * 5. Whenever parent Activity or Fragment is destroyed; or when ads are not required anymore - release ad instance resources via calling [destroy()][Destroyable.destroy]
-     *
-     * @param placementName identifier of CloudX placement setup on the dashboard.
-     *
-     * _Once SDK is [initialized][initialize] it knows which placement names are valid for ad creation_
-     * @return _null_ - if SDK didn't [initialize] successfully/yet or [placementName] doesn't exist
-     * @sample io.cloudx.sdk.samples.createInterstitial
-     */
-    @JvmStatic
-    fun createInterstitial(
-        placementName: String,
-        listener: CloudXInterstitialListener?
-    ): CloudXInterstitialAd? {
-        initializationService?.metricsTrackerNew?.trackMethodCall(MetricsType.Method.CreateInterstitial)
-        return initializationService?.adFactory?.createInterstitial(
-            AdFactory.CreateAdParams(placementName, listener)
         )
     }
 
@@ -405,7 +371,7 @@ object CloudX {
     fun deinitialize() {
         initJob?.cancel()
         initializationService?.deinitialize()
-        _state.value = InitializationState.Uninitialized
+        _initState.value = InitializationState.Uninitialized
     }
 
     /**

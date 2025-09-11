@@ -36,7 +36,8 @@ object CloudX {
 
     private val initializationService
         get() = (initState.value as? InitializationState.Initialized)?.initializationService
-    private val _initState = MutableStateFlow<InitializationState>(InitializationState.Uninitialized)
+    private val _initState =
+        MutableStateFlow<InitializationState>(InitializationState.Uninitialized)
     internal val initState: StateFlow<InitializationState> = _initState.asStateFlow()
 
     private val scope = MainScope()
@@ -139,7 +140,7 @@ object CloudX {
 
                     is Result.Success -> {
                         CloudXLogger.i(TAG, "SDK initialization succeeded")
-                        _state.value = InitializationState.Initialized(initService)
+                        _initState.value = InitializationState.Initialized(initService)
                         CloudXInitializationStatus(
                             initialized = true,
                             "CloudX SDK is initialized v${BuildConfig.SDK_VERSION_NAME}"
@@ -155,10 +156,7 @@ object CloudX {
                 _initState.value = InitializationState.Uninitialized
                 CloudXInitializationStatus(false, "CloudX SDK failed to initialize")
             }
-            CloudXLogger.i(
-                TAG,
-                "Initialization complete, calling listener with status: ${initStatus.initialized}"
-            )
+            CloudXLogger.i(TAG, "SDK initialization completed successfully")
             ThreadUtils.runOnMainThread {
                 listener?.onCloudXInitializationStatus(initStatus)
             }

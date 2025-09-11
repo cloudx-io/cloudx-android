@@ -107,7 +107,7 @@ internal fun cloudXCreateAdView(activity: Activity, frameLayout: FrameLayout) {
 
 internal fun createInterstitial(placementName: String) {
     var ad: CloudXInterstitialAd? = null
-    ad = CloudX.createInterstitial(
+    ad = CloudXInterstitialAd(
         placementName,
         // Track events if necessary.
         object : CloudXInterstitialListener {

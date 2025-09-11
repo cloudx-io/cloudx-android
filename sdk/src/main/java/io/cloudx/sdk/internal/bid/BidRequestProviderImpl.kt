@@ -144,13 +144,12 @@ internal class BidRequestProviderImpl(
 
                             putBannerObject(apis, adSizeDp, pos)
 
-                            if (!isBannerOrNative) {
+                            if (adType is AdType.Rewarded) {
                                 putVideoObject(apis, adSizeDp, pos)
                             }
                         }
 
                         put("ext", JSONObject().apply {
-
                             put("prebid", JSONObject().apply {
                                 put("storedimpression", JSONObject().apply {
                                     put("id", effectivePlacementId)

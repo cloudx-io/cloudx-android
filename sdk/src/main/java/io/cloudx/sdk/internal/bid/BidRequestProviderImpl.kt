@@ -164,7 +164,9 @@ internal class BidRequestProviderImpl(
                 putRegsObject(privacyService)
 
                 put("ext", JSONObject().apply {
-                    putBidRequestAdapterExtras(context, bidRequestExtrasProviders)
+                    put("cloudx", JSONObject().apply {
+                        putBidRequestAdapterExtras(context, bidRequestExtrasProviders)
+                    })
                 })
             }
 

@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.annotation.Keep
 import com.facebook.ads.AudienceNetworkAds
 import io.cloudx.sdk.CloudXPrivacy
+import io.cloudx.sdk.internal.CloudXLogger
 import io.cloudx.sdk.internal.adapter.CloudXAdapterInitializationResult
 import io.cloudx.sdk.internal.adapter.CloudXAdapterInitializer
 import kotlinx.coroutines.Dispatchers
@@ -22,7 +23,7 @@ internal object Initializer : CloudXAdapterInitializer {
         privacy: StateFlow<CloudXPrivacy>
     ): CloudXAdapterInitializationResult = withContext(Dispatchers.Main) {
         if (isInitialized) {
-            log(TAG, "Meta SDK already initialized")
+            CloudXLogger.d(TAG, "Meta SDK already initialized")
             return@withContext CloudXAdapterInitializationResult.Success
         }
 
@@ -31,7 +32,10 @@ internal object Initializer : CloudXAdapterInitializer {
         suspendCancellableCoroutine<CloudXAdapterInitializationResult> { continuation ->
             val initListener = AudienceNetworkAds.InitListener { initResult ->
                 if (initResult.isSuccess) {
-                    log(TAG, "Meta SDK successfully finished initialization: ${initResult.message}")
+                    CloudXLogger.d(
+                        TAG,
+                        "Meta SDK successfully finished initialization: ${initResult.message}"
+                    )
                     isInitialized = true
 
                     // Sometimes adapters call [Continuation.resume] twice which they shouldn't.
@@ -39,22 +43,28 @@ internal object Initializer : CloudXAdapterInitializer {
                     try {
                         continuation.resume(CloudXAdapterInitializationResult.Success)
                     } catch (e: Exception) {
-                        log(TAG, "Continuation resumed more than once", e)
+                        CloudXLogger.w(TAG, "Continuation resumed more than once", e)
                     }
                 } else {
-                    log(TAG, "Meta SDK failed to finish initialization: ${initResult.message}")
+                    CloudXLogger.e(
+                        TAG,
+                        "Meta SDK failed to finish initialization: ${initResult.message}"
+                    )
                     continuation.resume(CloudXAdapterInitializationResult.Error(initResult.message))
                 }
             }
 
             val placementIds = serverExtras.getPlacementIds()
             if (placementIds.isEmpty()) {
-                log(TAG, "No placement IDs found for Meta adapter initialization")
+                CloudXLogger.w(TAG, "No placement IDs found for Meta adapter initialization")
             }
 
-            log(TAG, "Initializing Meta Audience Network SDK with placement IDs: $placementIds")
+            CloudXLogger.d(
+                TAG,
+                "Initializing Meta Audience Network SDK with placement IDs: $placementIds"
+            )
             AudienceNetworkAds.buildInitSettings(context)
-                .withMediationService("")
+                .withMediationService("CLOUDX")
                 .withPlacementIds(placementIds)
                 .withInitListener(initListener)
                 .initialize()

@@ -7,6 +7,7 @@ import com.facebook.ads.AdError
 import com.facebook.ads.RewardedInterstitialAd
 import com.facebook.ads.RewardedInterstitialAdListener
 import io.cloudx.sdk.Result
+import io.cloudx.sdk.internal.CloudXLogger
 import io.cloudx.sdk.internal.adapter.AlwaysReadyToLoadAd
 import io.cloudx.sdk.internal.adapter.CloudXAdLoadOperationAvailability
 import io.cloudx.sdk.internal.adapter.CloudXAdapterError
@@ -51,7 +52,7 @@ internal class MetaRewardedInterstitialAdapter(
     override fun load() {
         val placementId = serverExtras.getPlacementId()
         if (placementId == null) {
-            log(TAG, "Placement ID is null")
+            CloudXLogger.e(TAG, "Placement ID is null")
             listener?.onError(CloudXAdapterError(description = "Placement ID is null"))
             return
         }
@@ -59,33 +60,35 @@ internal class MetaRewardedInterstitialAdapter(
         val ad = RewardedInterstitialAd(contextProvider.getContext(), placementId)
         this.ad = ad
 
-        ad.loadAd(ad.buildLoadAdConfig().withAdListener(object : RewardedInterstitialAdListener {
-            override fun onError(ad: Ad?, adError: AdError?) {
-                listener?.onError(CloudXAdapterError(description = adError?.errorMessage ?: ""))
-            }
+        ad.loadAd(
+            ad.buildLoadAdConfig().withAdListener(object : RewardedInterstitialAdListener {
+                override fun onError(ad: Ad?, adError: AdError?) {
+                    listener?.onError(CloudXAdapterError(description = adError?.errorMessage ?: ""))
+                }
 
-            override fun onAdLoaded(ad: Ad?) {
-                listener?.onLoad()
-            }
+                override fun onAdLoaded(ad: Ad?) {
+                    listener?.onLoad()
+                }
 
-            override fun onAdClicked(ad: Ad?) {
-                listener?.onClick()
-            }
+                override fun onAdClicked(ad: Ad?) {
+                    listener?.onClick()
+                }
 
-            override fun onLoggingImpression(ad: Ad?) {
-                listener?.onImpression()
-            }
+                override fun onLoggingImpression(ad: Ad?) {
+                    listener?.onImpression()
+                }
 
-            override fun onRewardedInterstitialCompleted() {
-                listener?.onEligibleForReward()
-            }
+                override fun onRewardedInterstitialCompleted() {
+                    listener?.onEligibleForReward()
+                }
 
-            override fun onRewardedInterstitialClosed() {
-                listener?.onHide()
-            }
-        })
-            .withBid(adm)
-            .build())
+                override fun onRewardedInterstitialClosed() {
+                    listener?.onHide()
+                }
+            })
+                .withBid(adm)
+                .build()
+        )
     }
 
     override fun show() {

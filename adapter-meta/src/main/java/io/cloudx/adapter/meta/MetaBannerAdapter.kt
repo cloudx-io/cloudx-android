@@ -10,6 +10,7 @@ import com.facebook.ads.AdSize
 import com.facebook.ads.AdView
 import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.AdViewSize
+import io.cloudx.sdk.internal.CloudXLogger
 import io.cloudx.sdk.internal.adapter.BannerFactoryMiscParams
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapter
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
@@ -34,12 +35,12 @@ internal object BannerFactory : CloudXAdViewAdapterFactory,
         listener: CloudXAdViewAdapterListener,
     ): Result<CloudXAdViewAdapter, String> = Result.Success(
         MetaBannerAdapter(
-            activity,
-            adViewContainer,
-            serverExtras,
+            activity = activity,
+            adViewContainer = adViewContainer,
+            serverExtras = serverExtras,
             adm = adm,
-            miscParams.adViewSize,
-            listener,
+            adViewSize = miscParams.adViewSize,
+            listener = listener,
         )
     )
 
@@ -62,12 +63,12 @@ internal class MetaBannerAdapter(
     override fun load() {
         val placementId = serverExtras.getPlacementId()
         if (placementId == null) {
-            log(TAG, "Placement ID is null")
+            CloudXLogger.e(TAG, "Placement ID is null")
             listener?.onError(CloudXAdapterError(description = "Placement ID is null"))
             return
         }
 
-        log(TAG, "Loading banner ad for placement: $placementId")
+        CloudXLogger.d(TAG, "Loading banner ad for placement: $placementId")
         val adView = AdView(
             activity,
             placementId,
@@ -77,7 +78,7 @@ internal class MetaBannerAdapter(
 
         with(adView) {
             adViewContainer.onAdd(this)
-            log(TAG, "Starting to load banner ad for placement: $placementId")
+            CloudXLogger.d(TAG, "Starting to load banner ad for placement: $placementId")
 
             loadAd(
                 buildLoadAdConfig()
@@ -89,48 +90,46 @@ internal class MetaBannerAdapter(
     }
 
     override fun destroy() {
-        log(TAG, "Destroying banner ad for placement: ${serverExtras.getPlacementId()}")
+        CloudXLogger.d(TAG, "Destroying banner ad for placement: ${serverExtras.getPlacementId()}")
         adView?.let {
             it.destroy()
             adViewContainer.onRemove(it)
         }
         adView = null
-
         listener = null
     }
 
     private fun createAdListener(
         placementId: String,
         listener: CloudXAdViewAdapterListener?
-    ) =
-        object : AdListener {
+    ) = object : AdListener {
 
-            override fun onError(ad: Ad?, adError: AdError?) {
-                log(
-                    TAG,
-                    "Banner ad failed to load for placement $placementId with error: ${adError?.errorMessage} (${adError?.errorCode})"
+        override fun onError(ad: Ad?, adError: AdError?) {
+            CloudXLogger.e(
+                TAG,
+                "Banner ad failed to load for placement $placementId with error: ${adError?.errorMessage} (${adError?.errorCode})"
+            )
+            listener?.onError(
+                CloudXAdapterError(
+                    description = adError?.errorMessage ?: "Unknown error"
                 )
-                listener?.onError(
-                    CloudXAdapterError(
-                        description = adError?.errorMessage ?: "Unknown error"
-                    )
-                )
-            }
-
-            override fun onAdLoaded(ad: Ad?) {
-                log(TAG, "Banner ad loaded successfully for placement: $placementId")
-                listener?.onLoad()
-            }
-
-            override fun onAdClicked(ad: Ad?) {
-                log(TAG, "Banner ad clicked for placement: $placementId")
-                listener?.onClick()
-            }
-
-            override fun onLoggingImpression(ad: Ad?) {
-                log(TAG, "Banner ad impression logged for placement: $placementId")
-                listener?.onShow()
-                listener?.onImpression()
-            }
+            )
         }
+
+        override fun onAdLoaded(ad: Ad?) {
+            CloudXLogger.d(TAG, "Banner ad loaded successfully for placement: $placementId")
+            listener?.onLoad()
+        }
+
+        override fun onAdClicked(ad: Ad?) {
+            CloudXLogger.d(TAG, "Banner ad clicked for placement: $placementId")
+            listener?.onClick()
+        }
+
+        override fun onLoggingImpression(ad: Ad?) {
+            CloudXLogger.d(TAG, "Banner ad impression logged for placement: $placementId")
+            listener?.onShow()
+            listener?.onImpression()
+        }
+    }
 }

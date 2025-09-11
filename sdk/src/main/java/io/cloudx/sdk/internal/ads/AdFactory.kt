@@ -4,7 +4,7 @@ import android.app.Activity
 import io.cloudx.sdk.CloudXAdViewListener
 import io.cloudx.sdk.CloudXAdView
 import io.cloudx.sdk.CloudXInterstitialAd
-import io.cloudx.sdk.CloudXRewardedAd
+import io.cloudx.sdk.CloudXRewardedInterstitialAd
 import io.cloudx.sdk.CloudXInterstitialListener
 import io.cloudx.sdk.CloudXRewardedInterstitialListener
 import io.cloudx.sdk.internal.AdType
@@ -26,7 +26,7 @@ internal interface AdFactory {
     fun createInterstitial(params: CreateAdParams<CloudXInterstitialListener>): CloudXInterstitialAd?
 
     // Rewarded Ad creation
-    fun createRewarded(params: CreateAdParams<CloudXRewardedInterstitialListener>): CloudXRewardedAd?
+    fun createRewarded(params: CreateAdParams<CloudXRewardedInterstitialListener>): CloudXRewardedInterstitialAd?
 
     open class CreateAdParams<T>(
         val placementName: String,

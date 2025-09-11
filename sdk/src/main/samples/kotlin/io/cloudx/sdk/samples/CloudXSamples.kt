@@ -10,7 +10,7 @@ import io.cloudx.sdk.CloudXInterstitialAd
 import io.cloudx.sdk.CloudXInterstitialListener
 import io.cloudx.sdk.CloudXIsAdLoadedListener
 import io.cloudx.sdk.CloudXPrivacy
-import io.cloudx.sdk.CloudXRewardedAd
+import io.cloudx.sdk.CloudXRewardedInterstitialAd
 import io.cloudx.sdk.CloudXRewardedInterstitialListener
 import io.cloudx.sdk.internal.CloudXLogger
 
@@ -170,8 +170,8 @@ internal fun createInterstitial(placementName: String) {
 }
 
 internal fun createRewarded(placementName: String) {
-    var ad: CloudXRewardedAd? = null
-    ad = CloudX.createRewardedInterstitial(
+    var ad: CloudXRewardedInterstitialAd? = null
+    ad = CloudXRewardedInterstitialAd(
         placementName,
         // Track events if necessary.
         object : CloudXRewardedInterstitialListener {

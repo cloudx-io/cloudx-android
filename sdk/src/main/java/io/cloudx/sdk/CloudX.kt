@@ -5,7 +5,6 @@ import io.cloudx.sdk.CloudX.createBanner
 import io.cloudx.sdk.CloudX.createMREC
 import io.cloudx.sdk.CloudX.createNativeAdMedium
 import io.cloudx.sdk.CloudX.createNativeAdSmall
-import io.cloudx.sdk.CloudX.createRewardedInterstitial
 import io.cloudx.sdk.CloudX.initialize
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.CloudXLogger
@@ -19,7 +18,6 @@ import io.cloudx.sdk.internal.state.SdkKeyValueState
 import io.cloudx.sdk.internal.util.ThreadUtils
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -65,7 +63,6 @@ object CloudX {
      * - [createMREC]
      * - [createNativeAdSmall]
      * - [createNativeAdMedium]
-     * - [createRewardedInterstitial]
      *
      * @param initParams initialization credentials and misc parameters
      * @param listener an optional listener to receive initialization status updates
@@ -227,39 +224,6 @@ object CloudX {
                 placementName,
                 listener
             )
-        )
-    }
-
-    /**
-     * Creates [CloudXRewardedAd] ad instance responsible for rendering non-rewarded fullscreen ads.
-     *
-     * _General usage guideline:_
-     * 1. Create [CloudXRewardedAd] instance via invoking this function.
-     * 2. If created successfully, consider attaching an optional [listener][CloudXRewardedInterstitialListener] which is then can be used for tracking ad events (impression, click, hidden, etc)
-     * 3. _Fullscreen ad implementations start precaching logic internally automatically in an optimised way, so you don't have to worry about any ad loading complexities.
-     * We provide several APIs, use any appropriate ones for your use-cases:_
-     *
-     * - call [load()][CloudXFullscreenAd.load]; then wait for [onAdLoadSuccess()][CloudXAdListener.onAdLoaded] or [onAdLoadFailed()][CloudXAdListener.onAdLoadFailed] event;
-     * - alternatively, check [isAdLoaded][CloudXFullscreenAd.isAdLoaded] property: if _true_ feel free to [show()][CloudXFullscreenAd.show] the ad;
-     * - another option is to [setIsAdLoadedListener][CloudXFullscreenAd.setIsAdLoadedListener], which then always fires event upon internal loaded ad cache size changes.
-     *
-     * 4. call [show()][CloudXFullscreenAd.show] when you're ready to display an ad; then wait for [onAdShowSuccess()][CloudXAdListener.onAdDisplayed] or [onAdShowFailed()][CloudXAdListener.onAdDisplayFailed] event;
-     * 5. Whenever parent Activity or Fragment is destroyed; or when ads are not required anymore - release ad instance resources via calling [destroy()][Destroyable.destroy]
-     *
-     * @param placementName identifier of CloudX placement setup on the dashboard.
-     *
-     * _Once SDK is [initialized][initialize] it knows which placement names are valid for ad creation_
-     * @return _null_ - if SDK didn't [initialize] successfully/yet or [placementName] doesn't exist
-     * @sample io.cloudx.sdk.samples.createRewarded
-     */
-    @JvmStatic
-    fun createRewardedInterstitial(
-        placementName: String,
-        listener: CloudXRewardedInterstitialListener?
-    ): CloudXRewardedAd? {
-        initializationService?.metricsTrackerNew?.trackMethodCall(MetricsType.Method.CreateRewarded)
-        return initializationService?.adFactory?.createRewarded(
-            AdFactory.CreateAdParams(placementName, listener)
         )
     }
 

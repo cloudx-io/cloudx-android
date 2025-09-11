@@ -1,7 +1,7 @@
 package io.cloudx.sdk.internal.ads.fullscreen.rewarded
 
 import io.cloudx.sdk.CloudXFullscreenAd
-import io.cloudx.sdk.CloudXRewardedAd
+import io.cloudx.sdk.CloudXRewardedInterstitialAd
 import io.cloudx.sdk.CloudXRewardedInterstitialListener
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.AdType
@@ -35,7 +35,7 @@ internal fun RewardedInterstitialManager(
     listener: CloudXRewardedInterstitialListener,
     accountId: String,
     appKey: String
-): CloudXRewardedAd {
+): CloudXRewardedInterstitialAd {
 
     val bidRequestProvider = BidRequestProvider(
         bidRequestExtrasProviders
@@ -75,7 +75,7 @@ private class RewardedInterstitialManager(
     connectionStatusService: ConnectionStatusService,
     appLifecycleService: AppLifecycleService,
     private val listener: CloudXRewardedInterstitialListener,
-) : CloudXRewardedAd,
+) : CloudXRewardedInterstitialAd,
     CloudXFullscreenAd by FullscreenAdManager(
         bidAdSource,
         bidMaxBackOffTimeMillis,

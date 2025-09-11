@@ -11,7 +11,6 @@ import io.cloudx.sdk.CloudXAdListener
 import io.cloudx.sdk.CloudXFullscreenAd
 import io.cloudx.sdk.CloudXIsAdLoadedListener
 import io.cloudx.sdk.internal.CloudXLogger
-import kotlinx.coroutines.flow.first
 
 abstract class FullPageAdFragment : Fragment(R.layout.fragment_fullscreen_ad) {
 
@@ -35,9 +34,6 @@ abstract class FullPageAdFragment : Fragment(R.layout.fragment_fullscreen_ad) {
         // Creates ad if null once SDK is initialized.
         viewLifecycleOwner.repeatOnStart {
             if (ad != null) return@repeatOnStart
-
-            CloudXInitializer.initState.first { it == InitializationState.Initialized }
-
             ad = createAd(LoggedCloudXAdListener(logTag, placementName))
             if (ad == null) {
                 CloudXLogger.e(

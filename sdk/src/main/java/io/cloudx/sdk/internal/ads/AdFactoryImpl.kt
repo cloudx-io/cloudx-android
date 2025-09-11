@@ -2,7 +2,7 @@ package io.cloudx.sdk.internal.ads
 
 import io.cloudx.sdk.CloudXAdView
 import io.cloudx.sdk.CloudXInterstitialAd
-import io.cloudx.sdk.CloudXRewardedAd
+import io.cloudx.sdk.CloudXRewardedInterstitialAd
 import io.cloudx.sdk.internal.ads.fullscreen.interstitial.InterstitialManager
 import io.cloudx.sdk.CloudXInterstitialListener
 import io.cloudx.sdk.internal.ads.fullscreen.rewarded.RewardedInterstitialManager
@@ -157,7 +157,7 @@ internal class AdFactoryImpl(
 
     // ===== Rewarded Ad Creation =====
 
-    override fun createRewarded(params: AdFactory.CreateAdParams<CloudXRewardedInterstitialListener>): CloudXRewardedAd? {
+    override fun createRewarded(params: AdFactory.CreateAdParams<CloudXRewardedInterstitialListener>): CloudXRewardedInterstitialAd? {
         val placementName = params.placementName
         val placement = config.placements[placementName] as? Config.Placement.Rewarded
         if (placement == null) {

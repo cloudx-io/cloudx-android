@@ -127,7 +127,7 @@ internal class BidRequestProviderImpl(
 
                         // TODO. Refactor.
                         val isBannerOrNative = adType is AdType.Banner || adType is AdType.Native
-//                        put("instl", if (isBannerOrNative) 0 else 1)
+                        put("instl", if (isBannerOrNative) 0 else 1)
 
                         if (adType is AdType.Native) {
                             putNativeObject(adType.specs)

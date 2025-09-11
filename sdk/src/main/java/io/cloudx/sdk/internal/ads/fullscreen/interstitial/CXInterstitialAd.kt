@@ -18,7 +18,7 @@ internal class CXInterstitialAd(
     private val listener: CloudXInterstitialListener?
 ) : CloudXInterstitialAd {
 
-    private val TAG = "CloudXInterstitialAd"
+    private val TAG = "CXInterstitialAd"
     private val initJob: Job
     private var interstitial: CloudXInterstitialAd? = null
     private var isAdLoadedListener: CloudXIsAdLoadedListener? = null
@@ -44,19 +44,27 @@ internal class CXInterstitialAd(
     }
 
     override fun load() {
+        if (interstitial != null) {
+            interstitial?.load()
+            return
+        }
+
         if (CloudX.initState.value is InitializationState.Uninitialized) {
             CloudXLogger.e(TAG, "CloudX SDK is uninitialized")
             listener?.onAdLoadFailed(CloudXAdError("CloudX SDK is uninitialized"))
         }
-        interstitial?.load()
     }
 
     override fun show() {
+        if (interstitial != null) {
+            interstitial?.show()
+            return
+        }
+
         if (CloudX.initState.value is InitializationState.Uninitialized) {
             CloudXLogger.e(TAG, "CloudX SDK is uninitialized")
             listener?.onAdDisplayFailed(CloudXAdError("CloudX SDK is uninitialized"))
         }
-        interstitial?.show()
     }
 
     override fun destroy() {

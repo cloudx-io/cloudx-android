@@ -119,6 +119,7 @@ object CloudX {
                 val initService = InitializationService(
                     configApi = ConfigApi(initParams.initEndpointUrl)
                 )
+                SdkKeyValueState.hashedUserId = initParams.hashedUserId
                 initService.metricsTrackerNew?.trackMethodCall(MetricsType.Method.SdkInitMethod)
 
                 // Initializing SDK...
@@ -139,7 +140,6 @@ object CloudX {
 
                     is Result.Success -> {
                         CloudXLogger.i(TAG, "SDK initialization succeeded")
-                        SdkKeyValueState.hashedUserId = initParams.hashedUserId
                         _state.value = InitializationState.Initialized(initService)
                         CloudXInitializationStatus(
                             initialized = true,

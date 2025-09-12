@@ -33,3 +33,10 @@ sealed class AdType {
         data object Medium : Native(NativeMediumImage, AdViewSize(320, 250))
     }
 }
+
+internal fun AdType.size() = when (this) {
+    is AdType.Banner -> size
+    is AdType.Native -> size
+    else -> AdViewSize(0, 0)
+}
+

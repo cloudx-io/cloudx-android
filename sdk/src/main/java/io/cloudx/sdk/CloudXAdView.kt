@@ -10,47 +10,49 @@ import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.ImageView
 import androidx.core.view.setPadding
-import io.cloudx.sdk.internal.AdViewSize
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
+import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.CloudXLogger
-import io.cloudx.sdk.internal.ads.banner.BannerManager
+import io.cloudx.sdk.internal.PlacementLoopIndexTracker
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
+import io.cloudx.sdk.internal.ads.AdFactory
+import io.cloudx.sdk.internal.ads.banner.BannerManager
 import io.cloudx.sdk.internal.common.createViewabilityTracker
 import io.cloudx.sdk.internal.common.dpToPx
-import io.cloudx.sdk.internal.PlacementLoopIndexTracker
+import io.cloudx.sdk.internal.initialization.InitializationState
+import io.cloudx.sdk.internal.size
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 @SuppressLint("ViewConstructor")
 class CloudXAdView internal constructor(
     activity: Activity,
-    private var suspendPreloadWhenInvisible: Boolean,
-    private var adViewSize: AdViewSize,
-    internal val createBannerManager: (
-        adViewContainer: CloudXAdViewAdapterContainer,
-        bannerVisibility: StateFlow<Boolean>,
-        suspendPreloadWhenInvisible: Boolean,
-    ) -> BannerManager,
     private val placementName: String,
-    private val hasCloseButton: Boolean
+    private val adType: AdType,
 ) : FrameLayout(activity), Destroyable {
 
     private val TAG = "CloudXAdView"
+
     private val mainScope = CoroutineScope(Dispatchers.Main)
+    private val initJob: Job
 
     // State management
+    private val isBannerAttachedToWindow = MutableStateFlow(isAttachedToWindow)
     private val isBannerShown = MutableStateFlow(isShown)
     private val viewabilityTracker = createViewabilityTracker(mainScope, isBannerShown)
-    
+
     // Banner management
     private var bannerManager: BannerManager? = null
-    
+
     // Banner container tracking - ordered by layer: background first, foreground last
     // TODO. View is null for acquireBannerContainer() call... Fyber... ugh.
     private val orderedBannerToContainerList = mutableListOf<Pair<View?, ViewGroup>>()
+    private var hasCloseButton = false
 
     var listener: CloudXAdViewListener? = null
         set(value) {
@@ -58,17 +60,34 @@ class CloudXAdView internal constructor(
             updateBannerListener()
         }
 
+    init {
+        initJob = mainScope.launch {
+            val initState = CloudX.initState.first { it is InitializationState.Initialized }
+                    as InitializationState.Initialized
+            val adFactory = initState.initializationService.adFactory
+            isBannerAttachedToWindow.first { it }
+            bannerManager = adFactory!!.createBannerManager(
+                AdFactory.CreateBannerParams(
+                    activity = activity,
+                    adType = adType,
+                    adViewAdapterContainer = createBannerContainer(),
+                    bannerVisibility = viewabilityTracker.isViewable,
+                    placementName = placementName,
+                    listener = listener
+                )
+            )
+            updateBannerListener()
+        }
+    }
+
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        if (bannerManager != null) return
+        isBannerAttachedToWindow.value = true
+    }
 
-        bannerManager = createBannerManager(
-            createBannerContainer(),
-            viewabilityTracker.isViewable,
-            suspendPreloadWhenInvisible,
-        )
-
-        updateBannerListener()
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        isBannerAttachedToWindow.value = false
     }
 
     override fun onVisibilityChanged(changedView: View, visibility: Int) {
@@ -97,6 +116,7 @@ class CloudXAdView internal constructor(
             (parent as? ViewGroup)?.removeView(this@CloudXAdView)
 
             mainScope.cancel()
+            initJob.cancel()
 
             viewabilityTracker.destroy()
 
@@ -149,11 +169,12 @@ class CloudXAdView internal constructor(
             // therefore it's probably already added to the CloudXAdView, the second take causes IllegalStateException.
             // I haven't been able to reproduce the bug yet, so I decided to wrap with try catch and log stuff
             try {
+                val adSize = adType.size()
                 bannerContainer.addView(
                     bannerViewToAdd,
                     LayoutParams(
-                        context.dpToPx(adViewSize.w),
-                        context.dpToPx(adViewSize.h),
+                        context.dpToPx(adSize.w),
+                        context.dpToPx(adSize.h),
                         Gravity.CENTER
                     )
                 )
@@ -187,7 +208,10 @@ class CloudXAdView internal constructor(
                     bannerContainer.addView(closeButton, closeBtnParams)
                 }
 
-                CloudXLogger.i(TAG, message = "added banner view to the background layer: ${bannerViewToAdd.javaClass.simpleName}")
+                CloudXLogger.i(
+                    TAG,
+                    message = "added banner view to the background layer: ${bannerViewToAdd.javaClass.simpleName}"
+                )
 
             } catch (e: Exception) {
                 CloudXLogger.e(

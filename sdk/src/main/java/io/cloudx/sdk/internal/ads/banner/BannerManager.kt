@@ -14,7 +14,7 @@ import io.cloudx.sdk.internal.bid.BidApi
 import io.cloudx.sdk.internal.bid.BidRequestProvider
 import io.cloudx.sdk.internal.bid.LoadResult
 import io.cloudx.sdk.internal.bid.LossReason
-import io.cloudx.sdk.internal.bid.LossReporter
+import io.cloudx.sdk.internal.bid.LossTracker
 import io.cloudx.sdk.internal.cdp.CdpApi
 import io.cloudx.sdk.internal.common.BidBackoffMechanism
 import io.cloudx.sdk.internal.common.service.ActivityLifecycleService
@@ -395,7 +395,7 @@ private class BannerManagerImpl(
                                 "Calling LURL for ${bidItem.adNetwork}, reason=${reason.name}, rank=${bidItem.rank}"
                             )
 
-                            LossReporter.fireLoss(bidItem.lurl, reason)
+                            LossTracker.trackLoss(bidItem.lurl, reason)
                         }
                     }
                 }

@@ -4,7 +4,7 @@ import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.adapter.CloudXAdapterError
 import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapter
 import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapterListener
-import io.cloudx.sdk.internal.ads.WinTracker
+import io.cloudx.sdk.internal.bid.WinTracker
 import io.cloudx.sdk.internal.ads.fullscreen.FullscreenAdAdapterDelegate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -114,12 +114,6 @@ private class InterstitialAdapterDelegateImpl(
         interstitial.destroy()
     }
 
-    private fun handleWinTracking() {
-        scope.launch(Dispatchers.IO) {
-            WinTracker.trackWin(nurl, revenue, "Interstitial")
-        }
-    }
-
     private fun createAdapterListener(): CloudXInterstitialAdapterListener {
         return object : CloudXInterstitialAdapterListener {
             override fun onLoad() {
@@ -131,7 +125,7 @@ private class InterstitialAdapterDelegateImpl(
             }
 
             override fun onImpression() {
-                scope.launch { 
+                scope.launch {
                     _event.emit(InterstitialAdapterDelegateEvent.Impression)
                     handleWinTracking()
                 }
@@ -159,6 +153,12 @@ private class InterstitialAdapterDelegateImpl(
                     _lastErrorEvent.value = error
                 }
             }
+        }
+    }
+
+    private fun handleWinTracking() {
+        scope.launch(Dispatchers.IO) {
+            WinTracker.trackWin(placementName, placementId, nurl, revenue)
         }
     }
 }

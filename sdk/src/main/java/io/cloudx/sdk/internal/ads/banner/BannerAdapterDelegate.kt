@@ -8,7 +8,7 @@ import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterListener
 import io.cloudx.sdk.internal.adapter.CloudXAdapterError
 import io.cloudx.sdk.internal.ads.AdTimeoutEvent
 import io.cloudx.sdk.internal.ads.LastErrorEvent
-import io.cloudx.sdk.internal.ads.WinTracker
+import io.cloudx.sdk.internal.bid.WinTracker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -142,7 +142,7 @@ private class BannerAdapterDelegateImpl(
 
     private fun handleWinTracking() {
         scope.launch(Dispatchers.IO) {
-            WinTracker.trackWin(nurl, revenue, "Banner")
+            WinTracker.trackWin(placementName, placementId, nurl, revenue)
         }
     }
 }

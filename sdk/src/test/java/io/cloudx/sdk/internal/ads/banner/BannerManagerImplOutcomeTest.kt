@@ -134,25 +134,8 @@ class BannerManagerImplOutcomeTest {
         }
     }
 
-    @Test
-    fun `PermanentFailure tears down manager and stops cadence`() = runTest(mainRule.dispatcher) {
-        try {
-            coEvery { mockLoader.loadOnce() } returns BannerLoadOutcome.PermanentFailure
-            createManager(refreshSeconds = 1)
-
-            // First request triggers permanent failure
-            runCurrent()
-            coVerify(exactly = 1) { mockLoader.loadOnce() }
-            verify { mockListener.onAdLoadFailed(any()) }
-
-            // Even after more time, should NOT fire again (manager destroyed)
-            advanceTimeBy(5_000)
-            runCurrent()
-            coVerify(exactly = 1) { mockLoader.loadOnce() }
-        } finally {
-            if (this@BannerManagerImplOutcomeTest::mgr.isInitialized) mgr.destroy()
-        }
-    }
+    // Note: PermanentFailure was removed per Mobile Lead feedback - all failures are now Transient
+    // This test is no longer needed since TransientFailure behavior is covered by the test below
 
     @Test
     fun `TransientFailure while visible emits error and waits full interval`() = runTest(mainRule.dispatcher) {

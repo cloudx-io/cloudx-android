@@ -249,12 +249,6 @@ private class BannerManagerImpl(
                         )
                     )
 
-                BannerLoadOutcome.PermanentFailure -> {
-                    // MVP: 4xx client errors - stop permanently
-                    stopPermanently("Permanent error", CLXErrorCode.CLIENT_ERROR.code)
-                    return@launch
-                }
-
                 BannerLoadOutcome.TrafficControl ->
                     // MVP: Ads disabled - emit error, continue refresh cycle
                     listener?.onAdLoadFailed(
@@ -268,18 +262,6 @@ private class BannerManagerImpl(
             // MVP: Mark request finished to restart timer and avoid stacking
             clock.markRequestFinished()
         }
-    }
-
-    private fun stopPermanently(userMessage: String, code: Int) {
-        // Best-effort surface the fatal error before teardown
-        listener?.onAdLoadFailed(CloudXAdError(userMessage, code))
-        CloudXLogger.e(
-            TAG,
-            placementName,
-            placementId,
-            "Permanent failure → stopping: $userMessage"
-        )
-        destroy()
     }
 
     private var isDestroyed = false

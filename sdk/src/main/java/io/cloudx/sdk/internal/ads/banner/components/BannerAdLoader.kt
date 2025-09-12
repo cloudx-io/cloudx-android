@@ -33,7 +33,6 @@ internal class BannerAdLoader(
 
             is BidSourceResult.NoFill -> BannerLoadOutcome.NoFill
             is BidSourceResult.TrafficControl -> BannerLoadOutcome.TrafficControl
-            is BidSourceResult.PermanentFailure -> BannerLoadOutcome.PermanentFailure
             is BidSourceResult.TransientFailure -> BannerLoadOutcome.TransientFailure
         }
     }
@@ -123,6 +122,5 @@ internal sealed class BannerLoadOutcome {
     data class Success(val banner: BannerAdapterDelegate) : BannerLoadOutcome()
     data object NoFill : BannerLoadOutcome()
     data object TransientFailure : BannerLoadOutcome()
-    data object PermanentFailure : BannerLoadOutcome()
     data object TrafficControl : BannerLoadOutcome()
 }

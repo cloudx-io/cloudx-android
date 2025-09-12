@@ -93,7 +93,7 @@ private class BidAdSourceImpl<T : Destroyable>(
 
     private val logTag = "BidAdSourceImpl"
 
-    override suspend fun requestBid(): BidSourceResult<T>  {
+    override suspend fun requestBid(): BidSourceResult<T> {
         val auctionId = UUID.randomUUID().toString()
         val bidRequestParamsJson = provideBidRequest.invoke(bidRequestParams, auctionId)
 
@@ -185,8 +185,7 @@ private class BidAdSourceImpl<T : Destroyable>(
                 val e = result.value
                 when (e.code) {
                     CLXErrorCode.ADS_DISABLED -> BidSourceResult.TrafficControl(e.effectiveMessage)
-                    CLXErrorCode.NO_FILL      -> BidSourceResult.NoFill()
-                    CLXErrorCode.CLIENT_ERROR -> BidSourceResult.PermanentFailure(e.effectiveMessage, e.code.code) // 4xx (except 429)
+                    CLXErrorCode.NO_FILL -> BidSourceResult.NoFill()
                     else -> BidSourceResult.TransientFailure(e.effectiveMessage) // 5xx / network / timeout (after retries)
                 }
             }

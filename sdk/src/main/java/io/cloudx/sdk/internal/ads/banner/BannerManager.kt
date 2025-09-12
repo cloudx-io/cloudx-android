@@ -35,6 +35,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
@@ -128,7 +129,7 @@ private class BannerManagerImpl(
     private val metricsTrackerNew: MetricsTrackerNew,
 ) : BannerManager {
 
-    private val TAG = "BannerManager"
+    private val tag = "BannerManager"
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
@@ -138,38 +139,42 @@ private class BannerManagerImpl(
         }
 
     private var refreshJob: Job? = null
-    private var loadJob: Job? = null
 
-    // Track effective visibility (banner + app)
+    // Single source of truth for visibility (banner + activity + app lifecycle)
+    private val isVisible = combine(
+        bannerVisibility,
+        activityLifecycleService.currentResumedActivity,
+        appLifecycleService.isResumed
+    ) { banner, currentActivity, appResumed ->
+        banner && currentActivity == activity && appResumed
+    }
+    
     private var currentlyVisible = false
 
     private val refreshDelayMillis = refreshSeconds * 1000L
 
-    // Timer for refresh intervals
+    // Timer for refresh intervals - create synthetic visibility that matches our logic
+    private val timerVisibility = MutableStateFlow(false)
     private val refreshTimer = BannerSuspendableTimer(
         activity = activity,
-        bannerContainerVisibility = bannerVisibility,
+        bannerContainerVisibility = timerVisibility,
         activityLifecycleService = activityLifecycleService,
         suspendWhenInvisible = suspendPreloadWhenInvisible
     )
 
     init {
         CloudXLogger.i(
-            TAG,
+            tag,
             placementName,
             placementId,
             "BannerManager initialized - refresh: ${refreshSeconds}s"
         )
 
-        // Track effective visibility (banner + activity lifecycle)
+        // Track effective visibility using single source of truth
         scope.launch {
-            combine(
-                bannerVisibility,
-                activityLifecycleService.currentResumedActivity
-            ) { banner, currentActivity ->
-                banner && currentActivity == activity
-            }.collect { visible ->
+            isVisible.collect { visible ->
                 currentlyVisible = visible
+                timerVisibility.value = visible  // Sync timer with main visibility logic
                 if (visible && cachedBanner != null) {
                     // Show cached banner when becoming visible
                     cachedBanner?.let { cached ->
@@ -190,7 +195,13 @@ private class BannerManagerImpl(
             while (true) {
                 ensureActive()
 
-                // MVP: Load banner at refresh interval
+                // MVP: Wait for visibility before loading
+                if (!currentlyVisible) {
+                    // Wait until banner becomes visible using single source of truth
+                    isVisible.first { it }
+                }
+
+                // MVP: Load banner only when visible
                 val banner = loadBannerNow()
 
                 if (banner != null) {
@@ -200,12 +211,6 @@ private class BannerManagerImpl(
 
                 metricsTrackerNew.trackMethodCall(MetricsType.Method.BannerRefresh)
 
-                CloudXLogger.d(
-                    TAG,
-                    placementName,
-                    placementId,
-                    "Banner refresh scheduled in ${refreshSeconds}s"
-                )
                 // MVP: Wait full interval before next request
                 refreshTimer.awaitTimeout(refreshDelayMillis)
             }
@@ -214,34 +219,31 @@ private class BannerManagerImpl(
 
     // MVP: Simple cache - only used when request completes while hidden
     private var cachedBanner: BannerAdapterDelegate? = null
-    private var visibilityJob: Job? = null
 
     private suspend fun loadBannerNow(): BannerAdapterDelegate? {
-        // MVP: Single-flight - cancel any existing load
-        loadJob?.cancel()
+        // MVP: Single-flight handled by refresh cycle logic
 
         // Check if we have a cached banner from previous hidden load
         cachedBanner?.let { cached ->
-            CloudXLogger.d(TAG, placementName, placementId, "Using cached banner")
+            CloudXLogger.d(tag, placementName, placementId, "Using cached banner")
             cachedBanner = null
             return cached
         }
 
         return try {
             connectionStatusService.awaitConnection()
-
             when (val result = loader.loadOnce()) {
                 is Result.Success -> {
                     val banner = result.value
                     if (banner != null) {
                         // MVP: Check visibility at completion
-                        if (isCurrentlyVisible()) {
+                        if (currentlyVisible) {
                             // Still visible - return to show immediately
                             banner
                         } else {
                             // MVP: "If banner becomes hidden during request, cache for next visible"
                             CloudXLogger.d(
-                                TAG,
+                                tag,
                                 placementName,
                                 placementId,
                                 "Banner loaded while hidden - caching"
@@ -257,6 +259,7 @@ private class BannerManagerImpl(
 
                 is Result.Failure -> {
                     // MVP: "On failure, emit error and wait for next interval"
+                    CloudXLogger.w(tag, placementName, placementId, "Load failed with error: ${result.value}")
                     handleLoadError(result.value)
                     null
                 }
@@ -265,11 +268,6 @@ private class BannerManagerImpl(
             null
         }
     }
-
-    private fun isCurrentlyVisible(): Boolean {
-        return currentlyVisible
-    }
-
 
     private fun handleLoadError(error: CLXError) {
         when {
@@ -295,6 +293,15 @@ private class BannerManagerImpl(
                     )
                 )
             }
+            // Handle uncategorized errors
+            else -> {
+                listener?.onAdLoadFailed(
+                    CloudXAdError(
+                        "Load failed: $error",
+                        CLXErrorCode.SERVER_ERROR.code
+                    )
+                )
+            }
         }
     }
 
@@ -302,7 +309,7 @@ private class BannerManagerImpl(
     private var currentBannerEventHandlerJob: Job? = null
 
     private fun showNewBanner(banner: BannerAdapterDelegate) {
-        CloudXLogger.d(TAG, placementName, placementId, "Displaying new banner")
+        CloudXLogger.d(tag, placementName, placementId, "Displaying new banner")
         listener?.onAdDisplayed(banner)
 
         currentBanner = banner
@@ -311,27 +318,28 @@ private class BannerManagerImpl(
         currentBannerEventHandlerJob = scope.launch {
             launch {
                 banner.event.filter { it == BannerAdapterDelegateEvent.Click }.collect {
-                    CloudXLogger.i(TAG, placementName, placementId, "Banner clicked by user")
+                    CloudXLogger.i(tag, placementName, placementId, "Banner clicked by user")
                     listener?.onAdClicked(banner)
                 }
             }
             launch {
                 val error = banner.lastErrorEvent.first { it != null }
                 CloudXLogger.w(
-                    TAG,
+                    tag,
                     placementName,
                     placementId,
-                    "Banner error detected: $error - restarting refresh cycle"
+                    "Banner error detected: $error - waiting for next interval"
                 )
                 hideAndDestroyCurrentBanner()
-                startRefreshCycle()
+                // MVP: Don't retry immediately, wait for next interval
+                // The refresh cycle will continue naturally after the current timer
             }
         }
     }
 
     private fun hideAndDestroyCurrentBanner() {
         currentBanner?.let {
-            CloudXLogger.d(TAG, placementName, placementId, "Hiding current banner")
+            CloudXLogger.d(tag, placementName, placementId, "Hiding current banner")
             listener?.onAdHidden(it)
         }
         destroyCurrentBanner()
@@ -341,7 +349,7 @@ private class BannerManagerImpl(
         currentBannerEventHandlerJob?.cancel()
 
         currentBanner?.let {
-            CloudXLogger.d(TAG, placementName, placementId, "Destroying current banner")
+            CloudXLogger.d(tag, placementName, placementId, "Destroying current banner")
             it.destroy()
         }
         currentBanner = null
@@ -352,8 +360,6 @@ private class BannerManagerImpl(
         scope.cancel()
 
         refreshJob?.cancel()
-        loadJob?.cancel()
-        visibilityJob?.cancel()
 
         destroyCurrentBanner()
         refreshTimer.destroy()

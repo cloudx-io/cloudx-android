@@ -14,7 +14,7 @@ import io.cloudx.sdk.internal.ads.BidAdSource
 import io.cloudx.sdk.internal.ads.bidAdDecoration
 import io.cloudx.sdk.internal.ads.decorate
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
-import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTrackerNew
+import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
 
 internal fun BidInterstitialSource(
     factories: Map<AdNetwork, CloudXInterstitialAdapterFactory>,
@@ -24,7 +24,7 @@ internal fun BidInterstitialSource(
     cdpApi: CdpApi,
     generateBidRequest: BidRequestProvider,
     eventTracker: EventTracker,
-    metricsTrackerNew: MetricsTrackerNew,
+    metricsTracker: MetricsTracker,
     bidRequestTimeoutMillis: Long,
     accountId: String,
     appKey: String
@@ -43,7 +43,7 @@ internal fun BidInterstitialSource(
         requestBid,
         cdpApi,
         eventTracker,
-        metricsTrackerNew
+        metricsTracker
     ) {
 
         val placementName = it.placementName

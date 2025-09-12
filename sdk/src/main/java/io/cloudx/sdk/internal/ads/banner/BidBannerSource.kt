@@ -16,7 +16,7 @@ import io.cloudx.sdk.internal.bid.BidApi
 import io.cloudx.sdk.internal.bid.BidRequestProvider
 import io.cloudx.sdk.internal.cdp.CdpApi
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
-import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTrackerNew
+import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
 
 internal fun BidBannerSource(
     activity: Activity,
@@ -30,7 +30,7 @@ internal fun BidBannerSource(
     cdpApi: CdpApi,
     generateBidRequest: BidRequestProvider,
     eventTracker: EventTracker,
-    metricsTrackerNew: MetricsTrackerNew,
+    metricsTracker: MetricsTracker,
     miscParams: BannerFactoryMiscParams,
     bidRequestTimeoutMillis: Long,
     accountId: String,
@@ -48,7 +48,7 @@ internal fun BidBannerSource(
         requestBid,
         cdpApi,
         eventTracker,
-        metricsTrackerNew
+        metricsTracker
     ) {
 
         val placementName = it.placementName

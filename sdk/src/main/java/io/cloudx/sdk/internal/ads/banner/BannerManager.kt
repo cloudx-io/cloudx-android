@@ -24,7 +24,7 @@ import io.cloudx.sdk.internal.ads.BidAdSource
 import io.cloudx.sdk.internal.ads.BidAdSourceResponse
 import io.cloudx.sdk.internal.decorate
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
-import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTrackerNew
+import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -64,7 +64,7 @@ internal fun BannerManager(
     bidApi: BidApi,
     cdpApi: CdpApi,
     eventTracker: EventTracker,
-    metricsTrackerNew: MetricsTrackerNew,
+    metricsTracker: MetricsTracker,
     connectionStatusService: ConnectionStatusService,
     activityLifecycleService: ActivityLifecycleService,
     appLifecycleService: AppLifecycleService,
@@ -89,7 +89,7 @@ internal fun BannerManager(
             cdpApi,
             bidRequestProvider,
             eventTracker,
-            metricsTrackerNew,
+            metricsTracker,
             miscParams,
             0,
             accountId,
@@ -110,7 +110,7 @@ internal fun BannerManager(
         connectionStatusService = connectionStatusService,
         activityLifecycleService = activityLifecycleService,
         appLifecycleService = appLifecycleService,
-        metricsTrackerNew = metricsTrackerNew
+        metricsTracker = metricsTracker
     )
 }
 
@@ -128,7 +128,7 @@ private class BannerManagerImpl(
     private val connectionStatusService: ConnectionStatusService,
     private val activityLifecycleService: ActivityLifecycleService,
     private val appLifecycleService: AppLifecycleService,
-    private val metricsTrackerNew: MetricsTrackerNew,
+    private val metricsTracker: MetricsTracker,
 ) : BannerManager {
 
     private val TAG = "BannerManager"
@@ -178,7 +178,7 @@ private class BannerManagerImpl(
 
                 loadBackupBannerIfAbsent(delayLoadMillis = preloadDelayMillis)
 
-                metricsTrackerNew.trackMethodCall(MetricsType.Method.BannerRefresh)
+                metricsTracker.trackMethodCall(MetricsType.Method.BannerRefresh)
 
                 CloudXLogger.d(
                     TAG,

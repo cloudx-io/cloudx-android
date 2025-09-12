@@ -9,7 +9,7 @@ import io.cloudx.sdk.internal.crash.CrashReportingService
 import io.cloudx.sdk.internal.deviceinfo.DeviceInfoProvider
 import io.cloudx.sdk.internal.geo.GeoApi
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
-import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTrackerNew
+import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
 import io.cloudx.sdk.internal.privacy.PrivacyService
 import io.cloudx.sdk.mocks.MockAdapterFactoryResolver
 import io.cloudx.sdk.mocks.MockConfigAPIWithPredefinedConfig
@@ -56,7 +56,7 @@ class InitializationServiceImplTest : RoboMockkTest() {
             provideConfigRequest = MockConfigRequestProviderWithArbitraryValues(),
             adapterResolver = MockAdapterFactoryResolver(),
             privacyService = PrivacyService(),
-            _metricsTrackerNew = MetricsTrackerNew(),
+            _metricsTracker = MetricsTracker(),
             provideDeviceInfo = DeviceInfoProvider(),
             eventTracker = EventTracker(),
             geoApi = GeoApi(),

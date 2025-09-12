@@ -22,13 +22,13 @@ import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.initialization.BidAdNetworkFactories
 import io.cloudx.sdk.internal.decorate
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
-import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTrackerNew
+import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
 
 internal class AdFactoryImpl(
     private val appKey: String,
     private val config: Config,
     private val factories: BidAdNetworkFactories,
-    private val metricsTrackerNew: MetricsTrackerNew,
+    private val metricsTracker: MetricsTracker,
     private val eventTracker: EventTracker,
     private val connectionStatusService: ConnectionStatusService,
     private val appLifecycleService: AppLifecycleService,
@@ -108,7 +108,7 @@ internal class AdFactoryImpl(
                     bidApi = createBidApi(placement.bidResponseTimeoutMillis),
                     cdpApi = createCdpApi(),
                     eventTracker = eventTracker,
-                    metricsTrackerNew = metricsTrackerNew,
+                    metricsTracker = metricsTracker,
                     connectionStatusService = connectionStatusService,
                     activityLifecycleService = activityLifecycleService,
                     appLifecycleService = appLifecycleService,
@@ -145,7 +145,7 @@ internal class AdFactoryImpl(
             bidApi = bidApi,
             cdpApi = createCdpApi(),
             eventTracker = eventTracker,
-            metricsTrackerNew = metricsTrackerNew,
+            metricsTracker = metricsTracker,
             connectionStatusService = connectionStatusService,
             appLifecycleService = appLifecycleService,
             // TODO. Nullable support.
@@ -177,7 +177,7 @@ internal class AdFactoryImpl(
             bidApi = bidApi,
             cdpApi = createCdpApi(),
             eventTracker = eventTracker,
-            metricsTrackerNew = metricsTrackerNew,
+            metricsTracker = metricsTracker,
             connectionStatusService = connectionStatusService,
             appLifecycleService = appLifecycleService,
             // TODO. Nullable support.

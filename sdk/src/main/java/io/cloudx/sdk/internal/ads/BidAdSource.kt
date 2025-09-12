@@ -5,8 +5,9 @@ import com.xor.XorEncryption
 import io.cloudx.sdk.Destroyable
 import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.AdNetwork
-import io.cloudx.sdk.internal.CloudXLogger
 import io.cloudx.sdk.internal.CLXError
+import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.PlacementLoopIndexTracker
 import io.cloudx.sdk.internal.bid.BidApi
 import io.cloudx.sdk.internal.bid.BidRequestProvider
 import io.cloudx.sdk.internal.bid.BidResponse
@@ -18,9 +19,7 @@ import io.cloudx.sdk.internal.imp_tracker.TrackingFieldResolver
 import io.cloudx.sdk.internal.imp_tracker.TrackingFieldResolver.SDK_PARAM_RESPONSE_IN_MILLIS
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTrackerNew
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsType
-import io.cloudx.sdk.internal.PlacementLoopIndexTracker
 import io.cloudx.sdk.internal.state.SdkKeyValueState
-import org.json.JSONObject
 import java.util.UUID
 import kotlin.system.measureTimeMillis
 
@@ -119,16 +118,6 @@ private class BidAdSourceImpl<T : Destroyable>(
             when (val enrichResult = cdpApi.enrich(bidRequestParamsJson)) {
                 is Result.Success -> {
                     CloudXLogger.d(logTag, "Received enriched data from CDP")
-
-                    val lambdaTargeting = extractLambdaTargetingFromRoot(enrichResult.value)
-                    if (lambdaTargeting.isNotEmpty()) {
-                        CloudXLogger.d(
-                            logTag,
-                            "CDP Targeting: " + lambdaTargeting.entries.joinToString { "{${it.key}=${it.value}}" }
-                        )
-                        CloudXLogger.d(logTag, "")
-                    }
-
                     enrichResult.value
                 }
 
@@ -180,12 +169,14 @@ private class BidAdSourceImpl<T : Destroyable>(
             }
 
             is Result.Success -> {
-                val bidAdSourceResponse = result.value.toBidAdSourceResponse(bidRequestParams, createBidAd)
+                val bidAdSourceResponse =
+                    result.value.toBidAdSourceResponse(bidRequestParams, createBidAd)
 
                 if (bidAdSourceResponse.bidItemsByRank.isEmpty()) {
                     CloudXLogger.d(logTag, "NO_BID")
                 } else {
-                    val bidDetails = bidAdSourceResponse.bidItemsByRank.joinToString(separator = ",\n") {
+                    val bidDetails =
+                        bidAdSourceResponse.bidItemsByRank.joinToString(separator = ",\n") {
                             "\"bidder\": \"${it.adNetworkOriginal}\", cpm: ${it.priceRaw}, rank: ${it.rank}"
                         }
                     CloudXLogger.d(
@@ -254,25 +245,4 @@ private fun <T : Destroyable> BidResponse.toBidAdSourceResponse(
         }.toList()
 
     return BidAdSourceResponse(items)
-}
-
-fun extractLambdaTargetingFromRoot(json: JSONObject): Map<String, String> {
-    val targeting = mutableMapOf<String, String>()
-
-    val ext = json.optJSONObject("ext") ?: return targeting
-    val prebid = ext.optJSONObject("prebid") ?: return targeting
-    val adServerTargeting = prebid.optJSONArray("adservertargeting") ?: return targeting
-
-    for (i in 0 until adServerTargeting.length()) {
-        val item = adServerTargeting.optJSONObject(i) ?: continue
-        if (item.optString("source") == "lambda") {
-            val key = item.optString("key")
-            val value = item.optString("value")
-            if (key.isNotBlank() && value.isNotBlank()) {
-                targeting[key] = value
-            }
-        }
-    }
-
-    return targeting
 }

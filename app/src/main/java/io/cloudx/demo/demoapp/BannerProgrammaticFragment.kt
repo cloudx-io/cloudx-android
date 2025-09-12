@@ -11,7 +11,6 @@ import android.widget.LinearLayout
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
 import androidx.fragment.app.Fragment
-import io.cloudx.demo.demoapp.dynamic.AdContainerLayout
 import io.cloudx.demo.demoapp.loglistview.commonLogTagListRules
 import io.cloudx.demo.demoapp.loglistview.setupLogListView
 import io.cloudx.sdk.CloudXAdViewListener

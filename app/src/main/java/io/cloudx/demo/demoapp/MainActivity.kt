@@ -1,8 +1,6 @@
 package io.cloudx.demo.demoapp
 
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
@@ -14,23 +12,15 @@ import androidx.fragment.app.commit
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.progressindicator.LinearProgressIndicator
-import io.cloudx.demo.demoapp.dynamic.ConfigurationManager
-import io.cloudx.demo.demoapp.dynamic.normalizeAndHash
 import io.cloudx.sdk.CloudX
 import io.cloudx.sdk.CloudXPrivacy
 import io.cloudx.sdk.internal.CloudXLogger
-import io.cloudx.sdk.testing.SdkEnvironment
-import io.cloudx.sdk.testing.SdkOverridesProvider
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-class MainActivity : AppCompatActivity(R.layout.activity_main),
-    SettingsFragment.ConfigUpdateCallback {
+class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
     private val initState by CloudXInitializer::initState
-
-    private lateinit var configurationManager: ConfigurationManager
 
     private lateinit var toolbar: Toolbar
     private lateinit var progressBar: LinearProgressIndicator
@@ -41,7 +31,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main),
         toolbar = findViewById(R.id.toolbar)
 
         setSupportActionBar(toolbar)
-        
+
         val versionName = try {
             packageManager.getPackageInfo(packageName, 0).versionName
         } catch (e: Exception) {
@@ -59,24 +49,10 @@ class MainActivity : AppCompatActivity(R.layout.activity_main),
             insets
         }
 
-        configurationManager = ConfigurationManager(this)
-        lifecycleScope.launch(Dispatchers.IO) {
-        }
-
         progressBar = findViewById(R.id.progress)
 
         bottomNavBar = findViewById(R.id.bottom_nav)
         bottomNavBar.setup()
-
-        SdkEnvironment.overridesProvider = object : SdkOverridesProvider {
-            override fun getBundleOverride(): String? {
-                return configurationManager.getCurrentConfig()?.SDKConfiguration?.bundle
-            }
-
-            override fun getIFAOverride(): String? {
-                return configurationManager.getCurrentConfig()?.SDKConfiguration?.ifa
-            }
-        }
 
         // UI update for SDK init state.
         repeatOnStart {
@@ -241,35 +217,8 @@ class MainActivity : AppCompatActivity(R.layout.activity_main),
         }
     }
 
-    override fun onAppKeyChanged(newAppKey: String) {
-        lifecycleScope.launch(Dispatchers.IO) {
-            val success = configurationManager.fetchAndApplyRemoteConfig(appKey = newAppKey)
-            if (success) {
-                runOnUiThread {
-                    shortSnackbar(bottomNavBar, "✅ Config loaded for $newAppKey")
-
-                    val currentFrag =
-                        supportFragmentManager.findFragmentById(R.id.fragment_container)
-                    if (currentFrag is SettingsFragment) {
-                        currentFrag.updateInitUrl()
-                        currentFrag.updateUserEmail()
-                        currentFrag.updatePlacementsFromPreferences()
-                    }
-                }
-            } else {
-                runOnUiThread {
-                    shortSnackbar(
-                        bottomNavBar,
-                        "⚠️ No config found for $newAppKey, using existing settings"
-                    )
-                }
-            }
-        }
-    }
-
     private fun initializeCloudX() {
         lifecycleScope.launch {
-            val activity = this@MainActivity
             val settings = settings()
 
             CloudXLogger.i(
@@ -277,68 +226,18 @@ class MainActivity : AppCompatActivity(R.layout.activity_main),
                 "🚀 Starting SDK init with appKey: ${settings.appKey}, endpoint: ${settings.initUrl}"
             )
 
-            val userInfoConfig = configurationManager.getCurrentConfig()?.SDKConfiguration?.userInfo
-            val finalHashedEmail = userInfoConfig?.let { info ->
-                when {
-                    !info.userEmailHashed.isNullOrBlank() -> {
-                        CloudXLogger.i(TAG, "📧 Using pre-hashed email from config")
-                        info.userEmailHashed
-                    }
-
-                    !info.userEmail.isNullOrBlank() -> {
-                        val algo = info.hashAlgo?.lowercase() ?: "sha256"
-                        val hashed = normalizeAndHash(info.userEmail, algo)
-                        CloudXLogger.i(TAG, "📧 Normalized and hashed email using $algo")
-                        hashed
-                    }
-
-                    else -> null
-                }
-            }
-
-            val emailInjectionDelayMS = userInfoConfig?.userIdRegisteredAtMS ?: 0L
-            val hashedEmailForInit = if (emailInjectionDelayMS == 0L) finalHashedEmail else null
-
-            // Log email registration strategy
-            when {
-                finalHashedEmail == null -> CloudXLogger.i(
-                    TAG,
-                    "📧 Hashed Email → No email to register"
-                )
-
-                emailInjectionDelayMS == 0L -> CloudXLogger.i(
-                    TAG,
-                    "📧 Hashed Email → Init-time registration"
-                )
-
-                else -> CloudXLogger.i(
-                    TAG,
-                    "📧 Hashed Email → Delayed registration in ${emailInjectionDelayMS / 1000}s"
-                )
-            }
-
             CloudXInitializer.initializeCloudX(
                 this@MainActivity,
                 settings,
-                hashedEmailForInit,
                 TAG
             ) { result ->
                 val resultMsg =
-                    if (result.initialized) INIT_SUCCESS else "$INIT_FAILURE ${result.description} (Error code: ${result.errorCode})"
-
-                if (result.initialized) {
-                    CloudXLogger.i(TAG, resultMsg)
-
-                    if (!finalHashedEmail.isNullOrBlank() && emailInjectionDelayMS > 0L) {
-                        Handler(Looper.getMainLooper()).postDelayed({
-                            CloudX.setHashedUserId(finalHashedEmail)
-                            CloudXLogger.i(TAG, "📧 Hashed Email → Registered after delay")
-                        }, emailInjectionDelayMS)
+                    if (result.initialized) {
+                        INIT_SUCCESS
+                    } else {
+                        "$INIT_FAILURE ${result.description} (Error code: ${result.errorCode})"
                     }
-
-                } else {
-                    CloudXLogger.e(TAG, resultMsg)
-                }
+                CloudXLogger.i(TAG, resultMsg)
 
                 shortSnackbar(bottomNavBar, resultMsg)
             }

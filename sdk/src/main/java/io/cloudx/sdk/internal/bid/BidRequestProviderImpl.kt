@@ -3,7 +3,9 @@ package io.cloudx.sdk.internal.bid
 import android.content.Context
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.AdType
+import io.cloudx.sdk.internal.PlacementLoopIndexTracker
 import io.cloudx.sdk.internal.adapter.CloudXAdapterBidRequestExtrasProvider
+import io.cloudx.sdk.internal.ads.native.NativeAdSpecs
 import io.cloudx.sdk.internal.appinfo.AppInfoProvider
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.connectionstatus.ConnectionType
@@ -12,12 +14,9 @@ import io.cloudx.sdk.internal.deviceinfo.DeviceInfoProvider
 import io.cloudx.sdk.internal.gaid.GAIDProvider
 import io.cloudx.sdk.internal.geo.GeoInfoHolder
 import io.cloudx.sdk.internal.httpclient.UserAgentProvider
-import io.cloudx.sdk.internal.PlacementLoopIndexTracker
-import io.cloudx.sdk.internal.ads.native.NativeAdSpecs
 import io.cloudx.sdk.internal.privacy.PrivacyService
 import io.cloudx.sdk.internal.screen.ScreenService
 import io.cloudx.sdk.internal.state.SdkKeyValueState
-import io.cloudx.sdk.testing.SdkEnvironment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -46,14 +45,10 @@ internal class BidRequestProviderImpl(
 
                 put("id", auctionId)
 
-                // These lines are for demo/test purposes
-                val bundleOverride = SdkEnvironment.overridesProvider?.getBundleOverride() ?: ""
-                val ifaOverride = SdkEnvironment.overridesProvider?.getIFAOverride() ?: ""
-
                 put("app", JSONObject().apply {
                     val appInfo = provideAppInfo()
                     put("id", "5646234")
-                    put("bundle", bundleOverride.ifEmpty { appInfo.packageName })
+                    put("bundle", appInfo.packageName)
                     put("ver", appInfo.appVersion)
                     put("publisher", JSONObject().apply {
                         put("ext", JSONObject().apply {
@@ -96,7 +91,7 @@ internal class BidRequestProviderImpl(
                     put("ua", provideUserAgent())
                     put("language", deviceInfo.language)
 
-                    put("ifa", if (piiRemove) "" else ifaOverride.ifEmpty { adPrivacyData.gaid })
+                    put("ifa", if (piiRemove) "" else adPrivacyData.gaid)
                     put("geo", JSONObject().apply {
                         if (piiRemove.not()) {
                             put("lat", GeoInfoHolder.getLat())

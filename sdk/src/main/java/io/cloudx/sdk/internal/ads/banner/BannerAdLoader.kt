@@ -1,4 +1,4 @@
-package io.cloudx.sdk.internal.ads.banner.components
+package io.cloudx.sdk.internal.ads.banner
 
 import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.CLXError
@@ -6,7 +6,6 @@ import io.cloudx.sdk.internal.CLXErrorCode
 import io.cloudx.sdk.internal.CloudXLogger
 import io.cloudx.sdk.internal.ads.BidAdSource
 import io.cloudx.sdk.internal.ads.BidAdSourceResponse
-import io.cloudx.sdk.internal.ads.banner.BannerAdapterDelegate
 import io.cloudx.sdk.internal.bid.LoadResult
 import io.cloudx.sdk.internal.bid.LossReason
 import io.cloudx.sdk.internal.bid.LossReporter

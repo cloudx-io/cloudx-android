@@ -2,7 +2,6 @@ package io.cloudx.demo.demoapp
 
 import android.content.Context
 import androidx.preference.PreferenceManager
-import io.cloudx.demo.demoapp.dynamic.normalizeAndHash
 import io.cloudx.sdk.CloudX
 import io.cloudx.sdk.CloudXInitializationListener
 import io.cloudx.sdk.CloudXPrivacy

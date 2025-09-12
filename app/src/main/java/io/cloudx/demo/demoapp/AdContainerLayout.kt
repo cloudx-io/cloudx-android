@@ -1,16 +1,14 @@
-package io.cloudx.demo.demoapp.dynamic
+package io.cloudx.demo.demoapp
 
 import android.content.Context
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
-import io.cloudx.demo.demoapp.R
-import io.cloudx.demo.demoapp.setBannerViewSize
 import io.cloudx.sdk.CloudXAdView
 import io.cloudx.sdk.internal.AdViewSize
 
-class AdContainerLayout(context: Context): FrameLayout(context) {
+class AdContainerLayout(context: Context) : FrameLayout(context) {
 
     private val clRoot: ConstraintLayout
     private val tvPlacement: TextView
@@ -22,7 +20,6 @@ class AdContainerLayout(context: Context): FrameLayout(context) {
         clRoot = root.findViewById(R.id.clRoot)
         tvPlacement = root.findViewById(R.id.tvPlacementName)
         flBannerContainer = root.findViewById(R.id.banner_placeholder)
-
     }
 
     fun setPlacement(placementName: String, adViewSize: AdViewSize) {
@@ -35,10 +32,8 @@ class AdContainerLayout(context: Context): FrameLayout(context) {
 
     fun addAdView(adView: CloudXAdView) {
         flBannerContainer.addView(
-            adView,
-            ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
+            adView, ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
             )
         )
     }

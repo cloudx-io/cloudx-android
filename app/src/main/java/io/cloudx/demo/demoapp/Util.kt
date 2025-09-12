@@ -1,4 +1,4 @@
-package io.cloudx.demo.demoapp.dynamic
+package io.cloudx.demo.demoapp
 
 fun normalizeAndHash(email: String, algo: String): String {
     val normalized = email.trim().lowercase()

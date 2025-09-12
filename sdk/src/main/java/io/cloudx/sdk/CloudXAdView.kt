@@ -61,11 +61,12 @@ class CloudXAdView internal constructor(
         }
 
     init {
-        initJob = MainScope().launch {
+        initJob = mainScope.launch {
             val initState = CloudX.initState.first { it is InitializationState.Initialized }
                     as InitializationState.Initialized
+            val adFactory = initState.initializationService.adFactory
             isBannerAttachedToWindow.first { it }
-            bannerManager = initState.initializationService.adFactory!!.createBannerManager(
+            bannerManager = adFactory!!.createBannerManager(
                 AdFactory.CreateBannerParams(
                     activity = activity,
                     adType = adType,

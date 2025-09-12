@@ -16,7 +16,6 @@ testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 # === Build Tools ===
 gradle = "8.2.2"
 kotlin = "1.9.22"
-jacoco = "0.8.11"
 maven-publish = "0.34.0"
 
 # === Kotlin & Coroutines ===

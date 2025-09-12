@@ -3,7 +3,6 @@ plugins {
     alias(libs.plugins.kotlinAndroid)
     alias(libs.plugins.mavenPublish)
     alias(libs.plugins.ksp)
-    jacoco
 }
 
 mavenPublishing {
@@ -117,51 +116,4 @@ dependencies {
 
     testImplementation(libs.bundles.test.unit)
     androidTestImplementation(libs.bundles.test.instrumentation)
-}
-
-tasks.withType(Test::class) {
-    configure<JacocoTaskExtension> {
-        isIncludeNoLocationClasses = true
-        excludes = listOf("jdk.*", "sun.*")
-    }
-}
-
-jacoco {
-    toolVersion = libs.versions.jacoco.get()
-}
-
-// Register a JacocoReport task for code coverage analysis
-tasks.register<JacocoReport>("jacocoDebugCodeCoverage") {
-    val exclusions = listOf(
-        "**/BuildConfig.*",
-        "**/Manifest*.*",
-        "**/*Test*.*",
-        "**/Logger*.class",
-    )
-
-    val unitTests = "testDebugUnitTest"
-    // TODO: add Android Tests to coverage measurements
-    // val androidTests = "connectedDebugAndroidTest"
-    // dependsOn(listOf(unitTests, androidTests))
-    dependsOn(listOf(unitTests))
-    group = "Reporting"
-    description = "Execute unit tests, generate and combine Jacoco coverage report"
-    reports {
-        xml.required.set(true)
-        html.required.set(true)
-    }
-    sourceDirectories.setFrom(layout.projectDirectory.dir("src/main/java"))
-    classDirectories.setFrom(
-        files(
-        fileTree(layout.buildDirectory.dir("intermediates/javac")) {
-            exclude(exclusions)
-        },
-        fileTree(layout.buildDirectory.dir("tmp/kotlin-classes/debug")) {
-            exclude(exclusions)
-        }
-    ))
-    executionData.setFrom(
-        files(
-        fileTree(layout.buildDirectory) { include(listOf("**/*.exec", "**/*.ec")) }
-    ))
 }

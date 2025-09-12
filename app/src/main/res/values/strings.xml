@@ -22,7 +22,6 @@
     <string name="hint_manual_privacy_api">Manual Privacy API</string>
     <string name="hint_gdpr_consent">GDPR consent</string>
     <string name="hint_age_restricted">COPPA (Age restricted)</string>
-    <string name="hint_do_not_sell">CCPA Do not sell</string>
     <string name="hint_iab_tcf_gdpr_applies">GDPR applies</string>
     <string name="hint_iab_tcf_tc_string">TC String</string>
     <string name="hint_iab_us_privacy_string">US Privacy String</string>

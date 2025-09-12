@@ -6,7 +6,6 @@
 
     <string name="pref_gdpr_consent">pref_gdpr_consent</string>
     <string name="pref_age_restricted">pref_age_restricted</string>
-    <string name="pref_do_not_sell">pref_do_not_sell</string>
 
     <string name="pref_iab_tcf_gdpr_applies">pref_iab_tcf_gdpr_applies</string>
     <!--Using IAB shared prefs keys straight away-->

@@ -103,14 +103,6 @@
             app:useSimpleSummaryProvider="true" />
 
         <ListPreference
-            app:key="@string/pref_do_not_sell"
-            app:title="@string/hint_do_not_sell"
-            app:entries="@array/pref_privacy_entries"
-            app:entryValues="@array/pref_privacy_entry_values"
-            app:defaultValue="@string/pref_privacy_entry_def_val"
-            app:useSimpleSummaryProvider="true" />
-
-        <ListPreference
             app:key="@string/pref_age_restricted"
             app:title="@string/hint_age_restricted"
             app:entries="@array/pref_privacy_entries"

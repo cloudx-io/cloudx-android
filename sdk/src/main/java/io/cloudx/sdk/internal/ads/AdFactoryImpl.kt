@@ -1,6 +1,5 @@
 package io.cloudx.sdk.internal.ads
 
-import io.cloudx.sdk.CloudXAdView
 import io.cloudx.sdk.CloudXInterstitialAd
 import io.cloudx.sdk.CloudXRewardedInterstitialAd
 import io.cloudx.sdk.internal.ads.fullscreen.interstitial.InterstitialManager
@@ -8,7 +7,6 @@ import io.cloudx.sdk.CloudXInterstitialListener
 import io.cloudx.sdk.internal.ads.fullscreen.rewarded.RewardedInterstitialManager
 import io.cloudx.sdk.CloudXRewardedInterstitialListener
 import io.cloudx.sdk.internal.AdType
-import io.cloudx.sdk.internal.AdViewSize
 import io.cloudx.sdk.internal.ads.banner.BannerManager
 import io.cloudx.sdk.internal.CloudXLogger
 import io.cloudx.sdk.internal.adapter.BannerFactoryMiscParams
@@ -23,6 +21,7 @@ import io.cloudx.sdk.internal.initialization.BidAdNetworkFactories
 import io.cloudx.sdk.internal.decorate
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
+import io.cloudx.sdk.internal.size
 
 internal class AdFactoryImpl(
     private val appKey: String,
@@ -41,7 +40,7 @@ internal class AdFactoryImpl(
 
     // TODO. Refactor.
     //  For now, to speed things up, I'll use this API to create both Banner and Native Ads.
-    override fun createBanner(params: AdFactory.CreateBannerParams): CloudXAdView? {
+    override fun createBannerManager(params: AdFactory.CreateBannerParams): BannerManager? {
         val placementName = params.placementName
         val adType = params.adType
 
@@ -50,12 +49,6 @@ internal class AdFactoryImpl(
         if (placement == null || placement.toAdType() != adType) {
             logCantFindPlacement(placementName)
             return null
-        }
-
-        val size = when (adType) {
-            is AdType.Banner -> adType.size
-            is AdType.Native -> adType.size
-            else -> AdViewSize(0, 0)
         }
 
         val refreshRateMillis = when (placement) {
@@ -74,7 +67,7 @@ internal class AdFactoryImpl(
         val miscParams = BannerFactoryMiscParams(
             enforceCloudXImpressionVerification = true,
             adType = adType,
-            adViewSize = size
+            adViewSize = adType.size()
         )
 
         val hasCloseButton = when (placement) {
@@ -84,40 +77,29 @@ internal class AdFactoryImpl(
             else -> false
         }
 
-        val activity = params.activity
-
-        return CloudXAdView(
-            activity,
-            suspendPreloadWhenInvisible = true,
-            adViewSize = size,
-            createBannerManager = { adViewContainer, bannerVisibility, suspendPreloadWhenInvisible ->
-                BannerManager(
-                    activity,
-                    placementId = placement.id,
-                    placementName = placement.name,
-                    adViewContainer,
-                    bannerVisibility,
-                    refreshSeconds = (refreshRateMillis / 1000),
-                    adType = adType,
-                    preloadTimeMillis = 5000L,
-                    bidFactories = bidFactories,
-                    bidRequestExtrasProviders = factories.bidRequestExtrasProviders,
-                    bidMaxBackOffTimeMillis = BID_AD_LOAD_BACKOFF_MAX_MILLIS,
-                    bidAdLoadTimeoutMillis = placement.adLoadTimeoutMillis.toLong(),
-                    miscParams = miscParams,
-                    bidApi = createBidApi(placement.bidResponseTimeoutMillis),
-                    cdpApi = createCdpApi(),
-                    eventTracker = eventTracker,
-                    metricsTracker = metricsTracker,
-                    connectionStatusService = connectionStatusService,
-                    activityLifecycleService = activityLifecycleService,
-                    appLifecycleService = appLifecycleService,
-                    config.accountId ?: "",
-                    appKey = appKey
-                )
-            },
-            hasCloseButton = hasCloseButton,
-            placementName = placementName
+        return BannerManager(
+            activity = params.activity,
+            placementId = placement.id,
+            placementName = placement.name,
+            adViewContainer = params.adViewAdapterContainer,
+            bannerVisibility = params.bannerVisibility,
+            refreshSeconds = (refreshRateMillis / 1000),
+            adType = adType,
+            preloadTimeMillis = 5000L,
+            bidFactories = bidFactories,
+            bidRequestExtrasProviders = factories.bidRequestExtrasProviders,
+            bidMaxBackOffTimeMillis = BID_AD_LOAD_BACKOFF_MAX_MILLIS,
+            bidAdLoadTimeoutMillis = placement.adLoadTimeoutMillis.toLong(),
+            miscParams = miscParams,
+            bidApi = createBidApi(placement.bidResponseTimeoutMillis),
+            cdpApi = createCdpApi(),
+            eventTracker = eventTracker,
+            metricsTracker = metricsTracker,
+            connectionStatusService = connectionStatusService,
+            activityLifecycleService = activityLifecycleService,
+            appLifecycleService = appLifecycleService,
+            accountId = config.accountId ?: "",
+            appKey = appKey
         ).apply {
             listener = params.listener
         }

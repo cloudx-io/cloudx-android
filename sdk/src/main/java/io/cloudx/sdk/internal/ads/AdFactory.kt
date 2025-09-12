@@ -2,25 +2,27 @@ package io.cloudx.sdk.internal.ads
 
 import android.app.Activity
 import io.cloudx.sdk.CloudXAdViewListener
-import io.cloudx.sdk.CloudXAdView
 import io.cloudx.sdk.CloudXInterstitialAd
-import io.cloudx.sdk.CloudXRewardedInterstitialAd
 import io.cloudx.sdk.CloudXInterstitialListener
+import io.cloudx.sdk.CloudXRewardedInterstitialAd
 import io.cloudx.sdk.CloudXRewardedInterstitialListener
 import io.cloudx.sdk.internal.AdType
+import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
+import io.cloudx.sdk.internal.ads.banner.BannerManager
 import io.cloudx.sdk.internal.common.service.ActivityLifecycleService
 import io.cloudx.sdk.internal.common.service.AppLifecycleService
 import io.cloudx.sdk.internal.config.Config
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
-import io.cloudx.sdk.internal.initialization.BidAdNetworkFactories
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
+import io.cloudx.sdk.internal.initialization.BidAdNetworkFactories
+import kotlinx.coroutines.flow.StateFlow
 
 internal interface AdFactory {
     // Banner and Native Ad creation
     // TODO. Refactor.
     //  For now, to speed things up, I'll use this API to create both Banner and Native Ads.
-    fun createBanner(params: CreateBannerParams): CloudXAdView?
+    fun createBannerManager(params: CreateBannerParams): BannerManager?
 
     // Interstitial Ad creation
     fun createInterstitial(params: CreateAdParams<CloudXInterstitialListener>): CloudXInterstitialAd?
@@ -34,8 +36,10 @@ internal interface AdFactory {
     )
 
     class CreateBannerParams(
-        val adType: AdType,
         val activity: Activity,
+        val adType: AdType,
+        val adViewAdapterContainer: CloudXAdViewAdapterContainer,
+        val bannerVisibility: StateFlow<Boolean>,
         placementName: String,
         listener: CloudXAdViewListener?,
     ) : CreateAdParams<CloudXAdViewListener>(

@@ -32,8 +32,10 @@ class AdContainerLayout(context: Context) : FrameLayout(context) {
 
     fun addAdView(adView: CloudXAdView) {
         flBannerContainer.addView(
-            adView, ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
+            adView,
+            ViewGroup.LayoutParams(
+                LayoutParams.MATCH_PARENT,
+                LayoutParams.MATCH_PARENT
             )
         )
     }

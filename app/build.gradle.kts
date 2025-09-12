@@ -57,10 +57,5 @@ dependencies {
     implementation(libs.constraintlayout)
     implementation(libs.lifecycle.runtime)
     implementation(libs.lifecycle.viewmodel)
-
-    implementation(libs.retrofit)
-    implementation(libs.converter.gson)
-    implementation(libs.gson)
-
     implementation(libs.kotlinx.coroutines.android)
 }

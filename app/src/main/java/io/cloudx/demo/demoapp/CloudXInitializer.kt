@@ -2,6 +2,7 @@ package io.cloudx.demo.demoapp
 
 import android.content.Context
 import androidx.preference.PreferenceManager
+import io.cloudx.demo.demoapp.dynamic.normalizeAndHash
 import io.cloudx.sdk.CloudX
 import io.cloudx.sdk.CloudXInitializationListener
 import io.cloudx.sdk.CloudXPrivacy
@@ -17,7 +18,6 @@ object CloudXInitializer {
     fun initializeCloudX(
         context: Context,
         settings: Settings,
-        hashedUserId: String? = null,
         logTag: String,
         listener: CloudXInitializationListener? = null
     ) {
@@ -35,6 +35,15 @@ object CloudXInitializer {
             }
         )
 
+        val userEmail = settings.userEmail
+        val hashedUserId = if (userEmail.isNotBlank()) {
+            normalizeAndHash(userEmail, "sha256").also {
+                CloudXLogger.i(logTag, "Using hashed user ID: $it")
+            }
+        } else {
+            null
+        }
+
         CloudX.initialize(
             CloudX.InitializationParams(
                 appKey = settings.appKey,
@@ -42,7 +51,6 @@ object CloudXInitializer {
                 hashedUserId = hashedUserId
             )
         ) {
-
             _initState.value = if (it.initialized) {
                 InitializationState.Initialized
             } else {

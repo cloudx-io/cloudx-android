@@ -30,7 +30,6 @@ class DemoApplication : Application() {
         CloudXInitializer.initializeCloudX(
             context = this,
             settings = settings,
-            hashedUserId = null, // Can be set later if needed
             logTag = TAG
         ) { result ->
             val message = if (result.initialized) {

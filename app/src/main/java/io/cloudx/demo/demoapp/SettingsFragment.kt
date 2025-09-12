@@ -2,77 +2,21 @@ package io.cloudx.demo.demoapp
 
 import android.os.Bundle
 import android.widget.Toast
+import androidx.core.content.edit
 import androidx.preference.EditTextPreference
+import androidx.preference.Preference
 import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
-import androidx.core.content.edit
-import androidx.preference.Preference
 
 class SettingsFragment : PreferenceFragmentCompat() {
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.preferences, rootKey)
 
-        val appKeyPref = findPreference<EditTextPreference>(getString(R.string.pref_app_key))
-        appKeyPref?.setOnPreferenceChangeListener { _, newValue ->
-            val newAppKey = newValue as? String ?: return@setOnPreferenceChangeListener false
-            (activity as? ConfigUpdateCallback)?.onAppKeyChanged(newAppKey)
-            true
-        }
         gppTestLogic()
         updatePlacementsFromPreferences()
-    }
-
-    fun updateInitUrl() {
-        val context = preferenceManager.context
-
-        val initUrlKey = getString(R.string.pref_init_url)
-        val initUrlTypeKey = getString(R.string.pref_init_url_type)
-        val appKeyPrefKey = getString(R.string.pref_app_key)
-
-        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
-
-        val initUrlType = prefs.getString(initUrlTypeKey, null)
-        val initUrl = prefs.getString(initUrlKey, getString(R.string.pref_init_url_def_val))
-        val appKey = prefs.getString(appKeyPrefKey, "")
-
-        val initUrlPref = findPreference<EditTextPreference>(initUrlKey)
-
-        if (initUrlType == "static") {
-            // GET-style URL with appKey and type
-            val shouldSkippAppKeyAdding = initUrl?.contains("pro-dev") ?: false
-            if (shouldSkippAppKeyAdding) {
-                val endsWithSlash = initUrl?.endsWith("/") ?: false
-                val finalUrl =
-                    if (endsWithSlash) initUrl?.substring(0, initUrl.length - 1) else initUrl
-                initUrlPref?.text = "$finalUrl"
-            } else {
-                initUrlPref?.text = "$initUrl$appKey.json?type=static"
-            }
-
-            if (appKey.isNullOrEmpty()) {
-                Toast.makeText(context, "App Key is EMPTY", Toast.LENGTH_SHORT).show()
-            }
-
-        } else if (initUrlType == "default" || initUrlType.isNullOrEmpty()) {
-            // POST-style URL with type param (optional)
-            val shouldSkippAppKeyAdding = initUrl?.contains("pro-dev") ?: false
-            if (shouldSkippAppKeyAdding) {
-                val endsWithSlash = initUrl?.endsWith("/") ?: false
-                val finalUrl =
-                    if (endsWithSlash) initUrl?.substring(0, initUrl.length - 1) else initUrl
-                initUrlPref?.text = "$finalUrl"
-            } else {
-                initUrlPref?.text = "$initUrl$appKey.json?type=default"
-            }
-
-            if (appKey.isNullOrEmpty()) {
-                Toast.makeText(context, "App Key is EMPTY", Toast.LENGTH_SHORT).show()
-            }
-        } else {
-            // Leave as-is or log if needed
-        }
+        updateUserEmail()
     }
 
     fun updateUserEmail() {
@@ -212,9 +156,5 @@ class SettingsFragment : PreferenceFragmentCompat() {
             getString(R.string.pref_native_medium_placement_name),
             setOf(getString(R.string.pref_native_medium_placement_name_dev_val))
         )
-    }
-
-    interface ConfigUpdateCallback {
-        fun onAppKeyChanged(newAppKey: String)
     }
 }

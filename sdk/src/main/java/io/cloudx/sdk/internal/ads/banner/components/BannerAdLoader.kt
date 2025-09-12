@@ -1,9 +1,11 @@
 package io.cloudx.sdk.internal.ads.banner.components
 
+import io.cloudx.sdk.Result
+import io.cloudx.sdk.internal.CLXError
+import io.cloudx.sdk.internal.CLXErrorCode
 import io.cloudx.sdk.internal.CloudXLogger
 import io.cloudx.sdk.internal.ads.BidAdSource
 import io.cloudx.sdk.internal.ads.BidAdSourceResponse
-import io.cloudx.sdk.internal.ads.BidSourceResult
 import io.cloudx.sdk.internal.ads.banner.BannerAdapterDelegate
 import io.cloudx.sdk.internal.bid.LoadResult
 import io.cloudx.sdk.internal.bid.LossReason
@@ -22,18 +24,19 @@ internal class BannerAdLoader(
     private val TAG = "BannerAdLoader"
 
     /** Single non-retrying attempt per MVP. Returns a loaded banner or null (no fill / failure). */
-    suspend fun loadOnce(): BannerLoadOutcome {
-        return when (val bid = bidAdSource.requestBid()) {
-
-            is BidSourceResult.Success -> {
-                val banner = loadWinnerFrom(bid.response)
-                if (banner != null) BannerLoadOutcome.Success(banner)
-                else BannerLoadOutcome.NoFill // all candidates failed to load
+    suspend fun loadOnce(): Result<BannerAdapterDelegate?, CLXError> {
+        return when (val result = bidAdSource.requestBid()) {
+            is Result.Success -> {
+                val banner = loadWinnerFrom(result.value)
+                if (banner != null) {
+                    Result.Success(banner)
+                } else {
+                    Result.Failure(CLXError(CLXErrorCode.NO_FILL, "No fill - all candidates failed to load"))
+                }
             }
-
-            is BidSourceResult.NoFill -> BannerLoadOutcome.NoFill
-            is BidSourceResult.TrafficControl -> BannerLoadOutcome.TrafficControl
-            is BidSourceResult.TransientFailure -> BannerLoadOutcome.TransientFailure
+            is Result.Failure -> {
+                Result.Failure(result.value)
+            }
         }
     }
 
@@ -118,9 +121,3 @@ internal class BannerAdLoader(
     }
 }
 
-internal sealed class BannerLoadOutcome {
-    data class Success(val banner: BannerAdapterDelegate) : BannerLoadOutcome()
-    data object NoFill : BannerLoadOutcome()
-    data object TransientFailure : BannerLoadOutcome()
-    data object TrafficControl : BannerLoadOutcome()
-}

@@ -64,3 +64,8 @@ internal enum class CLXErrorCode(
     // --- General (600–699)
     UNEXPECTED_ERROR(600, "An unexpected error occurred.")
 }
+
+// Extension functions for error classification used across ad loading components
+internal val CLXError.isNoFill: Boolean get() = code == CLXErrorCode.NO_FILL
+internal val CLXError.isTrafficControl: Boolean get() = code == CLXErrorCode.ADS_DISABLED
+internal val CLXError.isTransientFailure: Boolean get() = !isNoFill && !isTrafficControl

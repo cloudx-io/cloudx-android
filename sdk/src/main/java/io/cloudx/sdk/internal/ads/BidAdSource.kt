@@ -28,7 +28,7 @@ internal interface BidAdSource<T : Destroyable> {
     /**
      * @return the bid or null if no bid
      */
-    suspend fun requestBid(): BidSourceResult<T>
+    suspend fun requestBid(): Result<BidAdSourceResponse<T>, CLXError>
 
 }
 
@@ -93,7 +93,7 @@ private class BidAdSourceImpl<T : Destroyable>(
 
     private val logTag = "BidAdSourceImpl"
 
-    override suspend fun requestBid(): BidSourceResult<T> {
+    override suspend fun requestBid(): Result<BidAdSourceResponse<T>, CLXError> {
         val auctionId = UUID.randomUUID().toString()
         val bidRequestParamsJson = provideBidRequest.invoke(bidRequestParams, auctionId)
 
@@ -176,22 +176,16 @@ private class BidAdSourceImpl<T : Destroyable>(
         return when (result) {
             is Result.Success -> {
                 val resp = result.value.toBidAdSourceResponse(bidRequestParams, createBidAd)
-                // No-fill scenarios are handled at JSON parsing level (JsonToBidResponse)
-                // and HTTP level (BidApiImpl onNoContent), so success responses always have bids
-                BidSourceResult.Success(resp)
+                Result.Success(resp)
             }
 
             is Result.Failure -> {
-                val e = result.value
-                when (e.code) {
-                    CLXErrorCode.ADS_DISABLED -> BidSourceResult.TrafficControl(e.effectiveMessage)
-                    CLXErrorCode.NO_FILL -> BidSourceResult.NoFill()
-                    else -> BidSourceResult.TransientFailure(e.effectiveMessage) // 5xx / network / timeout (after retries)
-                }
+                Result.Failure(result.value)
             }
         }
     }
 }
+
 
 private fun <T : Destroyable> BidResponse.toBidAdSourceResponse(
     bidRequestParams: BidRequestProvider.Params,

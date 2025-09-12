@@ -2,11 +2,12 @@ package io.cloudx.sdk.internal.ads.banner
 
 import io.cloudx.sdk.CloudXAdError
 import io.cloudx.sdk.CloudXAdViewListener
+import io.cloudx.sdk.Result
 import io.cloudx.sdk.TestMainDispatcherRule
+import io.cloudx.sdk.internal.CLXError
 import io.cloudx.sdk.internal.CLXErrorCode
 import io.cloudx.sdk.internal.CloudXLogger
 import io.cloudx.sdk.internal.ads.banner.components.BannerAdLoader
-import io.cloudx.sdk.internal.ads.banner.components.BannerLoadOutcome
 import io.cloudx.sdk.internal.common.service.AppLifecycleService
 import io.cloudx.sdk.internal.connectionstatus.ConnectionInfo
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
@@ -88,8 +89,8 @@ class BannerManagerImplOutcomeTest {
         try {
             // First NoFill, then NoFill again
             coEvery { mockLoader.loadOnce() } returnsMany listOf(
-                BannerLoadOutcome.NoFill,
-                BannerLoadOutcome.NoFill
+                Result.Failure(CLXError(CLXErrorCode.NO_FILL, "No fill")),
+                Result.Failure(CLXError(CLXErrorCode.NO_FILL, "No fill"))
             )
             createManager(refreshSeconds = 1)
 
@@ -112,8 +113,8 @@ class BannerManagerImplOutcomeTest {
         try {
             // First TrafficControl, then NoFill
             coEvery { mockLoader.loadOnce() } returnsMany listOf(
-                BannerLoadOutcome.TrafficControl,
-                BannerLoadOutcome.NoFill
+                Result.Failure(CLXError(CLXErrorCode.ADS_DISABLED, "Ads disabled")),
+                Result.Failure(CLXError(CLXErrorCode.NO_FILL, "No fill"))
             )
             createManager(refreshSeconds = 1)
 
@@ -142,8 +143,8 @@ class BannerManagerImplOutcomeTest {
         try {
             // First request fails transiently, then second request succeeds or NoFill; we only care about cadence
             coEvery { mockLoader.loadOnce() } returnsMany listOf(
-                BannerLoadOutcome.TransientFailure,
-                BannerLoadOutcome.NoFill
+                Result.Failure(CLXError(CLXErrorCode.SERVER_ERROR, "Temporary error")),
+                Result.Failure(CLXError(CLXErrorCode.NO_FILL, "No fill"))
             )
 
             createManager(refreshSeconds = 1)
@@ -168,7 +169,7 @@ class BannerManagerImplOutcomeTest {
     @Test
     fun `destroy clears prefetched and stops further actions`() = runTest(mainRule.dispatcher) {
         try {
-            val deferred = CompletableDeferred<BannerLoadOutcome>()
+            val deferred = CompletableDeferred<Result<BannerAdapterDelegate?, CLXError>>()
             coEvery { mockLoader.loadOnce() } coAnswers { deferred.await() }
             createManager(refreshSeconds = 1)
 
@@ -179,7 +180,7 @@ class BannerManagerImplOutcomeTest {
             // Hide during in-flight and then complete with success, creating a prefetched banner
             bannerVisibility.value = false
             runCurrent()
-            deferred.complete(BannerLoadOutcome.Success(mockBanner))
+            deferred.complete(Result.Success(mockBanner))
             runCurrent()
 
             // Now destroy the manager → should destroy prefetched banner and stop
@@ -199,7 +200,7 @@ class BannerManagerImplOutcomeTest {
     @Test
     fun `Success while hidden is prefetched and shown on visible`() = runTest(mainRule.dispatcher) {
         try {
-            val deferred = CompletableDeferred<BannerLoadOutcome>()
+            val deferred = CompletableDeferred<Result<BannerAdapterDelegate?, CLXError>>()
             coEvery { mockLoader.loadOnce() } coAnswers { deferred.await() }
             createManager(refreshSeconds = 10) // keep cadence slow; we control completion
 
@@ -212,7 +213,7 @@ class BannerManagerImplOutcomeTest {
             runCurrent()
 
             // Complete with success while hidden → manager should prefetch (no displayed yet)
-            deferred.complete(BannerLoadOutcome.Success(mockBanner))
+            deferred.complete(Result.Success(mockBanner))
             runCurrent()
             verify(exactly = 0) { mockListener.onAdDisplayed(any()) }
 

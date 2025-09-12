@@ -5,6 +5,7 @@ import android.app.Activity
 import io.cloudx.sdk.CloudXAdError
 import io.cloudx.sdk.CloudXAdViewListener
 import io.cloudx.sdk.Destroyable
+import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.CLXErrorCode
@@ -14,7 +15,6 @@ import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterFactory
 import io.cloudx.sdk.internal.adapter.CloudXAdapterBidRequestExtrasProvider
 import io.cloudx.sdk.internal.ads.banner.components.BannerAdLoader
-import io.cloudx.sdk.internal.ads.banner.components.BannerLoadOutcome
 import io.cloudx.sdk.internal.ads.banner.components.EffectiveVisibilityGate
 import io.cloudx.sdk.internal.ads.banner.components.SwappingBannerPresenter
 import io.cloudx.sdk.internal.bid.BidApi
@@ -26,6 +26,9 @@ import io.cloudx.sdk.internal.decorate
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTrackerNew
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsType
+import io.cloudx.sdk.internal.isNoFill
+import io.cloudx.sdk.internal.isTrafficControl
+import io.cloudx.sdk.internal.isTransientFailure
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -185,12 +188,17 @@ private class BannerManagerImpl(
         visJob?.cancel()
         visJob = scope.launch {
             gate.effective.collect { visible ->
-                // MVP: Inform clock of visibility changes for queuing logic
-                clock.setVisible(visible)
-
                 // MVP: Show prefetched banners immediately when becoming visible
-                if (visible) {
-                    prefetched?.let { presenter.show(it); prefetched = null }
+                if (visible && prefetched != null) {
+                    presenter.show(prefetched!!)
+                    prefetched = null
+                    // Prevent immediate tick by marking as in-flight briefly
+                    clock.markRequestStarted()
+                    clock.setVisible(visible)
+                    clock.markRequestFinished()
+                } else {
+                    // MVP: Inform clock of visibility changes for queuing logic
+                    clock.setVisible(visible)
                 }
             }
         }
@@ -223,40 +231,50 @@ private class BannerManagerImpl(
                 return@launch
             }
 
-            // MVP: Single load attempt (no banner-level retries)
-            when (val outcome = loader.loadOnce()) {
-                is BannerLoadOutcome.Success -> {
-                    // MVP: Show immediately if visible, prefetch if hidden
-                    if (gate.effective.value) {
-                        presenter.show(outcome.banner)
-                    } else {
-                        // MVP: Complete request even if hidden - cache for later display
-                        prefetched?.destroy(); prefetched = outcome.banner
-                        CloudXLogger.d(TAG, placementName, placementId, "Prefetched while hidden")
+            when (val result = loader.loadOnce()) {
+                is Result.Success -> {
+                    val banner = result.value
+                    if (banner != null) {
+                        // MVP: Show immediately if visible, prefetch if hidden
+                        // Capture visibility at completion to avoid race conditions
+                        if (gate.effective.value) {
+                            presenter.show(banner)
+                        } else {
+                            // MVP: Complete request even if hidden - cache for later display
+                            prefetched?.destroy()
+                            prefetched = banner
+                            CloudXLogger.d(TAG, placementName, placementId, "Prefetched while hidden")
+                        }
                     }
                 }
 
-                BannerLoadOutcome.NoFill ->
-                    // MVP: Emit error and wait for next interval (no banner retry)
-                    listener?.onAdLoadFailed(CloudXAdError("No fill", CLXErrorCode.NO_FILL.code))
-
-                BannerLoadOutcome.TransientFailure ->
-                    // MVP: Network/5xx errors - emit error, continue refresh cycle
-                    listener?.onAdLoadFailed(
-                        CloudXAdError(
-                            "Temporary error",
-                            CLXErrorCode.SERVER_ERROR.code
-                        )
-                    )
-
-                BannerLoadOutcome.TrafficControl ->
-                    // MVP: Ads disabled - emit error, continue refresh cycle
-                    listener?.onAdLoadFailed(
-                        CloudXAdError(
-                            "Ads disabled",
-                            CLXErrorCode.ADS_DISABLED.code
-                        )
-                    )
+                is Result.Failure -> {
+                    val error = result.value
+                    when {
+                        error.isNoFill -> {
+                            // MVP: Emit error and wait for next interval (no banner retry)
+                            listener?.onAdLoadFailed(CloudXAdError("No fill", CLXErrorCode.NO_FILL.code))
+                        }
+                        error.isTrafficControl -> {
+                            // MVP: Ads disabled - emit error, continue refresh cycle
+                            listener?.onAdLoadFailed(
+                                CloudXAdError(
+                                    "Ads disabled",
+                                    CLXErrorCode.ADS_DISABLED.code
+                                )
+                            )
+                        }
+                        error.isTransientFailure -> {
+                            // MVP: Network/5xx/4xx errors - emit error, continue refresh cycle
+                            listener?.onAdLoadFailed(
+                                CloudXAdError(
+                                    "Temporary error",
+                                    CLXErrorCode.SERVER_ERROR.code
+                                )
+                            )
+                        }
+                    }
+                }
             }
 
             // MVP: Mark request finished to restart timer and avoid stacking

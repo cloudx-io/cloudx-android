@@ -36,7 +36,6 @@ internal class BidApiImpl(
                 )
             }
             parseResult
-//            Result.Failure(CLXError(CLXErrorCode.ADS_DISABLED))
         },
         onNoContent = { response, _ ->
             val xStatus = response.headers[HEADER_CLOUDX_STATUS]

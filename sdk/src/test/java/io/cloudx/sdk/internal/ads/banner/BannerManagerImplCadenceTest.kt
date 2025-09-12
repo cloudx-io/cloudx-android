@@ -1,9 +1,11 @@
 package io.cloudx.sdk.internal.ads.banner
 import io.cloudx.sdk.CloudXAdViewListener
+import io.cloudx.sdk.Result
 import io.cloudx.sdk.TestMainDispatcherRule
+import io.cloudx.sdk.internal.CLXError
+import io.cloudx.sdk.internal.CLXErrorCode
 import io.cloudx.sdk.internal.CloudXLogger
 import io.cloudx.sdk.internal.ads.banner.components.BannerAdLoader
-import io.cloudx.sdk.internal.ads.banner.components.BannerLoadOutcome
 import io.cloudx.sdk.internal.common.service.AppLifecycleService
 import io.cloudx.sdk.internal.connectionstatus.ConnectionInfo
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
@@ -59,7 +61,7 @@ class BannerManagerImplCadenceTest {
         try {
             // App starts in background though banner visibility is true
             appForeground.value = false
-            coEvery { mockLoader.loadOnce() } returns BannerLoadOutcome.NoFill
+            coEvery { mockLoader.loadOnce() } returns Result.Failure(CLXError(CLXErrorCode.NO_FILL, "No fill"))
 
             createManager(refreshSeconds = 1)
             runCurrent()
@@ -104,7 +106,7 @@ class BannerManagerImplCadenceTest {
     fun `no stacking after long in-flight`() = runTest(mainRule.dispatcher) {
         try {
         // Arrange: visible from start; first load takes > interval
-        val outcomeDeferred = CompletableDeferred<BannerLoadOutcome>()
+        val outcomeDeferred = CompletableDeferred<Result<BannerAdapterDelegate?, CLXError>>()
         coEvery { mockLoader.loadOnce() } coAnswers { outcomeDeferred.await() }
         createManager(refreshSeconds = 1)
 
@@ -117,7 +119,7 @@ class BannerManagerImplCadenceTest {
         runCurrent()
 
         // Finish first request now (NoFill)
-        outcomeDeferred.complete(BannerLoadOutcome.NoFill)
+        outcomeDeferred.complete(Result.Failure(CLXError(CLXErrorCode.NO_FILL, "No fill")))
         runCurrent()
 
         // Should NOT immediately trigger next request (no stacking)
@@ -136,9 +138,9 @@ class BannerManagerImplCadenceTest {
     fun `hidden elapsed then visible during in-flight - no immediate on finish, next after interval`() = runTest(mainRule.dispatcher) {
         try {
         // Arrange: first request starts while visible, then we go hidden and let interval elapse
-        val outcomeDeferred = CompletableDeferred<BannerLoadOutcome>()
+        val outcomeDeferred = CompletableDeferred<Result<BannerAdapterDelegate?, CLXError>>()
         coEvery { mockLoader.loadOnce() } coAnswers { outcomeDeferred.await() } andThen
-                BannerLoadOutcome.NoFill
+                Result.Failure(CLXError(CLXErrorCode.NO_FILL, "No fill"))
 
         createManager(refreshSeconds = 1)
         runCurrent()
@@ -157,7 +159,7 @@ class BannerManagerImplCadenceTest {
         runCurrent()
 
         // Complete the in-flight request now → should NOT start next immediately (no hidden queue)
-        outcomeDeferred.complete(BannerLoadOutcome.NoFill)
+        outcomeDeferred.complete(Result.Failure(CLXError(CLXErrorCode.NO_FILL, "No fill")))
         runCurrent()
 
         // After a full visible interval, next request should fire

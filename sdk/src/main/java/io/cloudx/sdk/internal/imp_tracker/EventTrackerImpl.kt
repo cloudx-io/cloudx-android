@@ -36,12 +36,13 @@ internal class EventTrackerImpl(
     private suspend fun trackEvent(
         encoded: String, campaignId: String, eventValue: String, eventType: EventType
     ) {
+        val eventId = saveToDb(encoded, campaignId, eventValue, eventType)
+        CloudXLogger.d(tag, "Saved $eventType event to database with ID: $eventId")
 
         val endpointUrl = baseEndpoint
 
         if (endpointUrl.isNullOrBlank()) {
-            CloudXLogger.e(tag, "No endpoint for $eventType, caching event")
-            saveToDb(encoded, campaignId, eventValue, eventType)
+            CloudXLogger.e(tag, "No endpoint for $eventType, event will be retried later")
             return
         }
 
@@ -49,11 +50,12 @@ internal class EventTrackerImpl(
         val result = trackerApi.send(
             finalUrl, encoded, campaignId, eventValue, eventType.code
         )
+        
         if (result is io.cloudx.sdk.Result.Success) {
-            CloudXLogger.d(tag, "$eventType sent successfully.")
+            CloudXLogger.d(tag, "$eventType sent successfully, removing from database")
+            db.cachedTrackingEventDao().delete(eventId)
         } else {
-            CloudXLogger.e(tag, "$eventType failed to send. Caching for retry later.")
-            saveToDb(encoded, campaignId, eventValue, eventType)
+            CloudXLogger.e(tag, "$eventType failed to send. Will retry later.")
         }
     }
 
@@ -96,10 +98,11 @@ internal class EventTrackerImpl(
 
     private suspend fun saveToDb(
         encoded: String, campaignId: String, eventValue: String, eventType: EventType
-    ) {
+    ): String {
+        val eventId = UUID.randomUUID().toString()
         db.cachedTrackingEventDao().insert(
             CachedTrackingEvents(
-                id = UUID.randomUUID().toString(),
+                id = eventId,
                 encoded = encoded,
                 campaignId = campaignId,
                 eventValue = eventValue,
@@ -107,5 +110,6 @@ internal class EventTrackerImpl(
                 type = eventType.pathSegment
             )
         )
+        return eventId
     }
 }

@@ -117,7 +117,7 @@ object CloudX {
                     configApi = ConfigApi(initParams.initEndpointUrl)
                 )
                 SdkKeyValueState.hashedUserId = initParams.hashedUserId
-                initService.metricsTrackerNew?.trackMethodCall(MetricsType.Method.SdkInitMethod)
+                initService.metricsTracker?.trackMethodCall(MetricsType.Method.SdkInitMethod)
 
                 // Initializing SDK...
                 when (val result = initService.initialize(initParams.appKey)) {
@@ -182,7 +182,7 @@ object CloudX {
         placementName: String,
         listener: CloudXAdViewListener?
     ): CloudXAdView? {
-        initializationService?.metricsTrackerNew?.trackMethodCall(MetricsType.Method.CreateBanner)
+        initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.CreateBanner)
 
         val bannerParams = AdFactory.CreateBannerParams(
             AdType.Banner.Standard,
@@ -216,7 +216,7 @@ object CloudX {
         placementName: String,
         listener: CloudXAdViewListener?
     ): CloudXAdView? {
-        initializationService?.metricsTrackerNew?.trackMethodCall(MetricsType.Method.CreateMrec)
+        initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.CreateMrec)
         return initializationService?.adFactory?.createBanner(
             AdFactory.CreateBannerParams(
                 AdType.Banner.MREC,
@@ -249,7 +249,7 @@ object CloudX {
         placementName: String,
         listener: CloudXAdViewListener?
     ): CloudXAdView? {
-        initializationService?.metricsTrackerNew?.trackMethodCall(MetricsType.Method.CreateNative)
+        initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.CreateNative)
         return initializationService?.adFactory?.createBanner(
             AdFactory.CreateBannerParams(
                 AdType.Native.Small,
@@ -282,7 +282,7 @@ object CloudX {
         placementName: String,
         listener: CloudXAdViewListener?
     ): CloudXAdView? {
-        initializationService?.metricsTrackerNew?.trackMethodCall(MetricsType.Method.CreateNative)
+        initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.CreateNative)
         return initializationService?.adFactory?.createBanner(
             AdFactory.CreateBannerParams(
                 AdType.Native.Medium,
@@ -301,7 +301,7 @@ object CloudX {
      */
     @JvmStatic
     fun setHashedUserId(hashedEmail: String) {
-        initializationService?.metricsTrackerNew?.trackMethodCall(MetricsType.Method.SetHashedUserId)
+        initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.SetHashedUserId)
         SdkKeyValueState.hashedUserId = hashedEmail
     }
 
@@ -311,7 +311,7 @@ object CloudX {
      */
     @JvmStatic
     fun setUserKeyValue(key: String, value: String) {
-        initializationService?.metricsTrackerNew?.trackMethodCall(MetricsType.Method.SetUserKeyValues)
+        initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.SetUserKeyValues)
         SdkKeyValueState.userKeyValues[key] = value
     }
 
@@ -320,7 +320,7 @@ object CloudX {
      */
     @JvmStatic
     fun setAppKeyValue(key: String, value: String) {
-        initializationService?.metricsTrackerNew?.trackMethodCall(MetricsType.Method.SetAppKeyValues)
+        initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.SetAppKeyValues)
         SdkKeyValueState.appKeyValues[key] = value
     }
 

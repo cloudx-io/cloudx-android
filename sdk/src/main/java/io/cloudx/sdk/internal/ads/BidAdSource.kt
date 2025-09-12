@@ -17,7 +17,7 @@ import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.EventType
 import io.cloudx.sdk.internal.imp_tracker.TrackingFieldResolver
 import io.cloudx.sdk.internal.imp_tracker.TrackingFieldResolver.SDK_PARAM_RESPONSE_IN_MILLIS
-import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTrackerNew
+import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsType
 import io.cloudx.sdk.internal.state.SdkKeyValueState
 import java.util.UUID
@@ -53,7 +53,7 @@ internal fun <T : Destroyable> BidAdSource(
     requestBid: BidApi,
     cdpApi: CdpApi,
     eventTracker: EventTracker,
-    metricsTrackerNew: MetricsTrackerNew,
+    metricsTracker: MetricsTracker,
     createBidAd: suspend (CreateBidAdParams) -> T,
 ): BidAdSource<T> =
     BidAdSourceImpl(
@@ -62,7 +62,7 @@ internal fun <T : Destroyable> BidAdSource(
         requestBid,
         cdpApi,
         eventTracker,
-        metricsTrackerNew,
+        metricsTracker,
         createBidAd
     )
 
@@ -86,7 +86,7 @@ private class BidAdSourceImpl<T : Destroyable>(
     private val requestBid: BidApi,
     private val cdpApi: CdpApi,
     private val eventTracking: EventTracker,
-    private val metricsTrackerNew: MetricsTrackerNew,
+    private val metricsTracker: MetricsTracker,
     private val createBidAd: suspend (CreateBidAdParams) -> T,
 ) : BidAdSource<T> {
 
@@ -141,7 +141,7 @@ private class BidAdSourceImpl<T : Destroyable>(
             result = requestBid.invoke(bidRequestParams.appKey, enrichedPayload)
         }
 
-        metricsTrackerNew.trackNetworkCall(MetricsType.Network.BidRequest, bidRequestLatencyMillis)
+        metricsTracker.trackNetworkCall(MetricsType.Network.BidRequest, bidRequestLatencyMillis)
 
         TrackingFieldResolver.setRequestData(
             auctionId,

@@ -16,7 +16,7 @@ import io.cloudx.sdk.internal.cdp.CdpApi
 import io.cloudx.sdk.internal.common.service.AppLifecycleService
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
-import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTrackerNew
+import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
 
 internal fun RewardedInterstitialManager(
     placementId: String,
@@ -29,7 +29,7 @@ internal fun RewardedInterstitialManager(
     bidApi: BidApi,
     cdpApi: CdpApi,
     eventTracker: EventTracker,
-    metricsTrackerNew: MetricsTrackerNew,
+    metricsTracker: MetricsTracker,
     connectionStatusService: ConnectionStatusService,
     appLifecycleService: AppLifecycleService,
     listener: CloudXRewardedInterstitialListener,
@@ -50,7 +50,7 @@ internal fun RewardedInterstitialManager(
             cdpApi,
             bidRequestProvider,
             eventTracker,
-            metricsTrackerNew,
+            metricsTracker,
             0,
             accountId,
             appKey

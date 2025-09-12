@@ -15,11 +15,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.UUID
 
-internal class MetricsTrackerNewImpl(
+internal class MetricsTrackerImpl(
     private val scope: CoroutineScope,
     private val eventTrackerBulkApi: EventTrackerBulkApi,
     private val db: CloudXDb
-) : MetricsTrackerNew {
+) : MetricsTracker {
 
     private var metricConfig: Config.MetricsConfig? = null
     private var sendInternalInSeconds: Long = 1000L

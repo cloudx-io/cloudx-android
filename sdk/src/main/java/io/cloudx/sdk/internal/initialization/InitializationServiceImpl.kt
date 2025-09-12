@@ -25,7 +25,7 @@ import io.cloudx.sdk.internal.imp_tracker.ClickCounterTracker
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.EventType
 import io.cloudx.sdk.internal.imp_tracker.TrackingFieldResolver
-import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTrackerNew
+import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsType
 import io.cloudx.sdk.internal.privacy.PrivacyService
 import io.cloudx.sdk.internal.state.SdkKeyValueState
@@ -44,7 +44,7 @@ internal class InitializationServiceImpl(
     private val provideConfigRequest: ConfigRequestProvider,
     private val adapterResolver: AdapterFactoryResolver,
     private val privacyService: PrivacyService,
-    private val _metricsTrackerNew: MetricsTrackerNew,
+    private val _metricsTracker: MetricsTracker,
     private val eventTracker: EventTracker,
     private val provideDeviceInfo: DeviceInfoProvider,
     private val geoApi: GeoApi,
@@ -58,8 +58,8 @@ internal class InitializationServiceImpl(
     private var basePayload: String = ""
     private var factories: BidAdNetworkFactories? = null
 
-    override val metricsTrackerNew: MetricsTrackerNew
-        get() = _metricsTrackerNew
+    override val metricsTracker: MetricsTracker
+        get() = _metricsTracker
 
     override var adFactory: AdFactory? = null
         private set
@@ -103,7 +103,7 @@ internal class InitializationServiceImpl(
             ResolvedEndpoints.resolveFrom(cfg)
             SdkKeyValueState.setKeyValuePaths(cfg.keyValuePaths)
 
-            metricsTrackerNew.start(cfg)
+            metricsTracker.start(cfg)
 
             val geoDataResult: Result<Map<String, String>, CLXError>
             val geoRequestMillis = measureTimeMillis {
@@ -149,10 +149,10 @@ internal class InitializationServiceImpl(
             initAdFactory(appKeyOverride, cfg, factories)
             initializeAdapterNetworks(cfg, context)
 
-            metricsTrackerNew.trackNetworkCall(MetricsType.Network.GeoApi, geoRequestMillis)
+            metricsTracker.trackNetworkCall(MetricsType.Network.GeoApi, geoRequestMillis)
         }
 
-        metricsTrackerNew.trackNetworkCall(MetricsType.Network.SdkInit, configApiRequestMillis)
+        metricsTracker.trackNetworkCall(MetricsType.Network.SdkInit, configApiRequestMillis)
 
         return configApiResult
     }
@@ -164,7 +164,7 @@ internal class InitializationServiceImpl(
         config = null
         factories = null
         adFactory = null
-        metricsTrackerNew.stop()
+        metricsTracker.stop()
         TrackingFieldResolver.clear()
     }
 
@@ -186,7 +186,7 @@ internal class InitializationServiceImpl(
             appKey,
             config,
             factories,
-            metricsTrackerNew,
+            metricsTracker,
             eventTracker,
             ConnectionStatusService(),
             AppLifecycleService(),
@@ -250,7 +250,7 @@ internal class InitializationServiceImpl(
         if (payload != null && accountId != null) {
             basePayload = payload.replace(eventId, ARG_PLACEHOLDER_EVENT_ID)
             crashReportingService.setBasePayload(basePayload)
-            metricsTrackerNew.setBasicData(sessionId, accountId, basePayload)
+            metricsTracker.setBasicData(sessionId, accountId, basePayload)
 
             val secret = XorEncryption.generateXorSecret(accountId)
             val campaignId = XorEncryption.generateCampaignIdBase64(accountId)

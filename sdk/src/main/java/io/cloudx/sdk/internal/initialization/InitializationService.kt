@@ -12,7 +12,7 @@ import io.cloudx.sdk.internal.crash.CrashReportingService
 import io.cloudx.sdk.internal.deviceinfo.DeviceInfoProvider
 import io.cloudx.sdk.internal.geo.GeoApi
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
-import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTrackerNew
+import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
 import io.cloudx.sdk.internal.privacy.PrivacyService
 
 /**
@@ -22,7 +22,7 @@ internal interface InitializationService {
 
     val adFactory: AdFactory?
 
-    val metricsTrackerNew: MetricsTrackerNew?
+    val metricsTracker: MetricsTracker?
 
     /**
      * Initialize CloudX SDK
@@ -40,7 +40,7 @@ internal fun InitializationService(
     provideConfigRequest: ConfigRequestProvider = ConfigRequestProvider(),
     adapterFactoryResolver: AdapterFactoryResolver = AdapterFactoryResolver(),
     privacyService: PrivacyService = PrivacyService(),
-    metricsTrackerNew: MetricsTrackerNew = MetricsTrackerNew(),
+    metricsTracker: MetricsTracker = MetricsTracker(),
     eventTracker: EventTracker = EventTracker(),
     deviceInfoProvider: DeviceInfoProvider = DeviceInfoProvider(),
     geoApi: GeoApi = GeoApi(),
@@ -52,7 +52,7 @@ internal fun InitializationService(
         provideConfigRequest,
         adapterFactoryResolver,
         privacyService,
-        metricsTrackerNew,
+        metricsTracker,
         eventTracker,
         deviceInfoProvider,
         geoApi,

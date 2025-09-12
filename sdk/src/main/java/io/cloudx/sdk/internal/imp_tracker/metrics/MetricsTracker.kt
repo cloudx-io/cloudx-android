@@ -5,7 +5,7 @@ import io.cloudx.sdk.internal.config.Config
 import io.cloudx.sdk.internal.db.Database
 import io.cloudx.sdk.internal.imp_tracker.bulk.EventTrackerBulkApi
 
-internal interface MetricsTrackerNew {
+internal interface MetricsTracker {
 
     fun start(config: Config)
 
@@ -21,10 +21,10 @@ internal interface MetricsTrackerNew {
 
 }
 
-internal fun MetricsTrackerNew(): MetricsTrackerNew = LazySingleInstance
+internal fun MetricsTracker(): MetricsTracker = LazySingleInstance
 
 private val LazySingleInstance by lazy {
-    MetricsTrackerNewImpl(
+    MetricsTrackerImpl(
         GlobalScopes.IO,
         EventTrackerBulkApi(),
         Database()

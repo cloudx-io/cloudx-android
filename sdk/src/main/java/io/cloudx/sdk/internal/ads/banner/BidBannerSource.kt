@@ -4,17 +4,17 @@ import android.app.Activity
 import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.AdType
-import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
 import io.cloudx.sdk.internal.adapter.BannerFactoryMiscParams
+import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterFactory
-import io.cloudx.sdk.internal.bid.BidApi
-import io.cloudx.sdk.internal.bid.BidRequestProvider
-import io.cloudx.sdk.internal.cdp.CdpApi
+import io.cloudx.sdk.internal.ads.BidAdSource
 import io.cloudx.sdk.internal.ads.adapterLoggingDecoration
 import io.cloudx.sdk.internal.ads.baseAdDecoration
 import io.cloudx.sdk.internal.ads.bidAdDecoration
 import io.cloudx.sdk.internal.ads.decorate
-import io.cloudx.sdk.internal.ads.BidAdSource
+import io.cloudx.sdk.internal.bid.BidApi
+import io.cloudx.sdk.internal.bid.BidRequestProvider
+import io.cloudx.sdk.internal.cdp.CdpApi
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTrackerNew
 
@@ -58,7 +58,6 @@ internal fun BidBannerSource(
         val bidId = it.bidId
         val adm = it.adm
         val nurl = it.nurl
-        val lurl = it.lurl
         val params = it.adapterExtras
         val auctionId = it.auctionId
 
@@ -69,7 +68,6 @@ internal fun BidBannerSource(
             externalPlacementId = null,
             price = price,
             nurl = nurl,
-            lurl = lurl
         ) { listener ->
             // TODO. Explicit Result cast isn't "cool", even though there's try catch somewhere.
             (factories[network]?.create(

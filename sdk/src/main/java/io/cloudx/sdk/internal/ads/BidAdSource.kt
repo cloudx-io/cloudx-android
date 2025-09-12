@@ -74,7 +74,6 @@ internal class CreateBidAdParams(
     val adapterExtras: Bundle,
     val burl: String?,
     val nurl: String?,
-    val lurl: String?,
     val adNetwork: AdNetwork,
     val price: Double,
     val auctionId: String
@@ -232,7 +231,6 @@ private fun <T : Destroyable> BidResponse.toBidAdSourceResponse(
                             adapterExtras = bid.adapterExtras,
                             burl = bid.burl,
                             nurl = bid.nurl,
-                            lurl = bid.lurl,
                             adNetwork = adNetwork,
                             price = price,
                             auctionId = bid.auctionId

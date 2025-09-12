@@ -4,6 +4,7 @@ import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.adapter.CloudXAdapterError
 import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapter
 import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapterListener
+import io.cloudx.sdk.internal.ads.WinTracker
 import io.cloudx.sdk.internal.ads.fullscreen.FullscreenAdAdapterDelegate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -48,6 +49,7 @@ internal fun InterstitialAdapterDelegate(
     adNetwork: AdNetwork,
     externalPlacementId: String?,
     price: Double?,
+    nurl: String?,
     createInterstitial: (listener: CloudXInterstitialAdapterListener) -> CloudXInterstitialAdapter
 ): InterstitialAdapterDelegate =
     InterstitialAdapterDelegateImpl(
@@ -56,6 +58,7 @@ internal fun InterstitialAdapterDelegate(
         bidderName = adNetwork.networkName,
         externalPlacementId = externalPlacementId,
         revenue = price,
+        nurl = nurl,
         createInterstitial = createInterstitial
     )
 
@@ -68,6 +71,7 @@ private class InterstitialAdapterDelegateImpl(
     override val bidderName: String,
     override val externalPlacementId: String?,
     override val revenue: Double?,
+    private val nurl: String?,
     createInterstitial: (listener: CloudXInterstitialAdapterListener) -> CloudXInterstitialAdapter,
 ) : InterstitialAdapterDelegate {
 
@@ -110,7 +114,12 @@ private class InterstitialAdapterDelegateImpl(
         interstitial.destroy()
     }
 
-    // Private helper methods
+    private fun handleWinTracking() {
+        scope.launch(Dispatchers.IO) {
+            WinTracker.trackWin(nurl, revenue, "Interstitial")
+        }
+    }
+
     private fun createAdapterListener(): CloudXInterstitialAdapterListener {
         return object : CloudXInterstitialAdapterListener {
             override fun onLoad() {
@@ -122,7 +131,10 @@ private class InterstitialAdapterDelegateImpl(
             }
 
             override fun onImpression() {
-                scope.launch { _event.emit(InterstitialAdapterDelegateEvent.Impression) }
+                scope.launch { 
+                    _event.emit(InterstitialAdapterDelegateEvent.Impression)
+                    handleWinTracking()
+                }
             }
 
             override fun onSkip() {

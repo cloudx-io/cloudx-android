@@ -6,9 +6,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-internal object LossReporter {
+internal object LossTracker {
 
-    fun fireLoss(lurl: String?, reason: LossReason) {
+    fun trackLoss(lurl: String?, reason: LossReason) {
         if (lurl == null) return
 
         val resolvedLurl = lurl.replace("\${AUCTION_LOSS}", reason.code.toString())

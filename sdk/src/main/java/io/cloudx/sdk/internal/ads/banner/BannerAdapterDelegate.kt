@@ -1,17 +1,14 @@
 package io.cloudx.sdk.internal.ads.banner
 
+import io.cloudx.sdk.CloudXAd
 import io.cloudx.sdk.Destroyable
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapter
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterListener
 import io.cloudx.sdk.internal.adapter.CloudXAdapterError
-import io.cloudx.sdk.CloudXAd
 import io.cloudx.sdk.internal.ads.AdTimeoutEvent
 import io.cloudx.sdk.internal.ads.LastErrorEvent
-import io.cloudx.sdk.internal.httpclient.CloudXHttpClient
-import io.ktor.client.request.get
-import io.ktor.client.statement.HttpResponse
-import io.ktor.http.isSuccess
+import io.cloudx.sdk.internal.bid.WinTracker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -55,7 +52,6 @@ internal fun BannerAdapterDelegate(
     externalPlacementId: String?,
     price: Double?,
     nurl: String?,
-    lurl: String?,
     createBanner: (listener: CloudXAdViewAdapterListener) -> CloudXAdViewAdapter
 ): BannerAdapterDelegate =
     BannerAdapterDelegateImpl(
@@ -65,7 +61,6 @@ internal fun BannerAdapterDelegate(
         externalPlacementId = externalPlacementId,
         revenue = price,
         nurl = nurl,
-        lurl = lurl,
         createBanner = createBanner
     )
 
@@ -79,7 +74,6 @@ private class BannerAdapterDelegateImpl(
     override val externalPlacementId: String?,
     override val revenue: Double?,
     private val nurl: String?,
-    private val lurl: String?,
     createBanner: (listener: CloudXAdViewAdapterListener) -> CloudXAdViewAdapter,
 ) : BannerAdapterDelegate {
 
@@ -129,7 +123,7 @@ private class BannerAdapterDelegateImpl(
             override fun onImpression() {
                 scope.launch {
                     _event.emit(BannerAdapterDelegateEvent.Impression)
-                    handleImpressionTracking()
+                    handleWinTracking()
                 }
             }
 
@@ -146,22 +140,9 @@ private class BannerAdapterDelegateImpl(
         }
     }
 
-    private fun handleImpressionTracking() {
-        // TODO: Make a separate class for nurls and burls to handle. It looks ugly here.
-        nurl?.let { url ->
-            val completeUrl = url.replace("\${AUCTION_PRICE}", revenue?.toString() ?: "")
-            scope.launch(Dispatchers.IO) {
-                try {
-                    val response: HttpResponse = CloudXHttpClient().get(completeUrl)
-                    if (!response.status.isSuccess()) {
-                        // TODO: Add proper logging when available
-                        // CloudXLogger.error("BannerImpl", "Failed to call nurl status: ${response.status}")
-                    }
-                } catch (e: Exception) {
-                    // TODO: Add proper logging when available
-                    // CloudXLogger.error("BannerImpl", "Error calling nurl error: ${e.message}")
-                }
-            }
+    private fun handleWinTracking() {
+        scope.launch(Dispatchers.IO) {
+            WinTracker.trackWin(placementName, placementId, nurl, revenue)
         }
     }
 }

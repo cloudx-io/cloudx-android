@@ -4,7 +4,7 @@ import io.cloudx.sdk.Destroyable
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.CloudXLogger
 import io.cloudx.sdk.internal.bid.LossReason
-import io.cloudx.sdk.internal.bid.LossReporter
+import io.cloudx.sdk.internal.bid.LossTracker
 import io.cloudx.sdk.internal.common.BidBackoffAlgorithm
 import io.cloudx.sdk.internal.common.service.AppLifecycleService
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
@@ -112,7 +112,7 @@ internal class CachedAdRepository<SuspendableAd: Destroyable, C: CacheableAd>(
                     // Fire LossReason.LostToHigherBid for all lower-ranked bids
                     val lowerRanked = bidResponse.bidItemsByRank.drop(index + 1)
                     for (loserItem in lowerRanked) {
-                        LossReporter.fireLoss(
+                        LossTracker.trackLoss(
                             loserItem.lurl,
                             LossReason.LostToHigherBid
                         )
@@ -121,11 +121,11 @@ internal class CachedAdRepository<SuspendableAd: Destroyable, C: CacheableAd>(
                     return@coroutineScope result
                 } else {
                     // Ad created but failed to enqueue — technical error
-                    LossReporter.fireLoss(bidItem.lurl, LossReason.TechnicalError)
+                    LossTracker.trackLoss(bidItem.lurl, LossReason.TechnicalError)
                 }
             } else {
                 // Ad failed to create — technical error
-                LossReporter.fireLoss(bidItem.lurl, LossReason.TechnicalError)
+                LossTracker.trackLoss(bidItem.lurl, LossReason.TechnicalError)
             }
         }
 

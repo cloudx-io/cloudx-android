@@ -61,7 +61,8 @@ internal fun BidInterstitialSource(
             placementId = placementId,
             adNetwork = adNetwork,
             externalPlacementId = null,
-            price = price
+            price = price,
+            nurl = nurl
         ) { listener ->
             // TODO. IMPORTANT. Explicit Result cast isn't "cool", even though there's try catch somewhere.
             (factories[adNetwork]?.create(

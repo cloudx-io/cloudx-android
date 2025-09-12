@@ -4,6 +4,7 @@ import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.adapter.CloudXAdapterError
 import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapter
 import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapterListener
+import io.cloudx.sdk.internal.bid.WinTracker
 import io.cloudx.sdk.internal.ads.fullscreen.FullscreenAdAdapterDelegate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -47,6 +48,7 @@ internal fun RewardedInterstitialAdapterDelegate(
     adNetwork: AdNetwork,
     externalPlacementId: String?,
     price: Double?,
+    nurl: String?,
     createRewardedInterstitial: (listener: CloudXRewardedInterstitialAdapterListener) -> CloudXRewardedInterstitialAdapter
 ): RewardedInterstitialAdapterDelegate =
     RewardedInterstitialAdapterDelegateImpl(
@@ -55,6 +57,7 @@ internal fun RewardedInterstitialAdapterDelegate(
         bidderName = adNetwork.networkName,
         externalPlacementId = externalPlacementId,
         revenue = price,
+        nurl = nurl,
         createRewardedInterstitial = createRewardedInterstitial
     )
 
@@ -67,6 +70,7 @@ private class RewardedInterstitialAdapterDelegateImpl(
     override val bidderName: String,
     override val externalPlacementId: String?,
     override val revenue: Double?,
+    private val nurl: String?,
     createRewardedInterstitial: (listener: CloudXRewardedInterstitialAdapterListener) -> CloudXRewardedInterstitialAdapter,
 ) : RewardedInterstitialAdapterDelegate {
 
@@ -109,7 +113,6 @@ private class RewardedInterstitialAdapterDelegateImpl(
         rewardedInterstitial.destroy()
     }
 
-    // Private helper methods
     private fun createAdapterListener(): CloudXRewardedInterstitialAdapterListener {
         return object : CloudXRewardedInterstitialAdapterListener {
             override fun onLoad() {
@@ -121,7 +124,10 @@ private class RewardedInterstitialAdapterDelegateImpl(
             }
 
             override fun onImpression() {
-                scope.launch { _event.emit(RewardedInterstitialAdapterDelegateEvent.Impression) }
+                scope.launch { 
+                    _event.emit(RewardedInterstitialAdapterDelegateEvent.Impression)
+                    handleWinTracking()
+                }
             }
 
             override fun onEligibleForReward() {
@@ -142,6 +148,12 @@ private class RewardedInterstitialAdapterDelegateImpl(
                     _lastErrorEvent.value = error
                 }
             }
+        }
+    }
+
+    private fun handleWinTracking() {
+        scope.launch(Dispatchers.IO) {
+            WinTracker.trackWin(placementName, placementId, nurl, revenue)
         }
     }
 }

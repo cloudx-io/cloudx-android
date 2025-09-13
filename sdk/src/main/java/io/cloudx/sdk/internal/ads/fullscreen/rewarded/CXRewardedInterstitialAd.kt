@@ -6,7 +6,7 @@ import io.cloudx.sdk.CloudXRewardedInterstitialAd
 import io.cloudx.sdk.CloudXRewardedInterstitialListener
 import io.cloudx.sdk.internal.CloudXLogger
 import io.cloudx.sdk.internal.ads.AdFactory
-import io.cloudx.sdk.internal.CXSDK
+import io.cloudx.sdk.internal.CXSdk
 import io.cloudx.sdk.internal.initialization.InitializationState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
@@ -25,7 +25,7 @@ internal class CXRewardedInterstitialAd(
 
     init {
         initJob = MainScope().launch {
-            val initState = CXSDK.initState.first { it is InitializationState.Initialized }
+            val initState = CXSdk.initState.first { it is InitializationState.Initialized }
                     as InitializationState.Initialized
             rewardedInterstitial = initState.initializationService.adFactory!!.createRewarded(
                 AdFactory.CreateAdParams(placementName, listener)
@@ -49,7 +49,7 @@ internal class CXRewardedInterstitialAd(
             return
         }
 
-        if (CXSDK.initState.value is InitializationState.Uninitialized) {
+        if (CXSdk.initState.value is InitializationState.Uninitialized) {
             CloudXLogger.e(TAG, "CloudX SDK is uninitialized")
             listener?.onAdLoadFailed(CloudXAdError("CloudX SDK is uninitialized"))
         }
@@ -61,7 +61,7 @@ internal class CXRewardedInterstitialAd(
             return
         }
 
-        if (CXSDK.initState.value is InitializationState.Uninitialized) {
+        if (CXSdk.initState.value is InitializationState.Uninitialized) {
             CloudXLogger.e(TAG, "CloudX SDK is uninitialized")
             listener?.onAdDisplayFailed(CloudXAdError("CloudX SDK is uninitialized"))
         }

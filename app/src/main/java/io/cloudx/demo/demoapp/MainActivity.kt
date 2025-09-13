@@ -13,6 +13,8 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.progressindicator.LinearProgressIndicator
 import io.cloudx.sdk.CloudX
+import io.cloudx.sdk.CloudXAdError
+import io.cloudx.sdk.CloudXInitializationListener
 import io.cloudx.sdk.CloudXPrivacy
 import io.cloudx.sdk.internal.CloudXLogger
 import kotlinx.coroutines.flow.collectLatest
@@ -226,21 +228,23 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                 "🚀 Starting SDK init with appKey: ${settings.appKey}, endpoint: ${settings.initUrl}"
             )
 
-            CloudXInitializer.initializeCloudX(
-                this@MainActivity,
-                settings,
-                TAG
-            ) { result ->
-                val resultMsg =
-                    if (result.initialized) {
-                        INIT_SUCCESS
-                    } else {
-                        "$INIT_FAILURE ${result.description} (Error code: ${result.errorCode})"
-                    }
-                CloudXLogger.i(TAG, resultMsg)
-
-                shortSnackbar(bottomNavBar, resultMsg)
+            val postInit = { msg: String ->
+                CloudXLogger.i(TAG, msg)
+                shortSnackbar(bottomNavBar, msg)
             }
+            CloudXInitializer.initializeCloudX(
+                context = this@MainActivity,
+                settings = settings,
+                logTag = TAG,
+                listener = object : CloudXInitializationListener {
+                    override fun onInitialized() {
+                        postInit(INIT_SUCCESS)
+                    }
+
+                    override fun onInitializationFailed(error: CloudXAdError) {
+                        postInit("$INIT_FAILURE ${error.description}")
+                    }
+                })
         }
     }
 

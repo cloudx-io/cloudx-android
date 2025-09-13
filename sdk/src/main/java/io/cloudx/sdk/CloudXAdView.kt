@@ -18,7 +18,7 @@ import io.cloudx.sdk.internal.ads.AdFactory
 import io.cloudx.sdk.internal.ads.banner.BannerManager
 import io.cloudx.sdk.internal.common.createViewabilityTracker
 import io.cloudx.sdk.internal.common.dpToPx
-import io.cloudx.sdk.internal.CXSDK
+import io.cloudx.sdk.internal.CXSdk
 import io.cloudx.sdk.internal.initialization.InitializationState
 import io.cloudx.sdk.internal.size
 import kotlinx.coroutines.CoroutineScope
@@ -62,7 +62,7 @@ class CloudXAdView internal constructor(
 
     init {
         initJob = mainScope.launch {
-            val initState = CXSDK.initState.first { it is InitializationState.Initialized }
+            val initState = CXSdk.initState.first { it is InitializationState.Initialized }
                     as InitializationState.Initialized
             val adFactory = initState.initializationService.adFactory
             isBannerAttachedToWindow.first { it }

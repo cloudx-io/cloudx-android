@@ -1,9 +1,8 @@
 package io.cloudx.sdk.internal
 
-import io.cloudx.sdk.BuildConfig
+import io.cloudx.sdk.CloudXAdError
 import io.cloudx.sdk.CloudXInitializationListener
 import io.cloudx.sdk.CloudXInitializationParams
-import io.cloudx.sdk.CloudXInitializationStatus
 import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.config.ConfigApi
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsType
@@ -19,8 +18,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
 
-internal object CXSDK {
-    private const val TAG = "CXSDK"
+internal object CXSdk {
+    private const val TAG = "CXSdk"
     private val scope = MainScope()
     private var initJob: Job? = null
     private val _initState =
@@ -31,45 +30,32 @@ internal object CXSDK {
 
     fun initialize(
         initParams: CloudXInitializationParams,
-        listener: CloudXInitializationListener? = null
+        listener: CloudXInitializationListener?
     ) {
         if (!_initState.compareAndSet(
                 expect = InitializationState.Uninitialized,
                 update = InitializationState.Initializing
             )
         ) {
-            val status = when (initState.value) {
+            when (initState.value) {
                 InitializationState.Uninitialized -> {
                     // Uninitialized/Failed due to a race; let caller try again
-                    CloudXInitializationStatus(
-                        initialized = false,
-                        description = "Initialization not started"
-                    )
+                    onInitializationFailed(listener, "Initialization not started")
                 }
 
                 InitializationState.Initializing -> {
-                    CloudXInitializationStatus(
-                        initialized = false,
-                        description = "Initialization is already in progress"
-                    )
+                    onInitializationFailed(listener, "Initialization is already in progress")
                 }
 
                 is InitializationState.Initialized -> {
-                    CloudXInitializationStatus(
-                        initialized = true,
-                        description = "Already initialized"
-                    )
+                    onInitialized(listener, null)
                 }
-            }
-
-            ThreadUtils.runOnMainThread {
-                listener?.onCloudXInitializationStatus(status)
             }
             return
         }
 
         initJob = scope.launch {
-            val initStatus = try {
+            try {
                 // Initial creation of InitializationService.
                 val initService = InitializationService(
                     configApi = ConfigApi(initParams.initEndpointUrl)
@@ -80,26 +66,11 @@ internal object CXSDK {
                 // Initializing SDK...
                 when (val result = initService.initialize(initParams.appKey)) {
                     is Result.Failure -> {
-                        CloudXLogger.e(
-                            TAG,
-                            "SDK initialization failed: ${result.value.effectiveMessage}",
-                            result.value.cause
-                        )
-                        _initState.value = InitializationState.Uninitialized
-                        CloudXInitializationStatus(
-                            initialized = false,
-                            result.value.effectiveMessage,
-                            result.value.code.code
-                        )
+                        onInitializationFailed(listener, result.value.effectiveMessage)
                     }
 
                     is Result.Success -> {
-                        CloudXLogger.i(TAG, "SDK initialization succeeded")
-                        _initState.value = InitializationState.Initialized(initService)
-                        CloudXInitializationStatus(
-                            initialized = true,
-                            "CloudX SDK is initialized v${BuildConfig.SDK_VERSION_NAME}"
-                        )
+                        onInitialized(listener, initService)
                     }
                 }
             } catch (ce: CancellationException) {
@@ -107,20 +78,40 @@ internal object CXSDK {
                 _initState.value = InitializationState.Uninitialized
                 throw ce
             } catch (e: Exception) {
-                CloudXLogger.e(TAG, "SDK initialization failed with exception", e)
-                _initState.value = InitializationState.Uninitialized
-                CloudXInitializationStatus(false, "CloudX SDK failed to initialize")
-            }
-            CloudXLogger.i(TAG, "SDK initialization completed successfully")
-            ThreadUtils.runOnMainThread {
-                listener?.onCloudXInitializationStatus(initStatus)
+                onInitializationFailed(listener, e.message.orEmpty(), e)
             }
         }
     }
 
-    fun deinitialize( ) {
+    fun deinitialize() {
         initJob?.cancel()
         initializationService?.deinitialize()
         _initState.value = InitializationState.Uninitialized
+    }
+
+    private fun onInitialized(
+        listener: CloudXInitializationListener?,
+        initializationService: InitializationService?
+    ) {
+        CloudXLogger.i(TAG, "CloudX SDK initialization succeeded")
+        initializationService?.let {
+            _initState.value = InitializationState.Initialized(it)
+        }
+        ThreadUtils.runOnMainThread {
+            listener?.onInitialized()
+        }
+    }
+
+    private fun onInitializationFailed(
+        listener: CloudXInitializationListener?,
+        message: String,
+        e: Throwable? = null
+    ) {
+        val str = "CloudX SDK initialization failed: $message"
+        CloudXLogger.e(TAG, str, e)
+        _initState.value = InitializationState.Uninitialized
+        ThreadUtils.runOnMainThread {
+            listener?.onInitializationFailed(CloudXAdError(str))
+        }
     }
 }

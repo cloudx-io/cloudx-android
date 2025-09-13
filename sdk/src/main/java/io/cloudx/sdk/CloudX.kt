@@ -5,7 +5,7 @@ import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.ads.fullscreen.interstitial.CXInterstitialAd
 import io.cloudx.sdk.internal.ads.fullscreen.rewarded.CXRewardedInterstitialAd
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsType
-import io.cloudx.sdk.internal.CXSDK
+import io.cloudx.sdk.internal.CXSdk
 import io.cloudx.sdk.internal.privacy.PrivacyService
 import io.cloudx.sdk.internal.state.SdkKeyValueState
 
@@ -18,12 +18,11 @@ object CloudX {
      * Initializes CloudX SDK; essential first step before loading and displaying any ads.
      */
     @JvmStatic
-    @JvmOverloads
     fun initialize(
         initParams: CloudXInitializationParams,
-        listener: CloudXInitializationListener? = null
+        listener: CloudXInitializationListener?
     ) {
-        CXSDK.initialize(initParams, listener)
+        CXSdk.initialize(initParams, listener)
     }
 
     /**
@@ -35,7 +34,7 @@ object CloudX {
         placementName: String,
         listener: CloudXAdViewListener?
     ): CloudXAdView? {
-        CXSDK.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.CreateBanner)
+        CXSdk.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.CreateBanner)
         return CloudXAdView(activity, placementName, AdType.Banner.Standard).apply {
             this.listener = listener
         }
@@ -50,7 +49,7 @@ object CloudX {
         placementName: String,
         listener: CloudXAdViewListener?
     ): CloudXAdView? {
-        CXSDK.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.CreateMrec)
+        CXSdk.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.CreateMrec)
         return CloudXAdView(activity, placementName, AdType.Banner.MREC).apply {
             this.listener = listener
         }
@@ -64,7 +63,7 @@ object CloudX {
         placementName: String,
         listener: CloudXInterstitialListener?
     ): CloudXInterstitialAd? {
-        CXSDK.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.CreateInterstitial)
+        CXSdk.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.CreateInterstitial)
         return CXInterstitialAd(placementName, listener)
     }
 
@@ -77,7 +76,7 @@ object CloudX {
         placementName: String,
         listener: CloudXRewardedInterstitialListener?
     ): CloudXRewardedInterstitialAd? {
-        CXSDK.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.CreateRewarded)
+        CXSdk.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.CreateRewarded)
         return CXRewardedInterstitialAd(placementName, listener)
     }
 
@@ -90,7 +89,7 @@ object CloudX {
         placementName: String,
         listener: CloudXAdViewListener?
     ): CloudXAdView? {
-        CXSDK.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.CreateNative)
+        CXSdk.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.CreateNative)
         return CloudXAdView(activity, placementName, AdType.Native.Small).apply {
             this.listener = listener
         }
@@ -105,7 +104,7 @@ object CloudX {
         placementName: String,
         listener: CloudXAdViewListener?
     ): CloudXAdView? {
-        CXSDK.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.CreateNative)
+        CXSdk.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.CreateNative)
         return CloudXAdView(activity, placementName, AdType.Native.Medium).apply {
             this.listener = listener
         }
@@ -124,7 +123,7 @@ object CloudX {
      */
     @JvmStatic
     fun setHashedUserId(hashedEmail: String) {
-        CXSDK.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.SetHashedUserId)
+        CXSdk.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.SetHashedUserId)
         SdkKeyValueState.hashedUserId = hashedEmail
     }
 
@@ -134,7 +133,7 @@ object CloudX {
      */
     @JvmStatic
     fun setUserKeyValue(key: String, value: String) {
-        CXSDK.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.SetUserKeyValues)
+        CXSdk.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.SetUserKeyValues)
         SdkKeyValueState.userKeyValues[key] = value
     }
 
@@ -143,7 +142,7 @@ object CloudX {
      */
     @JvmStatic
     fun setAppKeyValue(key: String, value: String) {
-        CXSDK.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.SetAppKeyValues)
+        CXSdk.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.SetAppKeyValues)
         SdkKeyValueState.appKeyValues[key] = value
     }
 
@@ -154,6 +153,6 @@ object CloudX {
 
     @JvmStatic
     fun deinitialize() {
-        CXSDK.deinitialize()
+        CXSdk.deinitialize()
     }
 }

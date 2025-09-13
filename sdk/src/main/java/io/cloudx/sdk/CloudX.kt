@@ -2,146 +2,28 @@ package io.cloudx.sdk
 
 import android.app.Activity
 import io.cloudx.sdk.internal.AdType
-import io.cloudx.sdk.internal.CloudXLogger
-import io.cloudx.sdk.internal.config.ConfigApi
+import io.cloudx.sdk.internal.ads.fullscreen.interstitial.CXInterstitialAd
+import io.cloudx.sdk.internal.ads.fullscreen.rewarded.CXRewardedInterstitialAd
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsType
-import io.cloudx.sdk.internal.initialization.InitializationService
-import io.cloudx.sdk.internal.initialization.InitializationState
+import io.cloudx.sdk.internal.CXSDK
 import io.cloudx.sdk.internal.privacy.PrivacyService
 import io.cloudx.sdk.internal.state.SdkKeyValueState
-import io.cloudx.sdk.internal.util.ThreadUtils
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
-import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * This is an entry point to CloudX SDK.
  */
 object CloudX {
-    private const val TAG = "CloudX"
-
-    private val initializationService
-        get() = (initState.value as? InitializationState.Initialized)?.initializationService
-    private val _initState =
-        MutableStateFlow<InitializationState>(InitializationState.Uninitialized)
-    internal val initState: StateFlow<InitializationState> = _initState.asStateFlow()
-
-    private val scope = MainScope()
-    private var initJob: Job? = null
-
-    private val privacyService = PrivacyService()
-
-    /**
-     * Set privacy data which is then will be used in ad loading process.
-     * @sample io.cloudx.sdk.samples.cloudXSetPrivacy
-     */
-    @JvmStatic
-    fun setPrivacy(privacy: CloudXPrivacy) {
-        privacyService.cloudXPrivacy.value = privacy
-    }
 
     /**
      * Initializes CloudX SDK; essential first step before loading and displaying any ads.
-     * If the SDK is already initialized, the provided listener will receive [CloudXInitializationStatus.initialized] - true.
-     *
-     * @param initParams initialization credentials and misc parameters
-     * @param listener an optional listener to receive initialization status updates
-     * @see isInitialized
-     * @sample io.cloudx.sdk.samples.cloudXInitialize
      */
     @JvmStatic
     @JvmOverloads
     fun initialize(
-        initParams: InitializationParams,
+        initParams: CloudXInitializationParams,
         listener: CloudXInitializationListener? = null
     ) {
-        if (!_initState.compareAndSet(
-                expect = InitializationState.Uninitialized,
-                update = InitializationState.Initializing
-            )
-        ) {
-            val status = when (initState.value) {
-                InitializationState.Uninitialized -> {
-                    // Uninitialized/Failed due to a race; let caller try again
-                    CloudXInitializationStatus(
-                        initialized = false,
-                        description = "Initialization not started"
-                    )
-                }
-
-                InitializationState.Initializing -> {
-                    CloudXInitializationStatus(
-                        initialized = false,
-                        description = "Initialization is already in progress"
-                    )
-                }
-
-                is InitializationState.Initialized -> {
-                    CloudXInitializationStatus(
-                        initialized = true,
-                        description = "Already initialized"
-                    )
-                }
-            }
-
-            ThreadUtils.runOnMainThread {
-                listener?.onCloudXInitializationStatus(status)
-            }
-            return
-        }
-
-        initJob = scope.launch {
-            val initStatus = try {
-                // Initial creation of InitializationService.
-                val initService = InitializationService(
-                    configApi = ConfigApi(initParams.initEndpointUrl)
-                )
-                SdkKeyValueState.hashedUserId = initParams.hashedUserId
-                initService.metricsTracker?.trackMethodCall(MetricsType.Method.SdkInitMethod)
-
-                // Initializing SDK...
-                when (val result = initService.initialize(initParams.appKey)) {
-                    is Result.Failure -> {
-                        CloudXLogger.e(
-                            TAG,
-                            "SDK initialization failed: ${result.value.effectiveMessage}",
-                            result.value.cause
-                        )
-                        _initState.value = InitializationState.Uninitialized
-                        CloudXInitializationStatus(
-                            initialized = false,
-                            result.value.effectiveMessage,
-                            result.value.code.code
-                        )
-                    }
-
-                    is Result.Success -> {
-                        CloudXLogger.i(TAG, "SDK initialization succeeded")
-                        _initState.value = InitializationState.Initialized(initService)
-                        CloudXInitializationStatus(
-                            initialized = true,
-                            "CloudX SDK is initialized v${BuildConfig.SDK_VERSION_NAME}"
-                        )
-                    }
-                }
-            } catch (ce: CancellationException) {
-                // Don’t swallow coroutine cancellation
-                _initState.value = InitializationState.Uninitialized
-                throw ce
-            } catch (e: Exception) {
-                CloudXLogger.e(TAG, "SDK initialization failed with exception", e)
-                _initState.value = InitializationState.Uninitialized
-                CloudXInitializationStatus(false, "CloudX SDK failed to initialize")
-            }
-            CloudXLogger.i(TAG, "SDK initialization completed successfully")
-            ThreadUtils.runOnMainThread {
-                listener?.onCloudXInitializationStatus(initStatus)
-            }
-        }
+        CXSDK.initialize(initParams, listener)
     }
 
     /**
@@ -153,7 +35,7 @@ object CloudX {
         placementName: String,
         listener: CloudXAdViewListener?
     ): CloudXAdView? {
-        initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.CreateBanner)
+        CXSDK.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.CreateBanner)
         return CloudXAdView(activity, placementName, AdType.Banner.Standard).apply {
             this.listener = listener
         }
@@ -168,10 +50,35 @@ object CloudX {
         placementName: String,
         listener: CloudXAdViewListener?
     ): CloudXAdView? {
-        initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.CreateMrec)
+        CXSDK.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.CreateMrec)
         return CloudXAdView(activity, placementName, AdType.Banner.MREC).apply {
             this.listener = listener
         }
+    }
+
+    /**
+     * Creates [CloudXInterstitialAd] ad instance responsible for rendering non-rewarded fullscreen ads.
+     */
+    @JvmStatic
+    fun createInterstitial(
+        placementName: String,
+        listener: CloudXInterstitialListener?
+    ): CloudXInterstitialAd? {
+        CXSDK.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.CreateInterstitial)
+        return CXInterstitialAd(placementName, listener)
+    }
+
+
+    /**
+     * Creates [CloudXRewardedInterstitialAd] ad instance responsible for rendering non-rewarded fullscreen ads.
+     */
+    @JvmStatic
+    fun createRewardedInterstitial(
+        placementName: String,
+        listener: CloudXRewardedInterstitialListener?
+    ): CloudXRewardedInterstitialAd? {
+        CXSDK.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.CreateRewarded)
+        return CXRewardedInterstitialAd(placementName, listener)
     }
 
     /**
@@ -183,7 +90,7 @@ object CloudX {
         placementName: String,
         listener: CloudXAdViewListener?
     ): CloudXAdView? {
-        initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.CreateNative)
+        CXSDK.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.CreateNative)
         return CloudXAdView(activity, placementName, AdType.Native.Small).apply {
             this.listener = listener
         }
@@ -198,19 +105,26 @@ object CloudX {
         placementName: String,
         listener: CloudXAdViewListener?
     ): CloudXAdView? {
-        initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.CreateNative)
+        CXSDK.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.CreateNative)
         return CloudXAdView(activity, placementName, AdType.Native.Medium).apply {
             this.listener = listener
         }
     }
 
+    /**
+     * Set privacy data which is then will be used in ad loading process.
+     */
+    @JvmStatic
+    fun setPrivacy(privacy: CloudXPrivacy) {
+        PrivacyService().cloudXPrivacy.value = privacy
+    }
 
     /**
      * Publisher is responsible for normalization and hashing of a user email
      */
     @JvmStatic
     fun setHashedUserId(hashedEmail: String) {
-        initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.SetHashedUserId)
+        CXSDK.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.SetHashedUserId)
         SdkKeyValueState.hashedUserId = hashedEmail
     }
 
@@ -220,7 +134,7 @@ object CloudX {
      */
     @JvmStatic
     fun setUserKeyValue(key: String, value: String) {
-        initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.SetUserKeyValues)
+        CXSDK.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.SetUserKeyValues)
         SdkKeyValueState.userKeyValues[key] = value
     }
 
@@ -229,7 +143,7 @@ object CloudX {
      */
     @JvmStatic
     fun setAppKeyValue(key: String, value: String) {
-        initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.SetAppKeyValues)
+        CXSDK.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.SetAppKeyValues)
         SdkKeyValueState.appKeyValues[key] = value
     }
 
@@ -240,20 +154,6 @@ object CloudX {
 
     @JvmStatic
     fun deinitialize() {
-        initJob?.cancel()
-        initializationService?.deinitialize()
-        _initState.value = InitializationState.Uninitialized
+        CXSDK.deinitialize()
     }
-
-    /**
-     * Initialization params
-     *
-     * @property appKey - Identifier of the publisher app registered with CloudX.
-     * @property initEndpointUrl - endpoint to fetch an initial SDK configuration from
-     */
-    class InitializationParams(
-        val appKey: String,
-        val initEndpointUrl: String,
-        val hashedUserId: String? = null
-    )
 }

@@ -1,12 +1,12 @@
 package io.cloudx.demo.demoapp
 
+import io.cloudx.sdk.CloudX
 import io.cloudx.sdk.CloudXAdListener
-import io.cloudx.sdk.CloudXInterstitialAd
 import io.cloudx.sdk.CloudXInterstitialListener
 
 class InterstitialFragment : FullPageAdFragment() {
 
-    override fun createAd(listener: CloudXAdListener) = CloudXInterstitialAd(
+    override fun createAd(listener: CloudXAdListener) = CloudX.createInterstitial(
         placementName,
         object : CloudXInterstitialListener, CloudXAdListener by listener {}
     )

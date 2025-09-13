@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.preference.PreferenceManager
 import io.cloudx.sdk.CloudX
 import io.cloudx.sdk.CloudXInitializationListener
+import io.cloudx.sdk.CloudXInitializationParams
 import io.cloudx.sdk.CloudXPrivacy
 import io.cloudx.sdk.internal.CloudXLogger
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,7 +45,7 @@ object CloudXInitializer {
         }
 
         CloudX.initialize(
-            CloudX.InitializationParams(
+            CloudXInitializationParams(
                 appKey = settings.appKey,
                 initEndpointUrl = settings.initUrl,
                 hashedUserId = hashedUserId

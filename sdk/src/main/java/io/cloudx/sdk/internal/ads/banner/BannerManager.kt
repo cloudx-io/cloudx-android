@@ -6,10 +6,12 @@ import io.cloudx.sdk.Destroyable
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.CloudXLogger
-import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
 import io.cloudx.sdk.internal.adapter.BannerFactoryMiscParams
+import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterFactory
 import io.cloudx.sdk.internal.adapter.CloudXAdapterBidRequestExtrasProvider
+import io.cloudx.sdk.internal.ads.BidAdSource
+import io.cloudx.sdk.internal.ads.BidAdSourceResponse
 import io.cloudx.sdk.internal.bid.BidApi
 import io.cloudx.sdk.internal.bid.BidRequestProvider
 import io.cloudx.sdk.internal.bid.LoadResult
@@ -20,9 +22,6 @@ import io.cloudx.sdk.internal.common.BidBackoffMechanism
 import io.cloudx.sdk.internal.common.service.ActivityLifecycleService
 import io.cloudx.sdk.internal.common.service.AppLifecycleService
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
-import io.cloudx.sdk.internal.ads.BidAdSource
-import io.cloudx.sdk.internal.ads.BidAdSourceResponse
-import io.cloudx.sdk.internal.decorate
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsType
@@ -138,9 +137,6 @@ private class BannerManagerImpl(
     private val bidBackoffMechanism = BidBackoffMechanism()
 
     override var listener: CloudXAdViewListener? = null
-        set(listener) {
-            field = listener?.decorate()
-        }
 
     init {
         CloudXLogger.i(

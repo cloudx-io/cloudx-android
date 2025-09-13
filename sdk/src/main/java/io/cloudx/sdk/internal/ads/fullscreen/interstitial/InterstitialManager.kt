@@ -32,7 +32,7 @@ internal fun InterstitialManager(
     metricsTracker: MetricsTracker,
     connectionStatusService: ConnectionStatusService,
     appLifecycleService: AppLifecycleService,
-    listener: CloudXInterstitialListener,
+    listener: CloudXInterstitialListener?,
     accountId: String,
     appKey: String
 ): CloudXInterstitialAd {
@@ -74,7 +74,7 @@ private class InterstitialManagerImpl(
     cacheSize: Int,
     connectionStatusService: ConnectionStatusService,
     appLifecycleService: AppLifecycleService,
-    private val listener: CloudXInterstitialListener,
+    private val listener: CloudXInterstitialListener?,
 ) : CloudXInterstitialAd,
     CloudXFullscreenAd by FullscreenAdManager(
         bidAdSource,

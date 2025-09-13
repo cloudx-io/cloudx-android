@@ -32,7 +32,7 @@ internal fun RewardedInterstitialManager(
     metricsTracker: MetricsTracker,
     connectionStatusService: ConnectionStatusService,
     appLifecycleService: AppLifecycleService,
-    listener: CloudXRewardedInterstitialListener,
+    listener: CloudXRewardedInterstitialListener?,
     accountId: String,
     appKey: String
 ): CloudXRewardedInterstitialAd {
@@ -74,7 +74,7 @@ private class RewardedInterstitialManager(
     cacheSize: Int,
     connectionStatusService: ConnectionStatusService,
     appLifecycleService: AppLifecycleService,
-    private val listener: CloudXRewardedInterstitialListener,
+    private val listener: CloudXRewardedInterstitialListener?,
 ) : CloudXRewardedInterstitialAd,
     CloudXFullscreenAd by FullscreenAdManager(
         bidAdSource,
@@ -91,7 +91,7 @@ private class RewardedInterstitialManager(
                 is RewardedInterstitialAdapterDelegateEvent.Click -> FullscreenAdEvent.Click
                 RewardedInterstitialAdapterDelegateEvent.Hide -> FullscreenAdEvent.Hide
                 RewardedInterstitialAdapterDelegateEvent.Reward -> {
-                    listener.onUserRewarded(cloudXAd)
+                    listener?.onUserRewarded(cloudXAd)
                     null
                 }
 

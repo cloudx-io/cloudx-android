@@ -37,7 +37,7 @@ internal class FullscreenAdManager<
     private val placementType: AdType,
     connectionStatusService: ConnectionStatusService,
     appLifecycleService: AppLifecycleService,
-    private val listener: Listener,
+    private val listener: Listener?,
     // TODO. Ahaha. stop it, please.
     // Listens to the current ad events and returns FullscreenAdEvent if similar.
     private val tryHandleCurrentEvent: DelegateEvent.(cloudXAd: CloudXAd) -> FullscreenAdEvent?
@@ -82,9 +82,9 @@ internal class FullscreenAdManager<
 
             val topAd = cachedAdRepository.topCloudXAd
             if (hasAds == true && topAd != null) {
-                listener.onAdLoaded(topAd)
+                listener?.onAdLoaded(topAd)
             } else {
-                listener.onAdLoadFailed(CloudXAdError(description = "No ads loaded yet"))
+                listener?.onAdLoadFailed(CloudXAdError(description = "No ads loaded yet"))
             }
         }
     }
@@ -104,12 +104,12 @@ internal class FullscreenAdManager<
             if (job.isActive) {
                 val timeToWaitForHideEventMillis = 90 * 1000
                 if (utcNowEpochMillis() <= (lastShowJobStartedTimeMillis + timeToWaitForHideEventMillis)) {
-                    listener.onAdDisplayFailed(CloudXAdError(description = "Ad is already displaying"))
+                    listener?.onAdDisplayFailed(CloudXAdError(description = "Ad is already displaying"))
                     return
                 } else {
                     job.cancel("No adHidden or adError event received. Cancelling job")
                     lastShownAd?.let {
-                        listener.onAdHidden(it)
+                        listener?.onAdHidden(it)
                     }
                 }
             }
@@ -120,7 +120,7 @@ internal class FullscreenAdManager<
 
             val ad = popAdAndSetLastShown()
             if (ad == null) {
-                listener.onAdDisplayFailed(CloudXAdError(description = "No ads loaded yet"))
+                listener?.onAdDisplayFailed(CloudXAdError(description = "No ads loaded yet"))
                 return@launch
             }
 
@@ -200,7 +200,7 @@ internal class FullscreenAdManager<
                 return@coroutineScope false
             }
 
-            if (!isHideEventSent) listener.onAdHidden(ad)
+            if (!isHideEventSent) listener?.onAdHidden(ad)
 
             return@coroutineScope true
         }
@@ -215,18 +215,18 @@ internal class FullscreenAdManager<
                 ad.event.collect {
                     when (it.tryHandleCurrentEvent(ad)) {
                         FullscreenAdEvent.Show -> {
-                            listener.onAdDisplayed(ad)
+                            listener?.onAdDisplayed(ad)
                         }
 
                         FullscreenAdEvent.Click -> {
-                            listener.onAdClicked(ad)
+                            listener?.onAdClicked(ad)
                         }
                         // TODO. Check if adapters send important events (reward, complete) only before "hide" event.
                         //  They might be lost after job cancellation otherwise.
                         //  Fix ad network's adapter then. I guess.
                         //  Make sure "hide" is the last event in sequence.
                         FullscreenAdEvent.Hide -> {
-                            listener.onAdHidden(ad)
+                            listener?.onAdHidden(ad)
                             onHide()
                         }
 

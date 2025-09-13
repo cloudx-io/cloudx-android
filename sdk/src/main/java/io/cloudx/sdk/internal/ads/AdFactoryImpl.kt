@@ -18,7 +18,6 @@ import io.cloudx.sdk.internal.config.Config
 import io.cloudx.sdk.internal.config.ResolvedEndpoints
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.initialization.BidAdNetworkFactories
-import io.cloudx.sdk.internal.decorate
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
 import io.cloudx.sdk.internal.size
@@ -130,8 +129,7 @@ internal class AdFactoryImpl(
             metricsTracker = metricsTracker,
             connectionStatusService = connectionStatusService,
             appLifecycleService = appLifecycleService,
-            // TODO. Nullable support.
-            listener = params.listener.decorate(),
+            listener = params.listener,
             accountId = config.accountId ?: "",
             appKey = appKey
         )
@@ -162,8 +160,7 @@ internal class AdFactoryImpl(
             metricsTracker = metricsTracker,
             connectionStatusService = connectionStatusService,
             appLifecycleService = appLifecycleService,
-            // TODO. Nullable support.
-            listener = params.listener.decorate(),
+            listener = params.listener,
             accountId = config.accountId ?: "",
             appKey = appKey
         )

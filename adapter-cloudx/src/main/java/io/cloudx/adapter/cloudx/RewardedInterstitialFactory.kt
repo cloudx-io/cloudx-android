@@ -1,12 +1,12 @@
 package io.cloudx.adapter.cloudx
 
 import android.os.Bundle
-import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.adapter.CloudXAdapterMetaData
 import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapter
 import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapterFactory
 import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapterListener
 import io.cloudx.sdk.internal.context.ContextProvider
+import io.cloudx.sdk.internal.util.Result
 
 internal object RewardedInterstitialFactory :
     CloudXRewardedInterstitialAdapterFactory,

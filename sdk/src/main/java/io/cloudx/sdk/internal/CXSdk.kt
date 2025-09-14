@@ -3,12 +3,12 @@ package io.cloudx.sdk.internal
 import io.cloudx.sdk.CloudXAdError
 import io.cloudx.sdk.CloudXInitializationListener
 import io.cloudx.sdk.CloudXInitializationParams
-import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.config.ConfigApi
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsType
 import io.cloudx.sdk.internal.initialization.InitializationService
 import io.cloudx.sdk.internal.initialization.InitializationState
 import io.cloudx.sdk.internal.state.SdkKeyValueState
+import io.cloudx.sdk.internal.util.Result
 import io.cloudx.sdk.internal.util.ThreadUtils
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
@@ -58,7 +58,7 @@ internal object CXSdk {
             try {
                 // Initial creation of InitializationService.
                 val initService = InitializationService(
-                    configApi = ConfigApi(initParams.initEndpointUrl)
+                    configApi = ConfigApi(initParams.initServer)
                 )
                 SdkKeyValueState.hashedUserId = initParams.hashedUserId
                 initService.metricsTracker?.trackMethodCall(MetricsType.Method.SdkInitMethod)

@@ -1,12 +1,12 @@
 package io.cloudx.sdk.mocks
 
 import android.os.Bundle
-import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.CLXError
 import io.cloudx.sdk.internal.config.Config
 import io.cloudx.sdk.internal.config.ConfigApi
 import io.cloudx.sdk.internal.config.ConfigRequest
+import io.cloudx.sdk.internal.util.Result
 import java.util.UUID
 
 internal class MockConfigAPIWithPredefinedConfig : ConfigApi {

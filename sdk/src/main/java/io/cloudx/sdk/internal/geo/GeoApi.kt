@@ -1,8 +1,8 @@
 package io.cloudx.sdk.internal.geo
 
-import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.CLXError
 import io.cloudx.sdk.internal.httpclient.CloudXHttpClient
+import io.cloudx.sdk.internal.util.Result
 import io.ktor.client.HttpClient
 
 /**

@@ -1,13 +1,13 @@
 package io.cloudx.sdk.internal.bid
 
 import android.os.Bundle
-import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.CLXError
 import io.cloudx.sdk.internal.CLXErrorCode
 import io.cloudx.sdk.internal.CloudXLogger
 import io.cloudx.sdk.internal.toAdNetwork
 import io.cloudx.sdk.internal.toBundle
+import io.cloudx.sdk.internal.util.Result
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray

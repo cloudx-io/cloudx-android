@@ -1,18 +1,16 @@
 package io.cloudx.sdk.internal.config
 
 import io.cloudx.sdk.BuildConfig
-import io.cloudx.sdk.Result
+import io.cloudx.sdk.CloudXInitializationServer
 import io.cloudx.sdk.RoboMockkTest
 import io.cloudx.sdk.internal.appinfo.AppInfoProvider
 import io.cloudx.sdk.internal.httpclient.UserAgentProvider
+import io.cloudx.sdk.internal.util.Result
 import io.cloudx.sdk.mocks.MockAppInfoProvider
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respondError
-import io.ktor.client.network.sockets.SocketTimeoutException
-import io.ktor.client.plugins.ConnectTimeoutException
 import io.ktor.client.plugins.HttpRequestRetry
-import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.UserAgent
 import io.ktor.http.HttpStatusCode
@@ -21,7 +19,6 @@ import io.mockk.every
 import io.mockk.mockkStatic
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
-import java.util.concurrent.atomic.AtomicInteger
 
 class ConfigApiTest : RoboMockkTest() {
 
@@ -43,7 +40,8 @@ class ConfigApiTest : RoboMockkTest() {
     fun endpointRequestResultSuccess() = runTest {
         val appKey = "1c3589a1-rgto-4573-zdae-644c65074537"
 
-        val configApi = ConfigApi(BuildConfig.CLOUDX_ENDPOINT_CONFIG)
+        val configApi =
+            ConfigApi(CloudXInitializationServer.Custom(BuildConfig.CLOUDX_ENDPOINT_CONFIG))
         val result = configApi.invoke(appKey, provideConfigRequest())
 
         assert(result is Result.Success) {
@@ -60,7 +58,7 @@ class ConfigApiTest : RoboMockkTest() {
         }
 
         val configApi = ConfigApiImpl(
-            endpointUrl = BuildConfig.CLOUDX_ENDPOINT_CONFIG,
+            initServer = CloudXInitializationServer.Custom(BuildConfig.CLOUDX_ENDPOINT_CONFIG),
             timeoutMillis = 5000,
             httpClient = HttpClient(mockEngine) {
                 install(UserAgent) {
@@ -87,7 +85,7 @@ class ConfigApiTest : RoboMockkTest() {
         }
 
         val configApi = ConfigApiImpl(
-            endpointUrl = BuildConfig.CLOUDX_ENDPOINT_CONFIG,
+            initServer = CloudXInitializationServer.Custom(BuildConfig.CLOUDX_ENDPOINT_CONFIG),
             timeoutMillis = 5000,
             httpClient = HttpClient(mockEngine) {
                 install(UserAgent) {
@@ -114,7 +112,7 @@ class ConfigApiTest : RoboMockkTest() {
         }
 
         val configApi = ConfigApiImpl(
-            endpointUrl = BuildConfig.CLOUDX_ENDPOINT_CONFIG,
+            initServer = CloudXInitializationServer.Custom(BuildConfig.CLOUDX_ENDPOINT_CONFIG),
             timeoutMillis = 5000,
             httpClient = HttpClient(mockEngine) {
                 install(UserAgent) {
@@ -126,7 +124,7 @@ class ConfigApiTest : RoboMockkTest() {
         )
 
         val result = configApi.invoke(appKey, provideConfigRequest())
-        
+
         assert(result is Result.Failure) {
             "Expected failure result for 429 status"
         }

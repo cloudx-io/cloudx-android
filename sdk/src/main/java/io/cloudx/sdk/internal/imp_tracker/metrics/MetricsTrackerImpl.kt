@@ -1,7 +1,6 @@
 package io.cloudx.sdk.internal.imp_tracker.metrics
 
 import com.xor.XorEncryption
-import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.CloudXLogger
 import io.cloudx.sdk.internal.config.Config
 import io.cloudx.sdk.internal.db.CloudXDb
@@ -9,6 +8,7 @@ import io.cloudx.sdk.internal.db.metrics.MetricsEvent
 import io.cloudx.sdk.internal.imp_tracker.EventType
 import io.cloudx.sdk.internal.imp_tracker.bulk.EventAM
 import io.cloudx.sdk.internal.imp_tracker.bulk.EventTrackerBulkApi
+import io.cloudx.sdk.internal.util.Result
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay

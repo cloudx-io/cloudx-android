@@ -3,7 +3,6 @@ package io.cloudx.sdk.internal.initialization
 import android.app.Activity
 import android.content.Context
 import android.content.SharedPreferences
-import io.cloudx.sdk.Result
 import io.cloudx.sdk.RoboMockkTest
 import io.cloudx.sdk.internal.crash.CrashReportingService
 import io.cloudx.sdk.internal.deviceinfo.DeviceInfoProvider
@@ -11,6 +10,7 @@ import io.cloudx.sdk.internal.geo.GeoApi
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
 import io.cloudx.sdk.internal.privacy.PrivacyService
+import io.cloudx.sdk.internal.util.Result
 import io.cloudx.sdk.mocks.MockAdapterFactoryResolver
 import io.cloudx.sdk.mocks.MockConfigAPIWithPredefinedConfig
 import io.cloudx.sdk.mocks.MockConfigRequestProviderWithArbitraryValues

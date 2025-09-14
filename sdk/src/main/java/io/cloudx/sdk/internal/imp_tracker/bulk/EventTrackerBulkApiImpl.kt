@@ -1,9 +1,9 @@
 package io.cloudx.sdk.internal.imp_tracker.bulk
 
-import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.CLXError
 import io.cloudx.sdk.internal.CLXErrorCode
 import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.util.Result
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.retry
 import io.ktor.client.plugins.timeout

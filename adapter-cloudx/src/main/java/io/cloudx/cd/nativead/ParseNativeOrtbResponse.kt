@@ -1,10 +1,10 @@
 package io.cloudx.cd.nativead
 
+import io.cloudx.sdk.internal.util.Result
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
-import io.cloudx.sdk.Result
 
 internal suspend fun parseNativeOrtbResponse(
     nativeOrtbString: String

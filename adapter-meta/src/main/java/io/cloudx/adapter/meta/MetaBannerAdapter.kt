@@ -8,7 +8,6 @@ import com.facebook.ads.AdError
 import com.facebook.ads.AdListener
 import com.facebook.ads.AdSize
 import com.facebook.ads.AdView
-import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.AdViewSize
 import io.cloudx.sdk.internal.CloudXLogger
 import io.cloudx.sdk.internal.adapter.BannerFactoryMiscParams
@@ -18,6 +17,7 @@ import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterFactory
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterListener
 import io.cloudx.sdk.internal.adapter.CloudXAdapterError
 import io.cloudx.sdk.internal.adapter.CloudXAdapterMetaData
+import io.cloudx.sdk.internal.util.Result
 
 @Keep
 internal object BannerFactory : CloudXAdViewAdapterFactory,

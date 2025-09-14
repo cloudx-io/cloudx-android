@@ -1,6 +1,5 @@
 package io.cloudx.sdk.internal.bid
 
-import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.CLXError
 import io.cloudx.sdk.internal.CLXErrorCode
 import io.cloudx.sdk.internal.CloudXLogger
@@ -9,6 +8,7 @@ import io.cloudx.sdk.internal.STATUS_ADS_DISABLED
 import io.cloudx.sdk.internal.imp_tracker.TrackingFieldResolver
 import io.cloudx.sdk.internal.network.httpCatching
 import io.cloudx.sdk.internal.network.postJsonWithRetry
+import io.cloudx.sdk.internal.util.Result
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

@@ -5,6 +5,7 @@ import io.cloudx.sdk.internal.db.CloudXDb
 import io.cloudx.sdk.internal.db.imp_tracking.CachedTrackingEvents
 import io.cloudx.sdk.internal.imp_tracker.bulk.EventAM
 import io.cloudx.sdk.internal.imp_tracker.bulk.EventTrackerBulkApi
+import io.cloudx.sdk.internal.util.Result
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.util.UUID
@@ -51,7 +52,7 @@ internal class EventTrackerImpl(
             finalUrl, encoded, campaignId, eventValue, eventType.code
         )
         
-        if (result is io.cloudx.sdk.Result.Success) {
+        if (result is Result.Success) {
             CloudXLogger.d(tag, "$eventType sent successfully, removing from database")
             db.cachedTrackingEventDao().delete(eventId)
         } else {
@@ -89,7 +90,7 @@ internal class EventTrackerImpl(
         }
 
         val result = trackerBulkApi.send(endpointUrl, items)
-        if (result is io.cloudx.sdk.Result.Success) {
+        if (result is Result.Success) {
             entries.forEach {
                 db.cachedTrackingEventDao().delete(it.id)
             }

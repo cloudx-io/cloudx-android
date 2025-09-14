@@ -1,7 +1,6 @@
 package io.cloudx.sdk.internal.initialization
 
 import android.content.Context
-import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.ApplicationContext
 import io.cloudx.sdk.internal.CLXError
 import io.cloudx.sdk.internal.ads.AdFactory
@@ -14,6 +13,7 @@ import io.cloudx.sdk.internal.geo.GeoApi
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
 import io.cloudx.sdk.internal.privacy.PrivacyService
+import io.cloudx.sdk.internal.util.Result
 
 /**
  * Initialization service - responsible for all CloudX initialization related things, notably - configuration fetching.

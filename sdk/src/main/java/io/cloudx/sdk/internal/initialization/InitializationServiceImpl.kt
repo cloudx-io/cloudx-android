@@ -3,7 +3,6 @@ package io.cloudx.sdk.internal.initialization
 import android.content.Context
 import com.xor.XorEncryption
 import io.cloudx.sdk.BuildConfig
-import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.CLXError
 import io.cloudx.sdk.internal.CLXErrorCode
@@ -29,6 +28,7 @@ import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsType
 import io.cloudx.sdk.internal.privacy.PrivacyService
 import io.cloudx.sdk.internal.state.SdkKeyValueState
+import io.cloudx.sdk.internal.util.Result
 import io.cloudx.sdk.internal.util.normalizeAndHash
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

@@ -3,7 +3,6 @@ package io.cloudx.sdk.internal.ads
 import android.os.Bundle
 import com.xor.XorEncryption
 import io.cloudx.sdk.Destroyable
-import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.CLXError
 import io.cloudx.sdk.internal.CloudXLogger
@@ -20,6 +19,7 @@ import io.cloudx.sdk.internal.imp_tracker.TrackingFieldResolver.SDK_PARAM_RESPON
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsType
 import io.cloudx.sdk.internal.state.SdkKeyValueState
+import io.cloudx.sdk.internal.util.Result
 import java.util.UUID
 import kotlin.system.measureTimeMillis
 

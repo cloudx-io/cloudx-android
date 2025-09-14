@@ -5,9 +5,9 @@ import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import io.cloudx.sdk.Destroyable
-import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.AdViewSize
+import io.cloudx.sdk.internal.util.Result
 
 interface CloudXAdViewAdapterFactory : CloudXAdapterMetaData, CloudXAdViewSizeSupport {
 

@@ -4,10 +4,10 @@ package io.cloudx.sdk
  * Initialization params
  *
  * @property appKey - Identifier of the publisher app registered with CloudX.
- * @property initEndpointUrl - endpoint to fetch an initial SDK configuration from
+ * @property initServer - endpoint to fetch an initial SDK configuration from
  */
-class CloudXInitializationParams(
+data class CloudXInitializationParams @JvmOverloads constructor(
     val appKey: String,
-    val initEndpointUrl: String,
+    val initServer: CloudXInitializationServer = CloudXInitializationServer.Production,
     val hashedUserId: String? = null
 )

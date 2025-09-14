@@ -10,7 +10,7 @@ import io.cloudx.cd.nativead.PreparedNativeAsset
 import io.cloudx.cd.nativead.PreparedNativeAssets
 import io.cloudx.cd.nativead.parseNativeOrtbResponse
 import io.cloudx.cd.nativead.prepareNativeAssets
-import io.cloudx.sdk.Result
+import io.cloudx.cd.staticrenderer.ExternalLinkHandlerImpl
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapter
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
@@ -19,7 +19,7 @@ import io.cloudx.sdk.internal.adapter.CloudXAdapterError
 import io.cloudx.sdk.internal.ads.native.NativeAdSpecs
 import io.cloudx.sdk.internal.ads.native.viewtemplates.CloudXNativeAdViewTemplate
 import io.cloudx.sdk.internal.ads.native.viewtemplates.cloudXNativeAdTemplate
-import io.cloudx.cd.staticrenderer.ExternalLinkHandlerImpl
+import io.cloudx.sdk.internal.util.Result
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel

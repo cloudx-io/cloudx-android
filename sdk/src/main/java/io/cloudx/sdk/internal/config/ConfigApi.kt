@@ -1,8 +1,9 @@
 package io.cloudx.sdk.internal.config
 
-import io.cloudx.sdk.Result
+import io.cloudx.sdk.CloudXInitializationServer
 import io.cloudx.sdk.internal.CLXError
 import io.cloudx.sdk.internal.httpclient.CloudXHttpClient
+import io.cloudx.sdk.internal.util.Result
 import io.ktor.client.HttpClient
 
 /**
@@ -19,11 +20,11 @@ internal fun interface ConfigApi {
 }
 
 internal fun ConfigApi(
-    endpointUrl: String,
+    initServer: CloudXInitializationServer,
     timeoutMillis: Long = 60_000,
     httpClient: HttpClient = CloudXHttpClient()
 ): ConfigApi = ConfigApiImpl(
-    endpointUrl = endpointUrl,
+    initServer = initServer,
     timeoutMillis = timeoutMillis,
     httpClient = httpClient
 )

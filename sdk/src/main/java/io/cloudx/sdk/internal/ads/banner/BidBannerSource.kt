@@ -1,7 +1,6 @@
 package io.cloudx.sdk.internal.ads.banner
 
 import android.app.Activity
-import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.adapter.BannerFactoryMiscParams
@@ -17,6 +16,7 @@ import io.cloudx.sdk.internal.bid.BidRequestProvider
 import io.cloudx.sdk.internal.cdp.CdpApi
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
+import io.cloudx.sdk.internal.util.Result
 
 internal fun BidBannerSource(
     activity: Activity,

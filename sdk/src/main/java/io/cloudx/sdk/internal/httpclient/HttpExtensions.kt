@@ -1,7 +1,11 @@
 package io.cloudx.sdk.internal.network
 
-import io.cloudx.sdk.Result
-import io.cloudx.sdk.internal.*
+import io.cloudx.sdk.internal.CLOUDX_DEFAULT_RETRY_MS
+import io.cloudx.sdk.internal.CLXError
+import io.cloudx.sdk.internal.CLXErrorCode
+import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.requestTimeoutMillis
+import io.cloudx.sdk.internal.util.Result
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.client.plugins.ServerResponseException

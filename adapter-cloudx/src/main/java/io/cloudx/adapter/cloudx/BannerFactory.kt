@@ -3,8 +3,13 @@ package io.cloudx.adapter.cloudx
 import android.app.Activity
 import android.os.Bundle
 import io.cloudx.sdk.internal.AdViewSize
-import io.cloudx.sdk.internal.adapter.*
-import io.cloudx.sdk.Result
+import io.cloudx.sdk.internal.adapter.BannerFactoryMiscParams
+import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapter
+import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
+import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterFactory
+import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterListener
+import io.cloudx.sdk.internal.adapter.CloudXAdapterMetaData
+import io.cloudx.sdk.internal.util.Result
 
 internal object BannerFactory : CloudXAdViewAdapterFactory,
     CloudXAdapterMetaData by CloudXAdapterMetaData("cloudx-version") {

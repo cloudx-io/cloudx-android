@@ -1,11 +1,11 @@
 package io.cloudx.sdk.internal.bid
 
-import io.cloudx.sdk.Result
 import io.cloudx.sdk.RoboMockkTest
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.appinfo.AppInfoProvider
 import io.cloudx.sdk.internal.httpclient.UserAgentProvider
 import io.cloudx.sdk.internal.screen.ScreenService
+import io.cloudx.sdk.internal.util.Result
 import io.cloudx.sdk.mocks.MockAppInfoProvider
 import io.cloudx.sdk.mocks.MockScreenService
 import io.cloudx.sdk.mocks.MockUserAgentProvider

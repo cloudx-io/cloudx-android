@@ -6,7 +6,6 @@ import com.facebook.ads.Ad
 import com.facebook.ads.AdError
 import com.facebook.ads.InterstitialAd
 import com.facebook.ads.InterstitialAdListener
-import io.cloudx.sdk.Result
 import io.cloudx.sdk.internal.CloudXLogger
 import io.cloudx.sdk.internal.adapter.AlwaysReadyToLoadAd
 import io.cloudx.sdk.internal.adapter.CloudXAdLoadOperationAvailability
@@ -16,6 +15,7 @@ import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapter
 import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapterFactory
 import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapterListener
 import io.cloudx.sdk.internal.context.ContextProvider
+import io.cloudx.sdk.internal.util.Result
 
 @Keep
 internal object InterstitialFactory :

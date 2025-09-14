@@ -1,6 +1,6 @@
 package io.cloudx.cd.nativead
 
-import io.cloudx.sdk.Result
+import io.cloudx.sdk.internal.util.Result
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope

@@ -6,6 +6,7 @@ import io.cloudx.sdk.CloudX
 import io.cloudx.sdk.CloudXAdError
 import io.cloudx.sdk.CloudXInitializationListener
 import io.cloudx.sdk.CloudXInitializationParams
+import io.cloudx.sdk.CloudXInitializationServer
 import io.cloudx.sdk.CloudXPrivacy
 import io.cloudx.sdk.internal.CloudXLogger
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -48,7 +49,7 @@ object CloudXInitializer {
         CloudX.initialize(
             initParams = CloudXInitializationParams(
                 appKey = settings.appKey,
-                initEndpointUrl = settings.initUrl,
+                initServer = CloudXInitializationServer.Custom(settings.initUrl),
                 hashedUserId = hashedUserId
             ),
             listener = object : CloudXInitializationListener {

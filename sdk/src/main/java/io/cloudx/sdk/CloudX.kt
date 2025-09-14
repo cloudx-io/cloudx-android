@@ -2,10 +2,10 @@ package io.cloudx.sdk
 
 import android.app.Activity
 import io.cloudx.sdk.internal.AdType
+import io.cloudx.sdk.internal.CXSdk
 import io.cloudx.sdk.internal.ads.fullscreen.interstitial.CXInterstitialAd
 import io.cloudx.sdk.internal.ads.fullscreen.rewarded.CXRewardedInterstitialAd
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsType
-import io.cloudx.sdk.internal.CXSdk
 import io.cloudx.sdk.internal.privacy.PrivacyService
 import io.cloudx.sdk.internal.state.SdkKeyValueState
 

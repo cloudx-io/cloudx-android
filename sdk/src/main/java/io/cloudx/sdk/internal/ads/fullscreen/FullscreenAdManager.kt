@@ -28,8 +28,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 internal class FullscreenAdManager<
         Delegate : FullscreenAdAdapterDelegate<DelegateEvent>,
         DelegateEvent,
-        Listener : CloudXAdListener,
-        >(
+        Listener : CloudXAdListener>(
     bidAdSource: BidAdSource<Delegate>,
     bidMaxBackOffTimeMillis: Long,
     bidAdLoadTimeoutMillis: Long,
@@ -43,8 +42,8 @@ internal class FullscreenAdManager<
     private val tryHandleCurrentEvent: DelegateEvent.(cloudXAd: CloudXAd) -> FullscreenAdEvent?
 ) : CloudXFullscreenAd {
 
+    // Core components
     private val scope = CoroutineScope(Dispatchers.Main)
-
     private val cachedAdRepository = CachedAdRepository(
         bidAdSource,
         cacheSize,
@@ -57,8 +56,18 @@ internal class FullscreenAdManager<
         appLifecycleService = appLifecycleService
     )
 
+    // Listener management
     private var isAdReadyListenerJob: Job? = null
 
+    // Loading state
+    private var lastLoadJob: Job? = null
+
+    // Showing state
+    private var lastShowJob: Job? = null
+    private var lastShowJobStartedTimeMillis: Long = -1
+    private var lastShownAd: FullscreenAdAdapterDelegate<DelegateEvent>? = null
+
+    // Listener management methods
     override fun setIsAdLoadedListener(listener: CloudXIsAdLoadedListener?) {
         isAdReadyListenerJob?.cancel()
         listener ?: return
@@ -70,6 +79,7 @@ internal class FullscreenAdManager<
             .launchIn(scope)
     }
 
+    // Ad loading methods
     // TODO. Duplicate of Interstitial + errors
     override fun load() {
         if (lastLoadJob?.isActive == true) return
@@ -91,8 +101,7 @@ internal class FullscreenAdManager<
 
     override val isAdLoaded get() = cachedAdRepository.hasAds.value
 
-    private var lastLoadJob: Job? = null
-
+    // Ad showing methods
     override fun show() {
         CloudXLogger.i(
             "CloudX${if (placementType == AdType.Interstitial) "Interstitial" else "Rewarded"}",
@@ -164,10 +173,6 @@ internal class FullscreenAdManager<
         return cachedAdRepository.popAd().apply { lastShownAd = this }
     }
 
-    private var lastShowJob: Job? = null
-    private var lastShowJobStartedTimeMillis: Long = -1
-    private var lastShownAd: FullscreenAdAdapterDelegate<DelegateEvent>? = null
-
     private suspend fun show(ad: FullscreenAdAdapterDelegate<DelegateEvent>) =
         coroutineScope {
             // And the correct behaviour of "terminal hide event"
@@ -205,6 +210,7 @@ internal class FullscreenAdManager<
             return@coroutineScope true
         }
 
+    // Ad lifecycle management methods
     private fun CoroutineScope.trackAdLifecycle(
         ad: FullscreenAdAdapterDelegate<DelegateEvent>,
         onHide: () -> Unit,
@@ -240,6 +246,7 @@ internal class FullscreenAdManager<
             }
         }
 
+    // Cleanup methods
     override fun destroy() {
         scope.cancel()
         cachedAdRepository.destroy()

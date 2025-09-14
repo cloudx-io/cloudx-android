@@ -18,6 +18,39 @@ import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
 
+private class RewardedInterstitialManager(
+    bidAdSource: BidAdSource<RewardedInterstitialAdapterDelegate>,
+    bidMaxBackOffTimeMillis: Long,
+    bidAdLoadTimeoutMillis: Long,
+    cacheSize: Int,
+    connectionStatusService: ConnectionStatusService,
+    appLifecycleService: AppLifecycleService,
+    private val listener: CloudXRewardedInterstitialListener?,
+) : CloudXRewardedInterstitialAd,
+    CloudXFullscreenAd by FullscreenAdManager(
+        bidAdSource,
+        bidMaxBackOffTimeMillis,
+        bidAdLoadTimeoutMillis,
+        cacheSize,
+        AdType.Rewarded,
+        connectionStatusService,
+        appLifecycleService,
+        listener,
+        { cloudXAd ->
+            when (this) {
+                RewardedInterstitialAdapterDelegateEvent.Show -> FullscreenAdEvent.Show
+                is RewardedInterstitialAdapterDelegateEvent.Click -> FullscreenAdEvent.Click
+                RewardedInterstitialAdapterDelegateEvent.Hide -> FullscreenAdEvent.Hide
+                RewardedInterstitialAdapterDelegateEvent.Reward -> {
+                    listener?.onUserRewarded(cloudXAd)
+                    null
+                }
+
+                else -> null
+            }
+        }
+    )
+
 internal fun RewardedInterstitialManager(
     placementId: String,
     placementName: String,
@@ -66,36 +99,3 @@ internal fun RewardedInterstitialManager(
         listener = listener
     )
 }
-
-private class RewardedInterstitialManager(
-    bidAdSource: BidAdSource<RewardedInterstitialAdapterDelegate>,
-    bidMaxBackOffTimeMillis: Long,
-    bidAdLoadTimeoutMillis: Long,
-    cacheSize: Int,
-    connectionStatusService: ConnectionStatusService,
-    appLifecycleService: AppLifecycleService,
-    private val listener: CloudXRewardedInterstitialListener?,
-) : CloudXRewardedInterstitialAd,
-    CloudXFullscreenAd by FullscreenAdManager(
-        bidAdSource,
-        bidMaxBackOffTimeMillis,
-        bidAdLoadTimeoutMillis,
-        cacheSize,
-        AdType.Rewarded,
-        connectionStatusService,
-        appLifecycleService,
-        listener,
-        { cloudXAd ->
-            when (this) {
-                RewardedInterstitialAdapterDelegateEvent.Show -> FullscreenAdEvent.Show
-                is RewardedInterstitialAdapterDelegateEvent.Click -> FullscreenAdEvent.Click
-                RewardedInterstitialAdapterDelegateEvent.Hide -> FullscreenAdEvent.Hide
-                RewardedInterstitialAdapterDelegateEvent.Reward -> {
-                    listener?.onUserRewarded(cloudXAd)
-                    null
-                }
-
-                else -> null
-            }
-        }
-    )

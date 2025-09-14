@@ -18,6 +18,34 @@ import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
 
+private class InterstitialManagerImpl(
+    bidAdSource: BidAdSource<InterstitialAdapterDelegate>,
+    bidMaxBackOffTimeMillis: Long,
+    bidAdLoadTimeoutMillis: Long,
+    cacheSize: Int,
+    connectionStatusService: ConnectionStatusService,
+    appLifecycleService: AppLifecycleService,
+    private val listener: CloudXInterstitialListener?,
+) : CloudXInterstitialAd,
+    CloudXFullscreenAd by FullscreenAdManager(
+        bidAdSource,
+        bidMaxBackOffTimeMillis,
+        bidAdLoadTimeoutMillis,
+        cacheSize,
+        AdType.Interstitial,
+        connectionStatusService,
+        appLifecycleService,
+        listener,
+        {
+            when (this) {
+                InterstitialAdapterDelegateEvent.Show -> FullscreenAdEvent.Show
+                is InterstitialAdapterDelegateEvent.Click -> FullscreenAdEvent.Click
+                InterstitialAdapterDelegateEvent.Hide -> FullscreenAdEvent.Hide
+                else -> null
+            }
+        }
+    )
+
 internal fun InterstitialManager(
     placementId: String,
     placementName: String,
@@ -66,31 +94,3 @@ internal fun InterstitialManager(
         listener = listener
     )
 }
-
-private class InterstitialManagerImpl(
-    bidAdSource: BidAdSource<InterstitialAdapterDelegate>,
-    bidMaxBackOffTimeMillis: Long,
-    bidAdLoadTimeoutMillis: Long,
-    cacheSize: Int,
-    connectionStatusService: ConnectionStatusService,
-    appLifecycleService: AppLifecycleService,
-    private val listener: CloudXInterstitialListener?,
-) : CloudXInterstitialAd,
-    CloudXFullscreenAd by FullscreenAdManager(
-        bidAdSource,
-        bidMaxBackOffTimeMillis,
-        bidAdLoadTimeoutMillis,
-        cacheSize,
-        AdType.Interstitial,
-        connectionStatusService,
-        appLifecycleService,
-        listener,
-        {
-            when (this) {
-                InterstitialAdapterDelegateEvent.Show -> FullscreenAdEvent.Show
-                is InterstitialAdapterDelegateEvent.Click -> FullscreenAdEvent.Click
-                InterstitialAdapterDelegateEvent.Hide -> FullscreenAdEvent.Hide
-                else -> null
-            }
-        }
-    )

@@ -130,13 +130,41 @@ private class BannerManagerImpl(
     private val metricsTracker: MetricsTracker,
 ) : BannerManager {
 
+    // Core properties
     private val TAG = "BannerManager"
-
     private val scope = CoroutineScope(Dispatchers.Main)
-
     private val bidBackoffMechanism = BidBackoffMechanism()
-
     override var listener: CloudXAdViewListener? = null
+
+    // Timing configuration
+    private val refreshDelayMillis = refreshSeconds * 1000L
+    private val preloadDelayMillis = (refreshDelayMillis - preloadTimeMillis).coerceAtLeast(0)
+
+    // Banner refresh management
+    private val bannerRefreshTimer =
+        BannerSuspendableTimer(
+            activity,
+            bannerVisibility,
+            activityLifecycleService,
+            suspendPreloadWhenInvisible
+        )
+    private var bannerRefreshJob: Job? = null
+
+    // Backup banner management
+    private val backupBanner = MutableStateFlow<BannerAdapterDelegate?>(null)
+    private var backupBannerLoadJob: Job? = null
+    private var backupBannerErrorHandlerJob: Job? = null
+    private val backupBannerLoadTimer =
+        BannerSuspendableTimer(
+            activity,
+            bannerVisibility,
+            activityLifecycleService,
+            suspendPreloadWhenInvisible
+        )
+
+    // Current banner management
+    private var currentBanner: BannerAdapterDelegate? = null
+    private var currentBannerEventHandlerJob: Job? = null
 
     init {
         CloudXLogger.i(
@@ -148,19 +176,7 @@ private class BannerManagerImpl(
         restartBannerRefresh()
     }
 
-    private val bannerRefreshTimer =
-        BannerSuspendableTimer(
-            activity,
-            bannerVisibility,
-            activityLifecycleService,
-            suspendPreloadWhenInvisible
-        )
-
-    private var bannerRefreshJob: Job? = null
-
-    private val refreshDelayMillis = refreshSeconds * 1000L
-    private val preloadDelayMillis = (refreshDelayMillis - preloadTimeMillis).coerceAtLeast(0)
-
+    // Banner refresh methods
     private fun restartBannerRefresh() {
         bannerRefreshJob?.cancel()
         bannerRefreshJob = scope.launch {
@@ -187,16 +203,7 @@ private class BannerManagerImpl(
         }
     }
 
-    private val backupBanner = MutableStateFlow<BannerAdapterDelegate?>(null)
-    private var backupBannerLoadJob: Job? = null
-    private val backupBannerLoadTimer =
-        BannerSuspendableTimer(
-            activity,
-            bannerVisibility,
-            activityLifecycleService,
-            suspendPreloadWhenInvisible
-        )
-
+    // Backup banner methods
     private fun loadBackupBannerIfAbsent(delayLoadMillis: Long = 0) {
         if (backupBanner.value != null || backupBannerLoadJob?.isActive == true) {
             return
@@ -216,8 +223,6 @@ private class BannerManagerImpl(
             preserveBackupBanner(banner)
         }
     }
-
-    private var backupBannerErrorHandlerJob: Job? = null
 
     private fun preserveBackupBanner(banner: BannerAdapterDelegate) {
         CloudXLogger.d(TAG, placementName, placementId, "Backup banner loaded and ready")
@@ -260,6 +265,7 @@ private class BannerManagerImpl(
         return banner
     }
 
+    // Banner loading methods
     // Note. Since I'm a douche and don't want to refactor and write a coherent and concise code
     // here's the explanation on what's going on here:
     // Each returned banner from this method should be already attached to the BannerContainer in CloudXAdView.
@@ -456,9 +462,7 @@ private class BannerManagerImpl(
         return LoadResult(banner, null) // No loss reason, we have a winner
     }
 
-    private var currentBanner: BannerAdapterDelegate? = null
-    private var currentBannerEventHandlerJob: Job? = null
-
+    // Current banner management methods
     private fun showNewBanner(banner: BannerAdapterDelegate) {
         CloudXLogger.d(TAG, placementName, placementId, "Displaying new banner")
         listener?.onAdDisplayed(banner)
@@ -505,6 +509,7 @@ private class BannerManagerImpl(
         currentBanner = null
     }
 
+    // Cleanup methods
     override fun destroy() {
         scope.cancel()
 

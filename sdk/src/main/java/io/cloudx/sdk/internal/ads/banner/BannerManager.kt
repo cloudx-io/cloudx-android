@@ -18,20 +18,19 @@ import io.cloudx.sdk.internal.bid.LoadResult
 import io.cloudx.sdk.internal.bid.LossReason
 import io.cloudx.sdk.internal.bid.LossTracker
 import io.cloudx.sdk.internal.cdp.CdpApi
-import io.cloudx.sdk.internal.common.BidBackoffMechanism
 import io.cloudx.sdk.internal.common.service.ActivityLifecycleService
 import io.cloudx.sdk.internal.common.service.AppLifecycleService
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsType
+import io.cloudx.sdk.internal.util.Result
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -128,7 +127,6 @@ private class BannerManagerImpl(
     // Core properties
     private val TAG = "BannerManager"
     private val scope = CoroutineScope(Dispatchers.Main)
-    private val bidBackoffMechanism = BidBackoffMechanism()
     override var listener: CloudXAdViewListener? = null
 
     // Timing configuration
@@ -145,7 +143,7 @@ private class BannerManagerImpl(
     private var bannerRefreshJob: Job? = null
 
     // Backup banner management
-    private val backupBanner = MutableStateFlow<BannerAdapterDelegate?>(null)
+    private val backupBanner = MutableStateFlow<Result<BannerAdapterDelegate, Unit>?>(null)
     private var backupBannerLoadJob: Job? = null
     private var backupBannerErrorHandlerJob: Job? = null
 
@@ -171,8 +169,10 @@ private class BannerManagerImpl(
                 ensureActive()
 
                 val banner = awaitBackupBanner()
-                hideAndDestroyCurrentBanner()
-                showNewBanner(banner)
+                banner.successOrNull()?.let {
+                    hideAndDestroyCurrentBanner()
+                    showNewBanner(it)
+                }
 
                 metricsTracker.trackMethodCall(MetricsType.Method.BannerRefresh)
 
@@ -189,20 +189,22 @@ private class BannerManagerImpl(
 
     // Backup banner methods
     private fun loadBackupBannerIfAbsent() {
-        if (backupBanner.value != null || backupBannerLoadJob?.isActive == true) {
+        if (backupBanner.value is Result.Success || backupBannerLoadJob?.isActive == true) {
             return
         }
 
         CloudXLogger.d(TAG, placementName, placementId, "Loading backup banner")
         backupBannerLoadJob = scope.launch {
             val banner = loadNewBanner()
-            preserveBackupBanner(banner)
+            backupBanner.value = banner
+            banner.successOrNull()?.let {
+                preserveBackupBanner(it)
+            }
         }
     }
 
     private fun preserveBackupBanner(banner: BannerAdapterDelegate) {
         CloudXLogger.d(TAG, placementName, placementId, "Backup banner loaded and ready")
-        backupBanner.value = banner
 
         backupBannerErrorHandlerJob?.cancel()
         backupBannerErrorHandlerJob = scope.launch {
@@ -222,7 +224,7 @@ private class BannerManagerImpl(
         backupBannerErrorHandlerJob?.cancel()
 
         with(backupBanner) {
-            value?.let {
+            value?.successOrNull()?.let {
                 CloudXLogger.d(TAG, placementName, placementId, "Destroying backup banner")
                 it.destroy()
             }
@@ -230,7 +232,7 @@ private class BannerManagerImpl(
         }
     }
 
-    private suspend fun awaitBackupBanner(): BannerAdapterDelegate {
+    private suspend fun awaitBackupBanner(): Result<BannerAdapterDelegate, Unit> {
         loadBackupBannerIfAbsent()
 
         val banner = backupBanner.mapNotNull { it }.first()
@@ -242,8 +244,6 @@ private class BannerManagerImpl(
     }
 
     // Banner loading methods
-    // Note. Since I'm a douche and don't want to refactor and write a coherent and concise code
-    // here's the explanation on what's going on here:
     // Each returned banner from this method should be already attached to the BannerContainer in CloudXAdView.
     // If you look at the implementation of CloudXAdView::createBannerContainer()
     // you'll see that each banner gets inserted to the "background" of the view hence can be treated as invisible/precached.
@@ -251,61 +251,30 @@ private class BannerManagerImpl(
     // All the consecutive successful tryLoadBanner() calls will result in banner attached to the background and visibility set to GONE.
     // Once the foreground visible banner is destroyed (banner.destroy())
     // it gets removed from the screen and the next topmost banner gets displayed if available.
-    private suspend fun loadNewBanner(): BannerAdapterDelegate = coroutineScope {
-        var loadedBanner: BannerAdapterDelegate? = null
+    private suspend fun loadNewBanner(): Result<BannerAdapterDelegate, Unit> = coroutineScope {
+        ensureActive()
 
-        while (loadedBanner == null) {
-            ensureActive()
+        val bids: BidAdSourceResponse<BannerAdapterDelegate>? = bidAdSource.requestBid()
 
-            val bids: BidAdSourceResponse<BannerAdapterDelegate>? = bidAdSource.requestBid()
-
-            if (bids != null) {
-                CloudXLogger.i(
-                    TAG,
-                    placementName,
-                    placementId,
-                    "Received ${bids.bidItemsByRank.size} bids from auction"
-                )
-            } else {
-                CloudXLogger.w(
-                    TAG,
-                    placementName,
-                    placementId,
-                    "No bids available from auction - will retry"
-                )
-            }
-
-            loadedBanner = bids?.loadOrDestroyBanner()
-
-            if (loadedBanner == null) {
-                bidBackoffMechanism.notifySoftError()
-
-                // Delay after each batch of 3 fails
-                CloudXLogger.d(
-                    TAG,
-                    placementName,
-                    placementId,
-                    "Soft error delay for ${bidBackoffMechanism.getBatchDelay()}ms (batch)"
-                )
-                delay(bidBackoffMechanism.getBatchDelay())
-
-                if (bidBackoffMechanism.isBatchEnd) {
-                    CloudXLogger.d(
-                        TAG,
-                        placementName,
-                        placementId,
-                        "Batch of 3 soft errors: Delaying for ${bidBackoffMechanism.getBarrierDelay()}ms (barrier pause)"
-                    )
-
-                    // Additional barrier delay after each batch
-                    delay(bidBackoffMechanism.getBarrierDelay())
-                }
-            } else {
-                bidBackoffMechanism.notifySuccess()
-            }
+        if (bids != null) {
+            CloudXLogger.i(
+                TAG,
+                placementName,
+                placementId,
+                "Received ${bids.bidItemsByRank.size} bids from auction"
+            )
+        } else {
+            CloudXLogger.w(
+                TAG,
+                placementName,
+                placementId,
+                "No bids available from auction"
+            )
         }
 
-        loadedBanner
+        bids?.loadOrDestroyBanner()?.let {
+            Result.Success(it)
+        } ?: Result.Failure(Unit)
     }
 
     /**

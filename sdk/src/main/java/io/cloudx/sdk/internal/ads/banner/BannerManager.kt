@@ -40,6 +40,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
+import java.util.concurrent.TimeUnit
 
 internal interface BannerManager : Destroyable {
 
@@ -54,10 +55,8 @@ internal fun BannerManager(
     bannerVisibility: StateFlow<Boolean>,
     refreshSeconds: Int,
     adType: AdType,
-    preloadTimeMillis: Long,
     bidFactories: Map<AdNetwork, CloudXAdViewAdapterFactory>,
     bidRequestExtrasProviders: Map<AdNetwork, CloudXAdapterBidRequestExtrasProvider>,
-    bidMaxBackOffTimeMillis: Long,
     bidAdLoadTimeoutMillis: Long,
     miscParams: BannerFactoryMiscParams,
     bidApi: BidApi,
@@ -103,8 +102,6 @@ internal fun BannerManager(
         bannerVisibility = bannerVisibility,
         refreshSeconds = refreshSeconds,
         suspendPreloadWhenInvisible = true,
-        preloadTimeMillis = preloadTimeMillis,
-        bidMaxBackOffTimeMillis = bidMaxBackOffTimeMillis,
         bidAdLoadTimeoutMillis = bidAdLoadTimeoutMillis,
         connectionStatusService = connectionStatusService,
         activityLifecycleService = activityLifecycleService,
@@ -121,8 +118,6 @@ private class BannerManagerImpl(
     bannerVisibility: StateFlow<Boolean>,
     private val refreshSeconds: Int,
     private val suspendPreloadWhenInvisible: Boolean,
-    preloadTimeMillis: Long,
-    bidMaxBackOffTimeMillis: Long,
     private val bidAdLoadTimeoutMillis: Long,
     private val connectionStatusService: ConnectionStatusService,
     private val activityLifecycleService: ActivityLifecycleService,
@@ -137,8 +132,7 @@ private class BannerManagerImpl(
     override var listener: CloudXAdViewListener? = null
 
     // Timing configuration
-    private val refreshDelayMillis = refreshSeconds * 1000L
-    private val preloadDelayMillis = (refreshDelayMillis - preloadTimeMillis).coerceAtLeast(0)
+    private val refreshDelayMillis = TimeUnit.SECONDS.toMillis(refreshSeconds.toLong())
 
     // Banner refresh management
     private val bannerRefreshTimer =
@@ -154,13 +148,6 @@ private class BannerManagerImpl(
     private val backupBanner = MutableStateFlow<BannerAdapterDelegate?>(null)
     private var backupBannerLoadJob: Job? = null
     private var backupBannerErrorHandlerJob: Job? = null
-    private val backupBannerLoadTimer =
-        BannerSuspendableTimer(
-            activity,
-            bannerVisibility,
-            activityLifecycleService,
-            suspendPreloadWhenInvisible
-        )
 
     // Current banner management
     private var currentBanner: BannerAdapterDelegate? = null
@@ -171,7 +158,7 @@ private class BannerManagerImpl(
             TAG,
             placementName,
             placementId,
-            "BannerManager initialized - refresh: ${refreshSeconds}s, preload: ${preloadTimeMillis}ms, timeout: ${bidAdLoadTimeoutMillis}ms"
+            "BannerManager initialized - refresh: ${refreshSeconds}s, timeout: ${bidAdLoadTimeoutMillis}ms"
         )
         restartBannerRefresh()
     }
@@ -184,11 +171,8 @@ private class BannerManagerImpl(
                 ensureActive()
 
                 val banner = awaitBackupBanner()
-
                 hideAndDestroyCurrentBanner()
                 showNewBanner(banner)
-
-                loadBackupBannerIfAbsent(delayLoadMillis = preloadDelayMillis)
 
                 metricsTracker.trackMethodCall(MetricsType.Method.BannerRefresh)
 
@@ -204,22 +188,14 @@ private class BannerManagerImpl(
     }
 
     // Backup banner methods
-    private fun loadBackupBannerIfAbsent(delayLoadMillis: Long = 0) {
+    private fun loadBackupBannerIfAbsent() {
         if (backupBanner.value != null || backupBannerLoadJob?.isActive == true) {
             return
         }
 
-        CloudXLogger.d(
-            TAG,
-            placementName,
-            placementId,
-            "Loading backup banner with ${delayLoadMillis}ms delay"
-        )
+        CloudXLogger.d(TAG, placementName, placementId, "Loading backup banner")
         backupBannerLoadJob = scope.launch {
-            backupBannerLoadTimer.awaitTimeout(delayLoadMillis)
-
             val banner = loadNewBanner()
-
             preserveBackupBanner(banner)
         }
     }
@@ -517,7 +493,6 @@ private class BannerManagerImpl(
         bannerRefreshTimer.destroy()
 
         destroyBackupBanner()
-        backupBannerLoadTimer.destroy()
     }
 }
 

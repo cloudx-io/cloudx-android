@@ -7,36 +7,25 @@ import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.adapter.CloudXAdapterBidRequestExtrasProvider
 import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapterFactory
-import io.cloudx.sdk.internal.ads.BidAdSource
+import io.cloudx.sdk.internal.ads.AdLoader
 import io.cloudx.sdk.internal.ads.fullscreen.FullscreenAdEvent
 import io.cloudx.sdk.internal.ads.fullscreen.FullscreenAdManager
 import io.cloudx.sdk.internal.bid.BidApi
 import io.cloudx.sdk.internal.bid.BidRequestProvider
 import io.cloudx.sdk.internal.cdp.CdpApi
-import io.cloudx.sdk.internal.common.service.AppLifecycleService
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
 
 private class RewardedInterstitialManager(
-    bidAdSource: BidAdSource<RewardedInterstitialAdapterDelegate>,
-    bidMaxBackOffTimeMillis: Long,
-    bidAdLoadTimeoutMillis: Long,
-    cacheSize: Int,
-    connectionStatusService: ConnectionStatusService,
-    appLifecycleService: AppLifecycleService,
+    private val adLoader: AdLoader<RewardedInterstitialAdapterDelegate>,
     private val listener: CloudXRewardedInterstitialListener?,
 ) : CloudXRewardedInterstitialAd,
     CloudXFullscreenAd by FullscreenAdManager(
-        bidAdSource,
-        bidMaxBackOffTimeMillis,
-        bidAdLoadTimeoutMillis,
-        cacheSize,
-        AdType.Rewarded,
-        connectionStatusService,
-        appLifecycleService,
-        listener,
-        { cloudXAd ->
+        adLoader = adLoader,
+        placementType = AdType.Rewarded,
+        listener = listener,
+        tryHandleCurrentEvent = { cloudXAd ->
             when (this) {
                 RewardedInterstitialAdapterDelegateEvent.Show -> FullscreenAdEvent.Show
                 is RewardedInterstitialAdapterDelegateEvent.Click -> FullscreenAdEvent.Click
@@ -54,17 +43,14 @@ private class RewardedInterstitialManager(
 internal fun RewardedInterstitialManager(
     placementId: String,
     placementName: String,
-    cacheSize: Int,
     bidFactories: Map<AdNetwork, CloudXRewardedInterstitialAdapterFactory>,
     bidRequestExtrasProviders: Map<AdNetwork, CloudXAdapterBidRequestExtrasProvider>,
-    bidMaxBackOffTimeMillis: Long,
     bidAdLoadTimeoutMillis: Long,
     bidApi: BidApi,
     cdpApi: CdpApi,
     eventTracker: EventTracker,
     metricsTracker: MetricsTracker,
     connectionStatusService: ConnectionStatusService,
-    appLifecycleService: AppLifecycleService,
     listener: CloudXRewardedInterstitialListener?,
     accountId: String,
     appKey: String
@@ -89,13 +75,16 @@ internal fun RewardedInterstitialManager(
             appKey
         )
 
-    return RewardedInterstitialManager(
+    val adLoader = AdLoader(
+        placementName = placementName,
+        placementId = placementId,
         bidAdSource = bidSource,
-        bidMaxBackOffTimeMillis = bidMaxBackOffTimeMillis,
         bidAdLoadTimeoutMillis = bidAdLoadTimeoutMillis,
-        cacheSize = cacheSize,
-        connectionStatusService = connectionStatusService,
-        appLifecycleService = appLifecycleService,
+        connectionStatusService = connectionStatusService
+    )
+
+    return RewardedInterstitialManager(
+        adLoader = adLoader,
         listener = listener
     )
 }

@@ -1,6 +1,7 @@
 package io.cloudx.sdk.internal.ads.banner
 
 import android.app.Activity
+import io.cloudx.sdk.CloudXAdError
 import io.cloudx.sdk.CloudXAdViewListener
 import io.cloudx.sdk.Destroyable
 import io.cloudx.sdk.internal.AdNetwork
@@ -168,7 +169,7 @@ private class BannerManagerImpl(
             while (true) {
                 ensureActive()
 
-                val banner = awaitBackupBanner()
+                val banner = loadBackupBanner()
                 banner.successOrNull()?.let {
                     hideAndDestroyCurrentBanner()
                     showNewBanner(it)
@@ -199,6 +200,8 @@ private class BannerManagerImpl(
             backupBanner.value = banner
             banner.successOrNull()?.let {
                 preserveBackupBanner(it)
+            } ?: run {
+                listener?.onAdLoadFailed(CloudXAdError("Failed to load banner"))
             }
         }
     }
@@ -232,7 +235,7 @@ private class BannerManagerImpl(
         }
     }
 
-    private suspend fun awaitBackupBanner(): Result<BannerAdapterDelegate, Unit> {
+    private suspend fun loadBackupBanner(): Result<BannerAdapterDelegate, Unit> {
         loadBackupBannerIfAbsent()
 
         val banner = backupBanner.mapNotNull { it }.first()

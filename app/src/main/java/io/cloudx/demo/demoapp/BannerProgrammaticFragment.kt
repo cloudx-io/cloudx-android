@@ -23,7 +23,7 @@ import io.cloudx.sdk.internal.CXLogger
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 
-abstract class BannerProgrammaticFragment: Fragment(R.layout.fragment_banner_programmatic) {
+abstract class BannerProgrammaticFragment : Fragment(R.layout.fragment_banner_programmatic) {
 
     private val bannerAdViews = MutableStateFlow<List<CloudXAdView>>(emptyList())
 
@@ -38,7 +38,7 @@ abstract class BannerProgrammaticFragment: Fragment(R.layout.fragment_banner_pro
 
     abstract fun createAdView(
         activity: Activity, placementName: String, listener: CloudXAdViewListener?
-    ): CloudXAdView?
+    ): CloudXAdView
 
     abstract val adViewSize: AdViewSize
 
@@ -102,19 +102,13 @@ abstract class BannerProgrammaticFragment: Fragment(R.layout.fragment_banner_pro
         val newBannerAdViews = mutableListOf<CloudXAdView>()
         placements.forEachIndexed { index, placementName ->
             if (placementName.isNullOrBlank()) return@forEachIndexed
-            val bannerAdView = createAdView(requireActivity(), placementName, createBannerListener(placementName))
-            if (bannerAdView == null) {
-                CXLogger.e(
-                    logTag,
-                    "Can't create banner ad: SDK is not initialized or $placementName placement is missing in SDK config"
-                )
-            } else {
-                CXLogger.i(logTag, "Banner ad created for \"$placementName\" placement")
-                bannerAdView.visibility = VISIBLE
-                val adContainer = llAds.getChildAt(index) as AdContainerLayout
-                adContainer.addAdView(bannerAdView)
-                newBannerAdViews.add(bannerAdView)
-            }
+            val bannerAdView =
+                createAdView(requireActivity(), placementName, createBannerListener(placementName))
+            CXLogger.i(logTag, "Banner ad created for \"$placementName\" placement")
+            bannerAdView.visibility = VISIBLE
+            val adContainer = llAds.getChildAt(index) as AdContainerLayout
+            adContainer.addAdView(bannerAdView)
+            newBannerAdViews.add(bannerAdView)
         }
         bannerAdViews.value = newBannerAdViews
     }
@@ -148,7 +142,7 @@ abstract class BannerProgrammaticFragment: Fragment(R.layout.fragment_banner_pro
     }
 
     private fun createBannerListener(placementName: String) =
-        object: CloudXAdViewListener, CloudXAdListener by LoggedCloudXAdListener(
+        object : CloudXAdViewListener, CloudXAdListener by LoggedCloudXAdListener(
             logTag = logTag, placementName = placementName
         ) {
             override fun onAdExpanded(placementName: String) {
@@ -191,7 +185,7 @@ fun ConstraintLayout.setBannerViewSize(bannerPlaceholderResId: Int, size: AdView
     cs.applyTo(cl)
 }
 
-class StandardBannerProgrammaticFragment: BannerProgrammaticFragment() {
+class StandardBannerProgrammaticFragment : BannerProgrammaticFragment() {
 
     override fun logTagFilterRule(logTag: String, forTag: String): String? =
         commonLogTagListRules(forTag) ?: when (forTag) {
@@ -201,13 +195,15 @@ class StandardBannerProgrammaticFragment: BannerProgrammaticFragment() {
 
     override fun createAdView(
         activity: Activity, placementName: String, listener: CloudXAdViewListener?
-    ): CloudXAdView? =
-        CloudX.createBanner(activity, placementName, listener)
+    ): CloudXAdView =
+        CloudX.createBanner(activity, placementName).apply {
+            this.listener = listener
+        }
 
     override val adViewSize: AdViewSize = AdType.Banner.Standard.size
 }
 
-class MRECProgrammaticFragment: BannerProgrammaticFragment() {
+class MRECProgrammaticFragment : BannerProgrammaticFragment() {
 
     override fun logTagFilterRule(logTag: String, forTag: String): String? =
         commonLogTagListRules(forTag) ?: when (forTag) {
@@ -217,12 +213,14 @@ class MRECProgrammaticFragment: BannerProgrammaticFragment() {
 
     override fun createAdView(
         activity: Activity, placementName: String, listener: CloudXAdViewListener?
-    ): CloudXAdView? = CloudX.createMREC(activity, placementName, listener)
+    ): CloudXAdView = CloudX.createMREC(activity, placementName).apply {
+        this.listener = listener
+    }
 
     override val adViewSize: AdViewSize = AdType.Banner.MREC.size
 }
 
-class NativeAdSmallProgrammaticFragment: BannerProgrammaticFragment() {
+class NativeAdSmallProgrammaticFragment : BannerProgrammaticFragment() {
 
     override fun logTagFilterRule(logTag: String, forTag: String): String? =
         commonLogTagListRules(forTag) ?: when (forTag) {
@@ -232,13 +230,15 @@ class NativeAdSmallProgrammaticFragment: BannerProgrammaticFragment() {
 
     override fun createAdView(
         activity: Activity, placementName: String, listener: CloudXAdViewListener?
-    ): CloudXAdView? =
-        CloudX.createNativeAdSmall(activity, placementName, listener)
+    ): CloudXAdView =
+        CloudX.createNativeAdSmall(activity, placementName).apply {
+            this.listener = listener
+        }
 
     override val adViewSize: AdViewSize = AdType.Native.Small.size
 }
 
-class NativeAdMediumProgrammaticFragment: BannerProgrammaticFragment() {
+class NativeAdMediumProgrammaticFragment : BannerProgrammaticFragment() {
 
     override fun logTagFilterRule(logTag: String, forTag: String): String? =
         commonLogTagListRules(forTag) ?: when (forTag) {
@@ -248,8 +248,10 @@ class NativeAdMediumProgrammaticFragment: BannerProgrammaticFragment() {
 
     override fun createAdView(
         activity: Activity, placementName: String, listener: CloudXAdViewListener?
-    ): CloudXAdView? =
-        CloudX.createNativeAdMedium(activity, placementName, listener)
+    ): CloudXAdView =
+        CloudX.createNativeAdMedium(activity, placementName).apply {
+            this.listener = listener
+        }
 
     override val adViewSize: AdViewSize = AdType.Native.Medium.size
 }

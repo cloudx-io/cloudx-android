@@ -2,6 +2,7 @@ package io.cloudx.demo.demoapp
 
 import android.app.Application
 import io.cloudx.adapter.meta.enableMetaAudienceNetworkTestMode
+import io.cloudx.sdk.CloudX
 import io.cloudx.sdk.CloudXAdError
 import io.cloudx.sdk.CloudXInitializationListener
 import io.cloudx.sdk.internal.CloudXLogger
@@ -12,7 +13,7 @@ class DemoApplication : Application() {
         super.onCreate()
 
         // Enforce logging for the demo app regardless of build variant
-        CloudXLogger.isEnabled = true
+        CloudX.setLoggingEnabled(true)
 
         // Enable Meta test mode for demo app
         enableMetaAudienceNetworkTestMode(true)

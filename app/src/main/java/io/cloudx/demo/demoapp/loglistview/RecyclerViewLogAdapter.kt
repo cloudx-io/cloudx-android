@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.color.MaterialColors
 import io.cloudx.demo.demoapp.R
-import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.CloudXLogLevel
 
 class RecyclerViewLogAdapter(recyclerView: RecyclerView) :
     RecyclerView.Adapter<RecyclerViewLogAdapter.ViewHolder>() {
@@ -88,16 +88,16 @@ class RecyclerViewLogAdapter(recyclerView: RecyclerView) :
 private fun View.tagTextColor(logListItem: LogListItem) = if (logListItem.isSuccessLog) {
     ContextCompat.getColor(context, R.color.log_success)
 } else when (logListItem.logEntry.level) {
-    CloudXLogger.LogLevel.VERBOSE -> ContextCompat.getColor(context, R.color.log_verbose)
-    CloudXLogger.LogLevel.DEBUG -> MaterialColors.getColor(
+    CloudXLogLevel.VERBOSE -> ContextCompat.getColor(context, R.color.log_verbose)
+    CloudXLogLevel.DEBUG -> MaterialColors.getColor(
         this, com.google.android.material.R.attr.colorOutline
     )
 
-    CloudXLogger.LogLevel.INFO -> ContextCompat.getColor(context, R.color.log_info)
+    CloudXLogLevel.INFO -> ContextCompat.getColor(context, R.color.log_info)
 
-    CloudXLogger.LogLevel.WARN -> ContextCompat.getColor(context, R.color.log_warn)
+    CloudXLogLevel.WARN -> ContextCompat.getColor(context, R.color.log_warn)
 
-    CloudXLogger.LogLevel.ERROR -> ContextCompat.getColor(context, R.color.log_error)
+    CloudXLogLevel.ERROR -> ContextCompat.getColor(context, R.color.log_error)
 }
 
 private class ScrollToBottomDataObserver(

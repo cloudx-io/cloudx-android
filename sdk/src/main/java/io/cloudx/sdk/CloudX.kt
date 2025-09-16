@@ -3,6 +3,7 @@ package io.cloudx.sdk
 import android.app.Activity
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.CXSdk
+import io.cloudx.sdk.internal.CloudXLogger
 import io.cloudx.sdk.internal.ads.fullscreen.interstitial.CXInterstitialAd
 import io.cloudx.sdk.internal.ads.fullscreen.rewarded.CXRewardedInterstitialAd
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsType
@@ -108,6 +109,16 @@ object CloudX {
         return CloudXAdView(activity, placementName, AdType.Native.Medium).apply {
             this.listener = listener
         }
+    }
+
+    @JvmStatic
+    fun setLoggingEnabled(isEnabled: Boolean) {
+        CloudXLogger.isEnabled = isEnabled
+    }
+
+    @JvmStatic
+    fun setMinLogLevel(minLogLevel: CloudXLogLevel) {
+        CloudXLogger.minLogLevel = minLogLevel
     }
 
     /**

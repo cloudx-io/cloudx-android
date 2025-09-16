@@ -2,6 +2,7 @@ package io.cloudx.sdk.internal
 
 import android.util.Log
 import io.cloudx.sdk.BuildConfig
+import io.cloudx.sdk.CloudXLogLevel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -16,10 +17,10 @@ object CloudXLogger {
     private const val LOG_BUFFER_SIZE = 1000
 
     @Volatile
-    var isEnabled: Boolean = BuildConfig.DEBUG
+    internal var isEnabled: Boolean = BuildConfig.DEBUG
 
     @Volatile
-    var minLogLevel: LogLevel = LogLevel.VERBOSE
+    internal var minLogLevel: CloudXLogLevel = CloudXLogLevel.VERBOSE
 
     // Non-blocking channel for log events
     private val logChannel = Channel<LogEntry>(capacity = LOG_BUFFER_SIZE)
@@ -27,27 +28,27 @@ object CloudXLogger {
 
     // Main logging methods - component first, single letter names
     fun v(component: String = DEFAULT_COMPONENT, message: String, throwable: Throwable? = null) {
-        log(LogLevel.VERBOSE, component, message, throwable)
+        log(CloudXLogLevel.VERBOSE, component, message, throwable)
     }
 
     fun d(component: String = DEFAULT_COMPONENT, message: String, throwable: Throwable? = null) {
-        log(LogLevel.DEBUG, component, message, throwable)
+        log(CloudXLogLevel.DEBUG, component, message, throwable)
     }
 
     fun i(component: String = DEFAULT_COMPONENT, message: String, throwable: Throwable? = null) {
-        log(LogLevel.INFO, component, message, throwable)
+        log(CloudXLogLevel.INFO, component, message, throwable)
     }
 
     fun w(component: String = DEFAULT_COMPONENT, message: String, throwable: Throwable? = null) {
-        log(LogLevel.WARN, component, message, throwable)
+        log(CloudXLogLevel.WARN, component, message, throwable)
     }
 
     fun e(component: String = DEFAULT_COMPONENT, message: String, throwable: Throwable? = null) {
-        log(LogLevel.ERROR, component, message, throwable)
+        log(CloudXLogLevel.ERROR, component, message, throwable)
     }
 
     private fun log(
-        level: LogLevel,
+        level: CloudXLogLevel,
         component: String,
         message: String,
         throwable: Throwable? = null
@@ -133,7 +134,7 @@ object CloudXLogger {
         e(component, formatPlacementMessage(placementName, placementId, message), throwable)
     }
 
-    private fun logToAndroid(level: LogLevel, tag: String, message: String, throwable: Throwable?) {
+    private fun logToAndroid(level: CloudXLogLevel, tag: String, message: String, throwable: Throwable?) {
         val finalMessage = if (throwable != null) {
             "$message\n${Log.getStackTraceString(throwable)}"
         } else {
@@ -141,24 +142,16 @@ object CloudXLogger {
         }
 
         when (level) {
-            LogLevel.VERBOSE -> Log.v(tag, finalMessage)
-            LogLevel.DEBUG -> Log.d(tag, finalMessage)
-            LogLevel.INFO -> Log.i(tag, finalMessage)
-            LogLevel.WARN -> Log.w(tag, finalMessage)
-            LogLevel.ERROR -> Log.e(tag, finalMessage)
+            CloudXLogLevel.VERBOSE -> Log.v(tag, finalMessage)
+            CloudXLogLevel.DEBUG -> Log.d(tag, finalMessage)
+            CloudXLogLevel.INFO -> Log.i(tag, finalMessage)
+            CloudXLogLevel.WARN -> Log.w(tag, finalMessage)
+            CloudXLogLevel.ERROR -> Log.e(tag, finalMessage)
         }
     }
 
-    enum class LogLevel(val priority: Int) {
-        VERBOSE(0),
-        DEBUG(1),
-        INFO(2),
-        WARN(3),
-        ERROR(4)
-    }
-
     data class LogEntry(
-        val level: LogLevel,
+        val level: CloudXLogLevel,
         val tag: String,
         val message: String,
         val throwable: Throwable? = null,

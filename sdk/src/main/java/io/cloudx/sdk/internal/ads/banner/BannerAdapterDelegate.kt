@@ -1,13 +1,10 @@
 package io.cloudx.sdk.internal.ads.banner
 
-import io.cloudx.sdk.CloudXAd
-import io.cloudx.sdk.Destroyable
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapter
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterListener
 import io.cloudx.sdk.internal.adapter.CloudXAdapterError
-import io.cloudx.sdk.internal.ads.AdTimeoutEvent
-import io.cloudx.sdk.internal.ads.LastErrorEvent
+import io.cloudx.sdk.internal.ads.CXAdapterDelegate
 import io.cloudx.sdk.internal.bid.WinTracker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -37,8 +34,7 @@ sealed class BannerAdapterDelegateEvent {
 // TODO. Some methods/inits can be reused for any ad type (destroy() etc).
 // TODO. Replace sdk.adapter.Banner with this?
 // TODO. Merge with DecoratedSuspendableXXXX?
-internal interface BannerAdapterDelegate : AdTimeoutEvent, LastErrorEvent, Destroyable, CloudXAd {
-    suspend fun load(): Boolean
+internal interface BannerAdapterDelegate : CXAdapterDelegate {
     val event: SharedFlow<BannerAdapterDelegateEvent>
 }
 

@@ -94,7 +94,6 @@ internal class AdFactoryImpl(
             metricsTracker = metricsTracker,
             connectionStatusService = connectionStatusService,
             activityLifecycleService = activityLifecycleService,
-            appLifecycleService = appLifecycleService,
             accountId = config.accountId ?: "",
             appKey = appKey
         ).apply {

@@ -22,7 +22,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 
 // Updating + caching.
-internal class CachedAdRepository<SuspendableAd: Destroyable, C: CacheableAd>(
+internal class CachedAdRepository<SuspendableAd : Destroyable, C : CacheableAd>(
     private val bidAdSource: BidAdSource<SuspendableAd>,
     cacheSize: Int,
     preCachedAdLifetimeMinutes: Int,
@@ -32,7 +32,7 @@ internal class CachedAdRepository<SuspendableAd: Destroyable, C: CacheableAd>(
     connectionStatusService: ConnectionStatusService,
     private val appLifecycleService: AppLifecycleService,
     placementType: AdType,
-): Destroyable {
+) : Destroyable {
 
     private val TAG = "Bid$placementType"
 
@@ -90,7 +90,8 @@ internal class CachedAdRepository<SuspendableAd: Destroyable, C: CacheableAd>(
         appLifecycleService.awaitAppResume()
         cachedQueue.hasAvailableSlots.first { it }
 
-        val bidResponse = bidAdSource.requestBid() ?: return@coroutineScope AdLoadOperationStatus.AdLoadFailed
+        val bidResponse = bidAdSource.requestBid().successOrNull()
+            ?: return@coroutineScope AdLoadOperationStatus.AdLoadFailed
 
         for ((index, bidItem) in bidResponse.bidItemsByRank.withIndex()) {
             ensureActive()

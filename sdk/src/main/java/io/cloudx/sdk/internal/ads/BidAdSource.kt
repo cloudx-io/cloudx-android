@@ -15,7 +15,6 @@ import io.cloudx.sdk.internal.config.ResolvedEndpoints
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.EventType
 import io.cloudx.sdk.internal.imp_tracker.TrackingFieldResolver
-import io.cloudx.sdk.internal.imp_tracker.TrackingFieldResolver.SDK_PARAM_RESPONSE_IN_MILLIS
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsType
 import io.cloudx.sdk.internal.state.SdkKeyValueState
@@ -28,7 +27,7 @@ internal interface BidAdSource<T : Destroyable> {
     /**
      * @return the bid or null if no bid
      */
-    suspend fun requestBid(): BidAdSourceResponse<T>?
+    suspend fun requestBid(): Result<BidAdSourceResponse<T>, CLXError>
 }
 
 internal open class BidAdSourceResponse<T : Destroyable>(
@@ -91,7 +90,7 @@ private class BidAdSourceImpl<T : Destroyable>(
 
     private val logTag = "BidAdSourceImpl"
 
-    override suspend fun requestBid(): BidAdSourceResponse<T>? {
+    override suspend fun requestBid(): Result<BidAdSourceResponse<T>, CLXError> {
         val auctionId = UUID.randomUUID().toString()
         val bidRequestParamsJson = provideBidRequest.invoke(bidRequestParams, auctionId)
 
@@ -104,7 +103,7 @@ private class BidAdSourceImpl<T : Destroyable>(
         val userParams = SdkKeyValueState.userKeyValues
         CloudXLogger.d(logTag, "user params: $userParams")
 
-        val appParams = SdkKeyValueState.userKeyValues
+        val appParams = SdkKeyValueState.appKeyValues
         CloudXLogger.d(logTag, "app params: $appParams")
 
         val isCdpDisabled = ResolvedEndpoints.cdpEndpoint.isBlank()
@@ -162,35 +161,13 @@ private class BidAdSourceImpl<T : Destroyable>(
         }
 
         return when (result) {
-            is Result.Failure -> {
-                CloudXLogger.e(logTag, result.value.effectiveMessage)
-                null
+            is Result.Success -> {
+                val resp = result.value.toBidAdSourceResponse(bidRequestParams, createBidAd)
+                Result.Success(resp)
             }
 
-            is Result.Success -> {
-                val bidAdSourceResponse =
-                    result.value.toBidAdSourceResponse(bidRequestParams, createBidAd)
-
-                if (bidAdSourceResponse.bidItemsByRank.isEmpty()) {
-                    CloudXLogger.d(logTag, "NO_BID")
-                } else {
-                    val bidDetails =
-                        bidAdSourceResponse.bidItemsByRank.joinToString(separator = ",\n") {
-                            "\"bidder\": \"${it.adNetworkOriginal}\", cpm: ${it.priceRaw}, rank: ${it.rank}"
-                        }
-                    CloudXLogger.d(
-                        logTag,
-                        "Bid Success — received ${bidAdSourceResponse.bidItemsByRank.size} bid(s): [$bidDetails]"
-                    )
-
-                    TrackingFieldResolver.setSdkParam(
-                        auctionId,
-                        SDK_PARAM_RESPONSE_IN_MILLIS,
-                        bidRequestLatencyMillis.toString()
-                    )
-                }
-
-                bidAdSourceResponse
+            is Result.Failure -> {
+                Result.Failure(result.value)
             }
         }
     }

@@ -40,74 +40,6 @@ internal interface BannerManager : Destroyable {
     var listener: CloudXAdViewListener?
 }
 
-internal fun BannerManager(
-    activity: Activity,
-    placementId: String,
-    placementName: String,
-    adViewContainer: CloudXAdViewAdapterContainer,
-    bannerVisibility: StateFlow<Boolean>,
-    refreshSeconds: Int,
-    adType: AdType,
-    bidFactories: Map<AdNetwork, CloudXAdViewAdapterFactory>,
-    bidRequestExtrasProviders: Map<AdNetwork, CloudXAdapterBidRequestExtrasProvider>,
-    bidAdLoadTimeoutMillis: Long,
-    miscParams: BannerFactoryMiscParams,
-    bidApi: BidApi,
-    cdpApi: CdpApi,
-    eventTracker: EventTracker,
-    metricsTracker: MetricsTracker,
-    connectionStatusService: ConnectionStatusService,
-    activityLifecycleService: ActivityLifecycleService,
-    accountId: String,
-    appKey: String
-): BannerManager {
-
-    val bidRequestProvider = BidRequestProvider(
-        bidRequestExtrasProviders
-    )
-
-    val bidSource =
-        BidBannerSource(
-            activity,
-            adViewContainer,
-            refreshSeconds,
-            bidFactories,
-            placementId,
-            placementName,
-            adType,
-            bidApi,
-            cdpApi,
-            bidRequestProvider,
-            eventTracker,
-            metricsTracker,
-            miscParams,
-            0,
-            accountId,
-            appKey
-        )
-
-
-    val adLoader = AdLoader(
-        bidAdSource = bidSource,
-        bidAdLoadTimeoutMillis = bidAdLoadTimeoutMillis,
-        placementName = placementName,
-        placementId = placementId,
-        connectionStatusService = connectionStatusService
-    )
-
-    return BannerManagerImpl(
-        activity = activity,
-        placementId = placementId,
-        placementName = placementName,
-        adLoader = adLoader,
-        bannerVisibility = bannerVisibility,
-        refreshSeconds = refreshSeconds,
-        suspendPreloadWhenInvisible = true,
-        activityLifecycleService = activityLifecycleService,
-        metricsTracker = metricsTracker
-    )
-}
-
 private class BannerManagerImpl(
     activity: Activity,
     private val placementId: String,
@@ -302,3 +234,70 @@ private class BannerManagerImpl(
     }
 }
 
+internal fun BannerManager(
+    activity: Activity,
+    placementId: String,
+    placementName: String,
+    adViewContainer: CloudXAdViewAdapterContainer,
+    bannerVisibility: StateFlow<Boolean>,
+    refreshSeconds: Int,
+    adType: AdType,
+    bidFactories: Map<AdNetwork, CloudXAdViewAdapterFactory>,
+    bidRequestExtrasProviders: Map<AdNetwork, CloudXAdapterBidRequestExtrasProvider>,
+    bidAdLoadTimeoutMillis: Long,
+    miscParams: BannerFactoryMiscParams,
+    bidApi: BidApi,
+    cdpApi: CdpApi,
+    eventTracker: EventTracker,
+    metricsTracker: MetricsTracker,
+    connectionStatusService: ConnectionStatusService,
+    activityLifecycleService: ActivityLifecycleService,
+    accountId: String,
+    appKey: String
+): BannerManager {
+
+    val bidRequestProvider = BidRequestProvider(
+        bidRequestExtrasProviders
+    )
+
+    val bidSource =
+        BidBannerSource(
+            activity,
+            adViewContainer,
+            refreshSeconds,
+            bidFactories,
+            placementId,
+            placementName,
+            adType,
+            bidApi,
+            cdpApi,
+            bidRequestProvider,
+            eventTracker,
+            metricsTracker,
+            miscParams,
+            0,
+            accountId,
+            appKey
+        )
+
+
+    val adLoader = AdLoader(
+        bidAdSource = bidSource,
+        bidAdLoadTimeoutMillis = bidAdLoadTimeoutMillis,
+        placementName = placementName,
+        placementId = placementId,
+        connectionStatusService = connectionStatusService
+    )
+
+    return BannerManagerImpl(
+        activity = activity,
+        placementId = placementId,
+        placementName = placementName,
+        adLoader = adLoader,
+        bannerVisibility = bannerVisibility,
+        refreshSeconds = refreshSeconds,
+        suspendPreloadWhenInvisible = true,
+        activityLifecycleService = activityLifecycleService,
+        metricsTracker = metricsTracker
+    )
+}

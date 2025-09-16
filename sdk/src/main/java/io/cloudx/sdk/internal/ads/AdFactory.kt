@@ -25,15 +25,12 @@ internal interface AdFactory {
     fun createBannerManager(params: CreateBannerParams): BannerManager?
 
     // Interstitial Ad creation
-    fun createInterstitial(params: CreateAdParams<CloudXInterstitialListener>): CloudXInterstitialAd?
+    fun createInterstitial(params: CreateAdParams): CloudXInterstitialAd?
 
     // Rewarded Ad creation
-    fun createRewarded(params: CreateAdParams<CloudXRewardedInterstitialListener>): CloudXRewardedInterstitialAd?
+    fun createRewarded(params: CreateAdParams): CloudXRewardedInterstitialAd?
 
-    open class CreateAdParams<T>(
-        val placementName: String,
-        val listener: T?
-    )
+    open class CreateAdParams(val placementName: String)
 
     class CreateBannerParams(
         val activity: Activity,
@@ -41,10 +38,7 @@ internal interface AdFactory {
         val adViewAdapterContainer: CloudXAdViewAdapterContainer,
         val bannerVisibility: StateFlow<Boolean>,
         placementName: String,
-        listener: CloudXAdViewListener?,
-    ) : CreateAdParams<CloudXAdViewListener>(
-        placementName, listener
-    )
+    ) : CreateAdParams(placementName)
 }
 
 internal fun AdFactory(

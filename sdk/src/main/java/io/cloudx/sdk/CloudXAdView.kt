@@ -73,7 +73,6 @@ class CloudXAdView internal constructor(
                     adViewAdapterContainer = createBannerContainer(),
                     bannerVisibility = viewabilityTracker.isViewable,
                     placementName = placementName,
-                    listener = listener
                 )
             )
             updateBannerListener()

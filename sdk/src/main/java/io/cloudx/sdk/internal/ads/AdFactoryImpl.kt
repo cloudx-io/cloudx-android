@@ -96,14 +96,12 @@ internal class AdFactoryImpl(
             activityLifecycleService = activityLifecycleService,
             accountId = config.accountId ?: "",
             appKey = appKey
-        ).apply {
-            listener = params.listener
-        }
+        )
     }
 
     // ===== Interstitial Ad Creation =====
 
-    override fun createInterstitial(params: AdFactory.CreateAdParams<CloudXInterstitialListener>): CloudXInterstitialAd? {
+    override fun createInterstitial(params: AdFactory.CreateAdParams): CloudXInterstitialAd? {
         val placementName = params.placementName
         val placement = config.placements[placementName] as? Config.Placement.Interstitial
         if (placement == null) {
@@ -130,7 +128,7 @@ internal class AdFactoryImpl(
 
     // ===== Rewarded Ad Creation =====
 
-    override fun createRewarded(params: AdFactory.CreateAdParams<CloudXRewardedInterstitialListener>): CloudXRewardedInterstitialAd? {
+    override fun createRewarded(params: AdFactory.CreateAdParams): CloudXRewardedInterstitialAd? {
         val placementName = params.placementName
         val placement = config.placements[placementName] as? Config.Placement.Rewarded
         if (placement == null) {
@@ -171,8 +169,6 @@ internal class AdFactoryImpl(
         CXLogger.w(TAG, "can't create $placement placement: missing in SDK Config")
     }
 }
-
-private const val BID_AD_LOAD_BACKOFF_MAX_MILLIS = 20_000L
 
 private fun Config.Placement.toAdType(): AdType? = when (this) {
     is Config.Placement.MREC -> AdType.Banner.MREC

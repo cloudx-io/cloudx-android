@@ -36,7 +36,6 @@ import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
 internal interface BannerManager : Destroyable {
-
     var listener: CloudXAdViewListener?
 }
 

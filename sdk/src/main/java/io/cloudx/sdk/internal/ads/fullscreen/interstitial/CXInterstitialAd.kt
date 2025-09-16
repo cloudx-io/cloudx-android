@@ -27,7 +27,7 @@ internal class CXInterstitialAd(
             val initState = CXSdk.initState.first { it is InitializationState.Initialized }
                     as InitializationState.Initialized
             interstitial = initState.initializationService.adFactory!!.createInterstitial(
-                AdFactory.CreateAdParams(placementName, listener)
+                AdFactory.CreateAdParams(placementName)
             )
             interstitial?.listener = listener
             interstitial?.setIsAdLoadedListener(isAdLoadedListener)

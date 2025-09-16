@@ -1,6 +1,5 @@
 package io.cloudx.sdk.internal.ads.fullscreen.rewarded
 
-import io.cloudx.sdk.CloudXIsAdLoadedListener
 import io.cloudx.sdk.CloudXRewardedInterstitialAd
 import io.cloudx.sdk.CloudXRewardedInterstitialListener
 import io.cloudx.sdk.internal.AdNetwork
@@ -45,9 +44,6 @@ private class RewardedInterstitialManager(
 
     override val isAdLoaded: Boolean
         get() = fullscreenAdManager.isAdLoaded
-
-    override fun setIsAdLoadedListener(listener: CloudXIsAdLoadedListener?) =
-        fullscreenAdManager.setIsAdLoadedListener(listener)
 
     override fun load() = fullscreenAdManager.load()
     override fun show() = fullscreenAdManager.show()

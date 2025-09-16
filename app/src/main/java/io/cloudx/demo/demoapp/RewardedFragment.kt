@@ -9,8 +9,9 @@ import io.cloudx.sdk.internal.CXLogger
 class RewardedFragment : FullPageAdFragment() {
 
     override fun createAd(listener: CloudXAdListener) = CloudX.createRewardedInterstitial(
-        placementName,
-        object : CloudXRewardedInterstitialListener, CloudXAdListener by listener {
+        placementName
+    ).apply {
+        this.listener = object : CloudXRewardedInterstitialListener, CloudXAdListener by listener {
             override fun onUserRewarded(cloudXAd: CloudXAd) {
                 CXLogger.i(
                     logTag,
@@ -18,7 +19,7 @@ class RewardedFragment : FullPageAdFragment() {
                 )
             }
         }
-    )
+    }
 
     override val adType: String = "Rewarded"
     override val logTag: String = "RewardedFragment"

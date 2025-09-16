@@ -1,7 +1,6 @@
 package io.cloudx.sdk.internal.ads.fullscreen.rewarded
 
 import io.cloudx.sdk.CloudXAdError
-import io.cloudx.sdk.CloudXIsAdLoadedListener
 import io.cloudx.sdk.CloudXRewardedInterstitialAd
 import io.cloudx.sdk.CloudXRewardedInterstitialListener
 import io.cloudx.sdk.internal.CXLogger
@@ -20,7 +19,6 @@ internal class CXRewardedInterstitialAd(
     private val TAG = "CXRewardedInterstitialAd"
     private val initJob: Job
     private var rewardedInterstitial: CloudXRewardedInterstitialAd? = null
-    private var isAdLoadedListener: CloudXIsAdLoadedListener? = null
 
     init {
         initJob = MainScope().launch {
@@ -30,7 +28,6 @@ internal class CXRewardedInterstitialAd(
                 AdFactory.CreateAdParams(placementName)
             )
             rewardedInterstitial?.listener = listener
-            rewardedInterstitial?.setIsAdLoadedListener(isAdLoadedListener)
             rewardedInterstitial?.load()
         }
     }
@@ -43,11 +40,6 @@ internal class CXRewardedInterstitialAd(
 
     override val isAdLoaded: Boolean
         get() = rewardedInterstitial?.isAdLoaded ?: false
-
-    override fun setIsAdLoadedListener(listener: CloudXIsAdLoadedListener?) {
-        isAdLoadedListener = listener
-        rewardedInterstitial?.setIsAdLoadedListener(listener)
-    }
 
     override fun load() {
         if (rewardedInterstitial != null) {

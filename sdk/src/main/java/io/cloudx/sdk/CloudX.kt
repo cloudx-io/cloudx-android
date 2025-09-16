@@ -62,12 +62,9 @@ object CloudX {
     @JvmStatic
     fun createInterstitial(
         placementName: String,
-        listener: CloudXInterstitialListener?
-    ): CloudXInterstitialAd? {
+    ): CloudXInterstitialAd {
         CXSdk.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.CreateInterstitial)
-        return CXInterstitialAd(placementName).apply {
-            this.listener = listener
-        }
+        return CXInterstitialAd(placementName)
     }
 
 
@@ -77,12 +74,9 @@ object CloudX {
     @JvmStatic
     fun createRewardedInterstitial(
         placementName: String,
-        listener: CloudXRewardedInterstitialListener?
-    ): CloudXRewardedInterstitialAd? {
+    ): CloudXRewardedInterstitialAd {
         CXSdk.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.CreateRewarded)
-        return CXRewardedInterstitialAd(placementName).apply {
-            this.listener = listener
-        }
+        return CXRewardedInterstitialAd(placementName)
     }
 
     /**

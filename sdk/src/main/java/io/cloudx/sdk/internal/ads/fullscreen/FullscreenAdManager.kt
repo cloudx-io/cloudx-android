@@ -4,7 +4,6 @@ import io.cloudx.sdk.CloudXAd
 import io.cloudx.sdk.CloudXAdError
 import io.cloudx.sdk.CloudXAdListener
 import io.cloudx.sdk.CloudXFullscreenAd
-import io.cloudx.sdk.CloudXIsAdLoadedListener
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.ads.AdLoader
@@ -32,9 +31,6 @@ internal class FullscreenAdManager<
     // Core components
     private val scope = CoroutineScope(Dispatchers.Main)
 
-    // Listener management
-    private var isAdLoadedListener: CloudXIsAdLoadedListener? = null
-
     // Loading state
     private var lastLoadJob: Job? = null
     private var lastLoadedAd: FullscreenAdAdapterDelegate<DelegateEvent>? = null
@@ -43,13 +39,8 @@ internal class FullscreenAdManager<
     private var lastShowJob: Job? = null
     private var lastShowJobStartedTimeMillis: Long = -1
 
-    // Listener management methods
+    // Listener management
     override var listener: CloudXAdListener? = null
-
-    override fun setIsAdLoadedListener(listener: CloudXIsAdLoadedListener?) {
-        isAdLoadedListener = listener
-        isAdLoadedListener?.onIsAdLoadedStatusChanged(lastLoadedAd != null)
-    }
 
     // Ad loading methods
     override fun load() {
@@ -63,7 +54,6 @@ internal class FullscreenAdManager<
 
                 is Result.Success -> {
                     lastLoadedAd = ad.value
-                    isAdLoadedListener?.onIsAdLoadedStatusChanged(true)
                     listener?.onAdLoaded(ad.value)
                 }
             }
@@ -90,7 +80,6 @@ internal class FullscreenAdManager<
                     job.cancel("No adHidden or adError event received. Cancelling job")
                     lastLoadedAd?.let {
                         listener?.onAdHidden(it)
-                        isAdLoadedListener?.onIsAdLoadedStatusChanged(false)
                     }
                     lastLoadedAd = null
                 }
@@ -111,7 +100,6 @@ internal class FullscreenAdManager<
             } finally {
                 ad.destroy()
                 lastLoadedAd = null
-                isAdLoadedListener?.onIsAdLoadedStatusChanged(false)
             }
         }
     }

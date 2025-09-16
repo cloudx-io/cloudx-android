@@ -13,30 +13,36 @@ class LoggedCloudXAdListener(
     override fun onAdLoaded(cloudXAd: CloudXAd) {
         CXLogger.i(
             logTag,
-            "Load Success; placement: $placementName; network: ${cloudXAd.bidderName}"
+            "Load success; placement: $placementName; network: ${cloudXAd.bidderName}"
         )
     }
 
     override fun onAdLoadFailed(cloudXAdError: CloudXAdError) {
-        CXLogger.i(logTag, "LOAD FAILED; placement: $placementName;")
+        CXLogger.i(
+            logTag,
+            "Load failed; placement: $placementName; error: ${cloudXAdError.description}"
+        )
     }
 
     override fun onAdDisplayed(cloudXAd: CloudXAd) {
-//        CloudXLogger.info(
-//            logTag,
-//            "Ad shown — placement: $placementName, network: ${cloudXAd.networkName}"
-//        )
+        CXLogger.i(
+            logTag,
+            "Ad displayed; placement: $placementName; network: ${cloudXAd.bidderName}"
+        )
     }
 
     override fun onAdDisplayFailed(cloudXAdError: CloudXAdError) {
-        CXLogger.i(logTag, "SHOW FAILED; placement: $placementName;")
+        CXLogger.i(
+            logTag,
+            "Display failed; placement: $placementName; error: ${cloudXAdError.description}"
+        )
     }
 
     override fun onAdHidden(cloudXAd: CloudXAd) {
-//        CloudXLogger.info(
-//            logTag,
-//            "Ad hidden; placement: $placementName; network: ${cloudXAd.networkName}"
-//        )
+        CXLogger.i(
+            logTag,
+            "Ad hidden; placement: $placementName; network: ${cloudXAd.bidderName}"
+        )
     }
 
     override fun onAdClicked(cloudXAd: CloudXAd) {

@@ -6,10 +6,10 @@ import io.cloudx.sdk.CloudXAdListener
 import io.cloudx.sdk.CloudXFullscreenAd
 import io.cloudx.sdk.CloudXIsAdLoadedListener
 import io.cloudx.sdk.internal.AdType
-import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.ads.AdLoader
-import io.cloudx.sdk.internal.common.utcNowEpochMillis
 import io.cloudx.sdk.internal.util.Result
+import io.cloudx.sdk.internal.util.utcNowEpochMillis
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -74,7 +74,7 @@ internal class FullscreenAdManager<
 
     // Ad showing methods
     override fun show() {
-        CloudXLogger.i(
+        CXLogger.i(
             "CloudX${if (placementType == AdType.Interstitial) "Interstitial" else "Rewarded"}",
             "show() was called"
         )

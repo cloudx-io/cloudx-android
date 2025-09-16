@@ -6,7 +6,7 @@ import io.cloudx.sdk.BuildConfig
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.CLXError
 import io.cloudx.sdk.internal.CLXErrorCode
-import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.ads.AdFactory
 import io.cloudx.sdk.internal.bid.BidRequestProvider
 import io.cloudx.sdk.internal.common.service.ActivityLifecycleService
@@ -66,14 +66,14 @@ internal class InitializationServiceImpl(
 
 
     override suspend fun initialize(appKey: String): Result<Config, CLXError> {
-        CloudXLogger.i(TAG, "Starting SDK initialization with appKey: $appKey")
+        CXLogger.i(TAG, "Starting SDK initialization with appKey: $appKey")
         this.appKey = appKey
 
         crashReportingService.registerSdkCrashHandler()
 
         val config = this.config
         if (config != null) {
-            CloudXLogger.i(TAG, "SDK already initialized, returning cached config")
+            CXLogger.i(TAG, "SDK already initialized, returning cached config")
             return Result.Success(config)
         }
 
@@ -84,7 +84,7 @@ internal class InitializationServiceImpl(
 
         if (configApiResult is Result.Failure) {
             if (configApiResult.value.code == CLXErrorCode.SDK_DISABLED) {
-                CloudXLogger.w(
+                CXLogger.w(
                     TAG,
                     "SDK disabled by server via traffic control (0%). No ads this session."
                 )
@@ -125,15 +125,15 @@ internal class InitializationServiceImpl(
                 // TODO: Hardcoded for now, should be configurable later via config CX-919.
                 val userGeoIp = headersMap["x-amzn-remapped-x-forwarded-for"]
                 val hashedGeoIp = userGeoIp?.let { normalizeAndHash(userGeoIp) } ?: ""
-                CloudXLogger.i(TAG, "User Geo IP: $userGeoIp")
-                CloudXLogger.i(TAG, "Hashed Geo IP: $hashedGeoIp")
+                CXLogger.i(TAG, "User Geo IP: $userGeoIp")
+                CXLogger.i(TAG, "Hashed Geo IP: $hashedGeoIp")
                 TrackingFieldResolver.setHashedGeoIp(hashedGeoIp)
 
-                CloudXLogger.i(TAG, "geo data: $geoInfo")
+                CXLogger.i(TAG, "geo data: $geoInfo")
                 GeoInfoHolder.setGeoInfo(geoInfo, headersMap)
 
                 val removePii = privacyService.shouldClearPersonalData()
-                CloudXLogger.i(TAG, "PII remove: $removePii")
+                CXLogger.i(TAG, "PII remove: $removePii")
 
                 sendInitSDKEvent(cfg, appKey)
 
@@ -158,7 +158,7 @@ internal class InitializationServiceImpl(
     }
 
     override fun deinitialize() {
-        CloudXLogger.i(TAG, "Deinitializing SDK")
+        CXLogger.i(TAG, "Deinitializing SDK")
         ResolvedEndpoints.reset()
         ClickCounterTracker.reset()
         config = null
@@ -204,7 +204,7 @@ internal class InitializationServiceImpl(
             val initializer = adapterInitializers[bidderCfg.key]
 
             if (initializer == null) {
-                CloudXLogger.w(TAG, "No initializer found for ${bidderCfg.key}")
+                CXLogger.w(TAG, "No initializer found for ${bidderCfg.key}")
                 return@onEach
             }
 

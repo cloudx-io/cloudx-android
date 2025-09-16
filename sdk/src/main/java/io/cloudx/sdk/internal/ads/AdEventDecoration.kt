@@ -2,7 +2,7 @@ package io.cloudx.sdk.internal.ads
 
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.AdType
-import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.GlobalScopes
 import io.cloudx.sdk.internal.ads.banner.BannerAdapterDelegate
 import io.cloudx.sdk.internal.ads.fullscreen.interstitial.InterstitialAdapterDelegate
@@ -198,25 +198,25 @@ internal fun adapterLoggingDecoration(
 
     return AdEventDecoration(
         onTimeout = {
-            CloudXLogger.d(
+            CXLogger.d(
                 tag,
                 "LOAD TIMEOUT placement: $placementName, id: $placementId, price: $price"
             )
         },
         onLoad = {
-            CloudXLogger.d(
+            CXLogger.d(
                 tag,
                 "LOAD SUCCESS placement: $placementName, id: $placementId, price: $price"
             )
         },
         onError = {
-            CloudXLogger.e(
+            CXLogger.e(
                 tag,
                 "ERROR placement: $placementName, id: $placementId, price: $price, error: ${it.description}"
             )
         },
         onImpression = {
-            CloudXLogger.d(
+            CXLogger.d(
                 tag,
                 "IMPRESSION placement: $placementName, id: $placementId, price: $price"
             )

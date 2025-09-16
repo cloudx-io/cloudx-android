@@ -2,7 +2,7 @@ package io.cloudx.sdk.internal.privacy
 
 import android.content.Context
 import android.preference.PreferenceManager
-import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.CXLogger
 
 internal class TCFProviderImpl(context: Context) : TCFProvider {
 
@@ -14,7 +14,7 @@ internal class TCFProviderImpl(context: Context) : TCFProvider {
             sharedPrefs.getString(IABTCF_TCString, null)
         } catch (e: Exception) {
             // In case value wasn't string, handle exception gracefully.
-            CloudXLogger.e(TAG, e.toString())
+            CXLogger.e(TAG, e.toString())
             null
         }
 
@@ -44,7 +44,7 @@ internal class TCFProviderImpl(context: Context) : TCFProvider {
             }
         } catch (e: Exception) {
             // In case value wasn't int, handle exception gracefully.
-            CloudXLogger.e(TAG, e.toString())
+            CXLogger.e(TAG, e.toString())
             null
         }
     }

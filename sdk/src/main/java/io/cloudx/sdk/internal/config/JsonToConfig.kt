@@ -3,7 +3,7 @@ package io.cloudx.sdk.internal.config
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.CLXError
 import io.cloudx.sdk.internal.CLXErrorCode
-import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.toAdNetwork
 import io.cloudx.sdk.internal.toBundle
 import io.cloudx.sdk.internal.util.Result
@@ -50,7 +50,7 @@ internal suspend fun jsonToConfig(json: String): Result<Config, CLXError> =
             )
         } catch (e: Exception) {
             val errStr = e.toString()
-            CloudXLogger.e(component = "jsonToConfig", message = errStr)
+            CXLogger.e(component = "jsonToConfig", message = errStr)
 
             Result.Failure(CLXError(CLXErrorCode.INVALID_RESPONSE))
         }
@@ -163,7 +163,7 @@ private fun JSONArray.toPlacements(): Map<String, Config.Placement> {
             )
 
             else -> {
-                CloudXLogger.w("JSONArray.toPlacements()", "unknown placement type: $placementType")
+                CXLogger.w("JSONArray.toPlacements()", "unknown placement type: $placementType")
                 null
             }
         }

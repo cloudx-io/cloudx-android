@@ -8,7 +8,7 @@ import io.cloudx.sdk.internal.ads.fullscreen.rewarded.RewardedInterstitialManage
 import io.cloudx.sdk.CloudXRewardedInterstitialListener
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.ads.banner.BannerManager
-import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.adapter.BannerFactoryMiscParams
 import io.cloudx.sdk.internal.bid.BidApi
 import io.cloudx.sdk.internal.cdp.CdpApi
@@ -170,7 +170,7 @@ internal class AdFactoryImpl(
     )
 
     private fun logCantFindPlacement(placement: String) {
-        CloudXLogger.w(TAG, "can't create $placement placement: missing in SDK Config")
+        CXLogger.w(TAG, "can't create $placement placement: missing in SDK Config")
     }
 }
 

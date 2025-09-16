@@ -1,6 +1,6 @@
 package io.cloudx.sdk.internal.config
 
-import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.CXLogger
 import kotlin.random.Random
 
 /**
@@ -23,9 +23,9 @@ internal object ResolvedEndpoints {
         geoEndpoint = config.geoDataEndpointUrl ?: ""
 
         // AB test configs
-        CloudXLogger.d("Endpoints", "================")
+        CXLogger.d("Endpoints", "================")
         val randomValue = random.nextDouble()
-        CloudXLogger.d("Endpoints", "Generated random value: $randomValue")
+        CXLogger.d("Endpoints", "Generated random value: $randomValue")
 
         val tests = listOfNotNull(
             config.auctionEndpointUrl.test?.firstOrNull { it.value.isNotEmpty() }?.let {
@@ -37,7 +37,7 @@ internal object ResolvedEndpoints {
         )
 
         if (tests.isEmpty()) {
-            CloudXLogger.d("Endpoints", "No valid test variants found, using defaults")
+            CXLogger.d("Endpoints", "No valid test variants found, using defaults")
             assignDefaults(config)
             return
         }
@@ -91,16 +91,16 @@ internal object ResolvedEndpoints {
     }
 
     private fun logEndpoints() {
-        CloudXLogger.d("Endpoints", "Resolved Endpoints:")
-        CloudXLogger.d(
+        CXLogger.d("Endpoints", "Resolved Endpoints:")
+        CXLogger.d(
             "Endpoints",
             "auction: ${auctionEndpoint.take(30)}${if (auctionEndpoint.length > 30) "..." else ""}"
         )
-        CloudXLogger.d(
+        CXLogger.d(
             "Endpoints",
             "cdp: ${cdpEndpoint.take(30)}${if (cdpEndpoint.length > 30) "..." else ""}"
         )
-        CloudXLogger.d("Endpoints", "================")
+        CXLogger.d("Endpoints", "================")
     }
 
     private data class TestCase(

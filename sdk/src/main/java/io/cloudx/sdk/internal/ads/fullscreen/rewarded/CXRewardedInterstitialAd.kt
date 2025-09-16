@@ -4,7 +4,7 @@ import io.cloudx.sdk.CloudXAdError
 import io.cloudx.sdk.CloudXIsAdLoadedListener
 import io.cloudx.sdk.CloudXRewardedInterstitialAd
 import io.cloudx.sdk.CloudXRewardedInterstitialListener
-import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.ads.AdFactory
 import io.cloudx.sdk.internal.CXSdk
 import io.cloudx.sdk.internal.initialization.InitializationState
@@ -50,7 +50,7 @@ internal class CXRewardedInterstitialAd(
         }
 
         if (CXSdk.initState.value is InitializationState.Uninitialized) {
-            CloudXLogger.e(TAG, "CloudX SDK is uninitialized")
+            CXLogger.e(TAG, "CloudX SDK is uninitialized")
             listener?.onAdLoadFailed(CloudXAdError("CloudX SDK is uninitialized"))
         }
     }
@@ -62,7 +62,7 @@ internal class CXRewardedInterstitialAd(
         }
 
         if (CXSdk.initState.value is InitializationState.Uninitialized) {
-            CloudXLogger.e(TAG, "CloudX SDK is uninitialized")
+            CXLogger.e(TAG, "CloudX SDK is uninitialized")
             listener?.onAdDisplayFailed(CloudXAdError("CloudX SDK is uninitialized"))
         }
     }

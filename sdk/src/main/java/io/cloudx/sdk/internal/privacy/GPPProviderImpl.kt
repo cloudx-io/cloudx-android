@@ -4,7 +4,7 @@ import android.content.Context
 import android.preference.PreferenceManager
 import android.util.Base64
 import io.cloudx.sdk.internal.ApplicationContext
-import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.CXLogger
 
 internal interface GPPProvider {
     fun gppString(): String?
@@ -27,7 +27,7 @@ private class GPPProviderImpl(context: Context) : GPPProvider {
         return try {
             sharedPrefs.getString(IABGPP_GppString, null)?.takeIf { it.isNotBlank() }
         } catch (e: Exception) {
-            CloudXLogger.e(TAG, "Failed to read GPP string: ${e.message}")
+            CXLogger.e(TAG, "Failed to read GPP string: ${e.message}")
             null
         }
     }
@@ -42,7 +42,7 @@ private class GPPProviderImpl(context: Context) : GPPProvider {
                 ?.sorted()
                 ?.takeIf { it.isNotEmpty() }
         } catch (e: Exception) {
-            CloudXLogger.e(TAG, "Failed to read or parse GPP SID: ${e.message}")
+            CXLogger.e(TAG, "Failed to read or parse GPP SID: ${e.message}")
             null
         }
     }
@@ -87,7 +87,7 @@ private class GPPProviderImpl(context: Context) : GPPProvider {
                 sharingOptOut = sharingOptOut
             )
         } catch (e: Exception) {
-            CloudXLogger.e(TAG, "US-CA decode failed: ${e.message}")
+            CXLogger.e(TAG, "US-CA decode failed: ${e.message}")
             null
         }
     }
@@ -112,7 +112,7 @@ private class GPPProviderImpl(context: Context) : GPPProvider {
                 sharingOptOut = sharingOptOutEffective
             )
         } catch (e: Exception) {
-            CloudXLogger.e(TAG, "US-National decode failed: ${e.message}")
+            CXLogger.e(TAG, "US-National decode failed: ${e.message}")
             null
         }
     }

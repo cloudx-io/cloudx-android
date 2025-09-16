@@ -4,7 +4,7 @@ import io.cloudx.sdk.CloudX
 import io.cloudx.sdk.CloudXAd
 import io.cloudx.sdk.CloudXAdListener
 import io.cloudx.sdk.CloudXRewardedInterstitialListener
-import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.CXLogger
 
 class RewardedFragment : FullPageAdFragment() {
 
@@ -12,7 +12,7 @@ class RewardedFragment : FullPageAdFragment() {
         placementName,
         object : CloudXRewardedInterstitialListener, CloudXAdListener by listener {
             override fun onUserRewarded(cloudXAd: CloudXAd) {
-                CloudXLogger.i(
+                CXLogger.i(
                     logTag,
                     "REWARD; placement: $placementName; network: ${cloudXAd.bidderName}"
                 )

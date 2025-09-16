@@ -7,7 +7,7 @@ import io.cloudx.sdk.Destroyable
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.CLXError
-import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.adapter.BannerFactoryMiscParams
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterFactory
@@ -98,7 +98,7 @@ private class BannerManagerImpl(
 
                 metricsTracker.trackMethodCall(MetricsType.Method.BannerRefresh)
 
-                CloudXLogger.d(
+                CXLogger.d(
                     TAG,
                     placementName,
                     placementId,
@@ -115,7 +115,7 @@ private class BannerManagerImpl(
             return
         }
 
-        CloudXLogger.d(TAG, placementName, placementId, "Loading backup banner")
+        CXLogger.d(TAG, placementName, placementId, "Loading backup banner")
         backupBannerLoadJob = scope.launch {
             /**
              * Each returned banner from this method should be already attached to the BannerContainer in CloudXAdView.
@@ -137,12 +137,12 @@ private class BannerManagerImpl(
     }
 
     private fun preserveBackupBanner(banner: BannerAdapterDelegate) {
-        CloudXLogger.d(TAG, placementName, placementId, "Backup banner loaded and ready")
+        CXLogger.d(TAG, placementName, placementId, "Backup banner loaded and ready")
 
         backupBannerErrorHandlerJob?.cancel()
         backupBannerErrorHandlerJob = scope.launch {
             val error = banner.lastErrorEvent.first { it != null }
-            CloudXLogger.w(
+            CXLogger.w(
                 TAG,
                 placementName,
                 placementId,
@@ -158,7 +158,7 @@ private class BannerManagerImpl(
 
         with(backupBanner) {
             value?.successOrNull()?.let {
-                CloudXLogger.d(TAG, placementName, placementId, "Destroying backup banner")
+                CXLogger.d(TAG, placementName, placementId, "Destroying backup banner")
                 it.destroy()
             }
             value = null
@@ -178,7 +178,7 @@ private class BannerManagerImpl(
 
     // Current banner management methods
     private fun showNewBanner(banner: BannerAdapterDelegate) {
-        CloudXLogger.d(TAG, placementName, placementId, "Displaying new banner")
+        CXLogger.d(TAG, placementName, placementId, "Displaying new banner")
         listener?.onAdDisplayed(banner)
 
         currentBanner = banner
@@ -187,13 +187,13 @@ private class BannerManagerImpl(
         currentBannerEventHandlerJob = scope.launch {
             launch {
                 banner.event.filter { it == BannerAdapterDelegateEvent.Click }.collect {
-                    CloudXLogger.i(TAG, placementName, placementId, "Banner clicked by user")
+                    CXLogger.i(TAG, placementName, placementId, "Banner clicked by user")
                     listener?.onAdClicked(banner)
                 }
             }
             launch {
                 val error = banner.lastErrorEvent.first { it != null }
-                CloudXLogger.w(
+                CXLogger.w(
                     TAG,
                     placementName,
                     placementId,
@@ -207,7 +207,7 @@ private class BannerManagerImpl(
 
     private fun hideAndDestroyCurrentBanner() {
         currentBanner?.let {
-            CloudXLogger.d(TAG, placementName, placementId, "Hiding current banner")
+            CXLogger.d(TAG, placementName, placementId, "Hiding current banner")
             listener?.onAdHidden(it)
         }
         destroyCurrentBanner()
@@ -217,7 +217,7 @@ private class BannerManagerImpl(
         currentBannerEventHandlerJob?.cancel()
 
         currentBanner?.let {
-            CloudXLogger.d(TAG, placementName, placementId, "Destroying current banner")
+            CXLogger.d(TAG, placementName, placementId, "Destroying current banner")
             it.destroy()
         }
         currentBanner = null

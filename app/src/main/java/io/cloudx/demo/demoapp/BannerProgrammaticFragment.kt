@@ -19,7 +19,7 @@ import io.cloudx.sdk.CloudX
 import io.cloudx.sdk.CloudXAdView
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.AdViewSize
-import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.CXLogger
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 
@@ -104,12 +104,12 @@ abstract class BannerProgrammaticFragment: Fragment(R.layout.fragment_banner_pro
             if (placementName.isNullOrBlank()) return@forEachIndexed
             val bannerAdView = createAdView(requireActivity(), placementName, createBannerListener(placementName))
             if (bannerAdView == null) {
-                CloudXLogger.e(
+                CXLogger.e(
                     logTag,
                     "Can't create banner ad: SDK is not initialized or $placementName placement is missing in SDK config"
                 )
             } else {
-                CloudXLogger.i(logTag, "Banner ad created for \"$placementName\" placement")
+                CXLogger.i(logTag, "Banner ad created for \"$placementName\" placement")
                 bannerAdView.visibility = VISIBLE
                 val adContainer = llAds.getChildAt(index) as AdContainerLayout
                 adContainer.addAdView(bannerAdView)
@@ -139,7 +139,7 @@ abstract class BannerProgrammaticFragment: Fragment(R.layout.fragment_banner_pro
                 )
             )
         }
-        CloudXLogger.i(logTag, "Banner ads destroyed for placements: ${placements.joinToString()}")
+        CXLogger.i(logTag, "Banner ads destroyed for placements: ${placements.joinToString()}")
     }
 
     override fun onDestroyView() {
@@ -152,11 +152,11 @@ abstract class BannerProgrammaticFragment: Fragment(R.layout.fragment_banner_pro
             logTag = logTag, placementName = placementName
         ) {
             override fun onAdExpanded(placementName: String) {
-                CloudXLogger.i(logTag, "Ad expanded by user: $placementName")
+                CXLogger.i(logTag, "Ad expanded by user: $placementName")
             }
 
             override fun onAdCollapsed(placementName: String) {
-                CloudXLogger.i(logTag, "Ad closed by user: $placementName")
+                CXLogger.i(logTag, "Ad closed by user: $placementName")
                 destroyBanners()
             }
         }

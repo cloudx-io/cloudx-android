@@ -1,15 +1,16 @@
-package io.cloudx.sdk.internal.network
+package io.cloudx.sdk.internal.httpclient
 
 import io.cloudx.sdk.internal.CLOUDX_DEFAULT_RETRY_MS
 import io.cloudx.sdk.internal.CLXError
 import io.cloudx.sdk.internal.CLXErrorCode
-import io.cloudx.sdk.internal.CloudXLogger
-import io.cloudx.sdk.internal.requestTimeoutMillis
+import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.util.Result
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.client.plugins.ServerResponseException
 import io.ktor.client.plugins.retry
+import io.ktor.client.plugins.timeout
+import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
@@ -22,6 +23,9 @@ import io.ktor.http.contentType
 import java.io.IOException
 import kotlin.coroutines.cancellation.CancellationException
 
+internal fun HttpRequestBuilder.requestTimeoutMillis(millis: Long) =
+    timeout { requestTimeoutMillis = millis }
+
 /** POST JSON with common headers, timeout and retry policy. */
 internal suspend fun HttpClient.postJsonWithRetry(
     url: String,
@@ -32,7 +36,7 @@ internal suspend fun HttpClient.postJsonWithRetry(
     tag: String,
     extraRetryPredicate: (HttpResponse) -> Boolean = { it.status == HttpStatusCode.TooManyRequests }
 ): HttpResponse {
-    CloudXLogger.d(tag, "HTTP → POST $url\nBody: $jsonBody")
+    CXLogger.d(tag, "HTTP → POST $url\nBody: $jsonBody")
     return this.post(url) {
         headers { append("Authorization", "Bearer $appKey") }
         contentType(ContentType.Application.Json)
@@ -76,7 +80,7 @@ internal suspend inline fun <T> HttpResponse.mapToResult(
     crossinline onNoContent: suspend (resp: HttpResponse, body: String) -> Result<T, CLXError>
 ): Result<T, CLXError> {
     val body = bodyAsText()
-    CloudXLogger.d(tag, "HTTP ← ${status.value}\n$body")
+    CXLogger.d(tag, "HTTP ← ${status.value}\n$body")
     return when (status) {
         HttpStatusCode.OK -> onOk(body)
         HttpStatusCode.NoContent -> onNoContent(this, body)
@@ -103,7 +107,7 @@ internal suspend fun HttpClient.getWithRetry(
     tag: String,
     extraRetryPredicate: (HttpResponse) -> Boolean = { it.status == HttpStatusCode.TooManyRequests }
 ): HttpResponse {
-    CloudXLogger.d(tag, "HTTP → GET $url")
+    CXLogger.d(tag, "HTTP → GET $url")
     return this.get(url) {
         headers { append("Authorization", "Bearer $appKey") }
         requestTimeoutMillis(timeoutMillis)

@@ -3,18 +3,16 @@ package io.cloudx.sdk.internal.bid
 import android.os.Bundle
 import io.cloudx.sdk.internal.AdNetwork
 
-internal data class NoBidResponse(val id: String, val noBidResponseCode: Int, val ext: String?)
-
-internal class BidResponse(
+internal data class BidResponse(
     val auctionId: String,
     val seatBid: List<SeatBid>,
 )
 
-internal class SeatBid(
+internal data class SeatBid(
     val bid: List<Bid>,
 )
 
-internal class Bid(
+internal data class Bid(
     val id: String,
     val adm: String,
     val price: Float?,

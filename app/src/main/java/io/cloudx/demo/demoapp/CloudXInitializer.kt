@@ -8,7 +8,7 @@ import io.cloudx.sdk.CloudXInitializationListener
 import io.cloudx.sdk.CloudXInitializationParams
 import io.cloudx.sdk.CloudXInitializationServer
 import io.cloudx.sdk.CloudXPrivacy
-import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.CXLogger
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
@@ -33,14 +33,14 @@ object CloudXInitializer {
                 isUserConsent = settings.gdprConsent,
                 isAgeRestrictedUser = settings.ageRestricted
             ).also {
-                CloudXLogger.i(logTag, "CloudX privacy set: $it")
+                CXLogger.i(logTag, "CloudX privacy set: $it")
             }
         )
 
         val userEmail = settings.userEmail
         val hashedUserId = if (userEmail.isNotBlank()) {
             normalizeAndHash(userEmail, "sha256").also {
-                CloudXLogger.i(logTag, "Using hashed user ID: $it")
+                CXLogger.i(logTag, "Using hashed user ID: $it")
             }
         } else {
             null

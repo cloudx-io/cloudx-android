@@ -2,7 +2,7 @@ package io.cloudx.sdk.internal.ads
 
 import io.cloudx.sdk.internal.CLXError
 import io.cloudx.sdk.internal.CLXErrorCode
-import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.bid.LossReason
 import io.cloudx.sdk.internal.bid.LossTracker
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
@@ -59,7 +59,7 @@ internal class AdLoader<T : CXAdapterDelegate>(
             val ad = loadAd(bidAdLoadTimeoutMillis, bidItem.createBidAd)
 
             if (ad != null) {
-                CloudXLogger.i(
+                CXLogger.i(
                     TAG, placementName, placementId,
                     "Loaded: ${bidItem.adNetworkOriginal.networkName} (rank=${bidItem.rank})"
                 )
@@ -67,7 +67,7 @@ internal class AdLoader<T : CXAdapterDelegate>(
                 winnerIndex = index
                 break
             } else {
-                CloudXLogger.w(
+                CXLogger.w(
                     TAG, placementName, placementId,
                     "Failed: ${bidItem.adNetworkOriginal.networkName} (rank=${bidItem.rank})"
                 )
@@ -105,7 +105,7 @@ internal class AdLoader<T : CXAdapterDelegate>(
 
         var loaded = false
         return try {
-            CloudXLogger.d(
+            CXLogger.d(
                 TAG,
                 placementName,
                 placementId,
@@ -117,11 +117,11 @@ internal class AdLoader<T : CXAdapterDelegate>(
             }
             if (loaded) ad else null
         } catch (e: TimeoutCancellationException) {
-            CloudXLogger.w(TAG, placementName, placementId, "Load timeout ${timeoutMs}ms", e)
+            CXLogger.w(TAG, placementName, placementId, "Load timeout ${timeoutMs}ms", e)
             ad.timeout()
             null
         } catch (e: Exception) {
-            CloudXLogger.e(TAG, placementName, placementId, "Load failed", e)
+            CXLogger.e(TAG, placementName, placementId, "Load failed", e)
             null
         } finally {
             if (!loaded) ad.destroy()

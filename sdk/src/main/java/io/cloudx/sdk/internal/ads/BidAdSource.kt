@@ -5,7 +5,7 @@ import com.xor.XorEncryption
 import io.cloudx.sdk.Destroyable
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.CLXError
-import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.PlacementLoopIndexTracker
 import io.cloudx.sdk.internal.bid.BidApi
 import io.cloudx.sdk.internal.bid.BidRequestProvider
@@ -96,31 +96,31 @@ private class BidAdSourceImpl<T : Destroyable>(
 
         val currentLoopIndex = PlacementLoopIndexTracker.getCount(bidRequestParams.placementName)
 
-        CloudXLogger.d(logTag, "")
-        CloudXLogger.d(logTag, "======== loop-index=$currentLoopIndex")
-        CloudXLogger.d(logTag, "")
+        CXLogger.d(logTag, "")
+        CXLogger.d(logTag, "======== loop-index=$currentLoopIndex")
+        CXLogger.d(logTag, "")
 // User Params
         val userParams = SdkKeyValueState.userKeyValues
-        CloudXLogger.d(logTag, "user params: $userParams")
+        CXLogger.d(logTag, "user params: $userParams")
 
         val appParams = SdkKeyValueState.appKeyValues
-        CloudXLogger.d(logTag, "app params: $appParams")
+        CXLogger.d(logTag, "app params: $appParams")
 
         val isCdpDisabled = ResolvedEndpoints.cdpEndpoint.isBlank()
 
         val enrichedPayload = if (isCdpDisabled) {
-            CloudXLogger.d(logTag, "Skipping enrichment.")
+            CXLogger.d(logTag, "Skipping enrichment.")
             bidRequestParamsJson
         } else {
-            CloudXLogger.d(logTag, "Making a call to CDP")
+            CXLogger.d(logTag, "Making a call to CDP")
             when (val enrichResult = cdpApi.enrich(bidRequestParamsJson)) {
                 is Result.Success -> {
-                    CloudXLogger.d(logTag, "Received enriched data from CDP")
+                    CXLogger.d(logTag, "Received enriched data from CDP")
                     enrichResult.value
                 }
 
                 is Result.Failure -> {
-                    CloudXLogger.e(
+                    CXLogger.e(
                         logTag,
                         "CDP enrichment failed: ${enrichResult.value.effectiveMessage}. Using original payload."
                     )
@@ -129,7 +129,7 @@ private class BidAdSourceImpl<T : Destroyable>(
             }
         }
 
-        CloudXLogger.d(
+        CXLogger.d(
             logTag,
             "Sending BidRequest [loop-index=$currentLoopIndex] for placementId: ${bidRequestParams.placementId}"
         )

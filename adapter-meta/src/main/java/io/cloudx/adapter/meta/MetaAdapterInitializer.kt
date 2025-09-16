@@ -5,7 +5,7 @@ import android.os.Bundle
 import androidx.annotation.Keep
 import com.facebook.ads.AudienceNetworkAds
 import io.cloudx.sdk.CloudXPrivacy
-import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.adapter.CloudXAdapterInitializationResult
 import io.cloudx.sdk.internal.adapter.CloudXAdapterInitializer
 import kotlinx.coroutines.Dispatchers
@@ -23,7 +23,7 @@ internal object Initializer : CloudXAdapterInitializer {
         privacy: StateFlow<CloudXPrivacy>
     ): CloudXAdapterInitializationResult = withContext(Dispatchers.Main) {
         if (isInitialized) {
-            CloudXLogger.d(TAG, "Meta SDK already initialized")
+            CXLogger.d(TAG, "Meta SDK already initialized")
             return@withContext CloudXAdapterInitializationResult.Success
         }
 
@@ -32,7 +32,7 @@ internal object Initializer : CloudXAdapterInitializer {
         suspendCancellableCoroutine<CloudXAdapterInitializationResult> { continuation ->
             val initListener = AudienceNetworkAds.InitListener { initResult ->
                 if (initResult.isSuccess) {
-                    CloudXLogger.d(
+                    CXLogger.d(
                         TAG,
                         "Meta SDK successfully finished initialization: ${initResult.message}"
                     )
@@ -43,10 +43,10 @@ internal object Initializer : CloudXAdapterInitializer {
                     try {
                         continuation.resume(CloudXAdapterInitializationResult.Success)
                     } catch (e: Exception) {
-                        CloudXLogger.w(TAG, "Continuation resumed more than once", e)
+                        CXLogger.w(TAG, "Continuation resumed more than once", e)
                     }
                 } else {
-                    CloudXLogger.e(
+                    CXLogger.e(
                         TAG,
                         "Meta SDK failed to finish initialization: ${initResult.message}"
                     )
@@ -56,10 +56,10 @@ internal object Initializer : CloudXAdapterInitializer {
 
             val placementIds = serverExtras.getPlacementIds()
             if (placementIds.isEmpty()) {
-                CloudXLogger.w(TAG, "No placement IDs found for Meta adapter initialization")
+                CXLogger.w(TAG, "No placement IDs found for Meta adapter initialization")
             }
 
-            CloudXLogger.d(
+            CXLogger.d(
                 TAG,
                 "Initializing Meta Audience Network SDK with placement IDs: $placementIds"
             )

@@ -9,7 +9,7 @@ import com.facebook.ads.AdListener
 import com.facebook.ads.AdSize
 import com.facebook.ads.AdView
 import io.cloudx.sdk.internal.AdViewSize
-import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.adapter.BannerFactoryMiscParams
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapter
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
@@ -63,12 +63,12 @@ internal class MetaBannerAdapter(
     override fun load() {
         val placementId = serverExtras.getPlacementId()
         if (placementId == null) {
-            CloudXLogger.e(TAG, "Placement ID is null")
+            CXLogger.e(TAG, "Placement ID is null")
             listener?.onError(CloudXAdapterError(description = "Placement ID is null"))
             return
         }
 
-        CloudXLogger.d(TAG, "Loading banner ad for placement: $placementId")
+        CXLogger.d(TAG, "Loading banner ad for placement: $placementId")
         val adView = AdView(
             activity,
             placementId,
@@ -78,7 +78,7 @@ internal class MetaBannerAdapter(
 
         with(adView) {
             adViewContainer.onAdd(this)
-            CloudXLogger.d(TAG, "Starting to load banner ad for placement: $placementId")
+            CXLogger.d(TAG, "Starting to load banner ad for placement: $placementId")
 
             loadAd(
                 buildLoadAdConfig()
@@ -90,7 +90,7 @@ internal class MetaBannerAdapter(
     }
 
     override fun destroy() {
-        CloudXLogger.d(TAG, "Destroying banner ad for placement: ${serverExtras.getPlacementId()}")
+        CXLogger.d(TAG, "Destroying banner ad for placement: ${serverExtras.getPlacementId()}")
         adView?.let {
             it.destroy()
             adViewContainer.onRemove(it)
@@ -105,7 +105,7 @@ internal class MetaBannerAdapter(
     ) = object : AdListener {
 
         override fun onError(ad: Ad?, adError: AdError?) {
-            CloudXLogger.e(
+            CXLogger.e(
                 TAG,
                 "Banner ad failed to load for placement $placementId with error: ${adError?.errorMessage} (${adError?.errorCode})"
             )
@@ -117,17 +117,17 @@ internal class MetaBannerAdapter(
         }
 
         override fun onAdLoaded(ad: Ad?) {
-            CloudXLogger.d(TAG, "Banner ad loaded successfully for placement: $placementId")
+            CXLogger.d(TAG, "Banner ad loaded successfully for placement: $placementId")
             listener?.onLoad()
         }
 
         override fun onAdClicked(ad: Ad?) {
-            CloudXLogger.d(TAG, "Banner ad clicked for placement: $placementId")
+            CXLogger.d(TAG, "Banner ad clicked for placement: $placementId")
             listener?.onClick()
         }
 
         override fun onLoggingImpression(ad: Ad?) {
-            CloudXLogger.d(TAG, "Banner ad impression logged for placement: $placementId")
+            CXLogger.d(TAG, "Banner ad impression logged for placement: $placementId")
             listener?.onShow()
             listener?.onImpression()
         }

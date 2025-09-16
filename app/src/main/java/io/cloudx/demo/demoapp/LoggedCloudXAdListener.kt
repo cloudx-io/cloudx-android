@@ -3,7 +3,7 @@ package io.cloudx.demo.demoapp
 import io.cloudx.sdk.CloudXAdListener
 import io.cloudx.sdk.CloudXAd
 import io.cloudx.sdk.CloudXAdError
-import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.CXLogger
 
 class LoggedCloudXAdListener(
     private val logTag: String,
@@ -11,14 +11,14 @@ class LoggedCloudXAdListener(
 ) : CloudXAdListener {
 
     override fun onAdLoaded(cloudXAd: CloudXAd) {
-        CloudXLogger.i(
+        CXLogger.i(
             logTag,
             "Load Success; placement: $placementName; network: ${cloudXAd.bidderName}"
         )
     }
 
     override fun onAdLoadFailed(cloudXAdError: CloudXAdError) {
-        CloudXLogger.i(logTag, "LOAD FAILED; placement: $placementName;")
+        CXLogger.i(logTag, "LOAD FAILED; placement: $placementName;")
     }
 
     override fun onAdDisplayed(cloudXAd: CloudXAd) {
@@ -29,7 +29,7 @@ class LoggedCloudXAdListener(
     }
 
     override fun onAdDisplayFailed(cloudXAdError: CloudXAdError) {
-        CloudXLogger.i(logTag, "SHOW FAILED; placement: $placementName;")
+        CXLogger.i(logTag, "SHOW FAILED; placement: $placementName;")
     }
 
     override fun onAdHidden(cloudXAd: CloudXAd) {
@@ -40,7 +40,7 @@ class LoggedCloudXAdListener(
     }
 
     override fun onAdClicked(cloudXAd: CloudXAd) {
-        CloudXLogger.i(
+        CXLogger.i(
             logTag,
             "Ad clicked; placement: $placementName; network: ${cloudXAd.bidderName}"
         )

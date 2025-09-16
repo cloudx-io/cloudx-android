@@ -4,8 +4,8 @@ import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import io.cloudx.demo.demoapp.INIT_SUCCESS
-import io.cloudx.sdk.internal.CloudXLogger
-import io.cloudx.sdk.internal.common.utcNowEpochMillis
+import io.cloudx.sdk.internal.CXLogger
+import io.cloudx.sdk.internal.util.utcNowEpochMillis
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -24,7 +24,7 @@ fun setupLogListView(
     val adapter = RecyclerViewLogAdapter(recyclerView)
     recyclerView.adapter = adapter
 
-    CloudXLogger.logFlow.map { logItem ->
+    CXLogger.logFlow.map { logItem ->
         logTagMappingRule(logItem.tag)?.let { tag ->
             logItem.copy(tag = tag)
         }
@@ -39,10 +39,10 @@ class LogListItem(
     val time: String,
     // Special highlighting for such logs (initialization success, for example)
     val isSuccessLog: Boolean,
-    val logEntry: CloudXLogger.LogEntry
+    val logEntry: CXLogger.LogEntry
 )
 
-private fun CloudXLogger.LogEntry.toLogListItem(): LogListItem {
+private fun CXLogger.LogEntry.toLogListItem(): LogListItem {
     return LogListItem(
         time = now(),
         // TODO. As ugly as it gets.

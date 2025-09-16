@@ -8,7 +8,7 @@ import androidx.webkit.WebViewClientCompat
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.flow.combine
-import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.CXLogger
 
 // TODO. Ugly. Duplication of VastWebView.
 //  Review settings during webview build/init.
@@ -57,7 +57,7 @@ internal class StaticWebView(
             try {
                 loadDataWithDefaultBaseUrl(applyCSSRenderingFix(html))
             } catch (e: Exception) {
-                CloudXLogger.e(message = e.toString())
+                CXLogger.e(message = e.toString())
             }
 
             // Aahahah.
@@ -115,7 +115,7 @@ private class WebViewClientImpl(
     ) {
         super.onReceivedError(view, errorCode, description, failingUrl)
         _hasUnrecoverableError.value = true
-        CloudXLogger.e(TAG, "onReceivedError $description")
+        CXLogger.e(TAG, "onReceivedError $description")
     }
 
     override fun onRenderProcessGone(
@@ -127,7 +127,7 @@ private class WebViewClientImpl(
         // Basically, then webview will be destroyed externally after this, which, ideally, isn't known here.
         // But who cares, plus deadlines.
         _hasUnrecoverableError.value = true
-        CloudXLogger.e(TAG, "onRenderProcessGone")
+        CXLogger.e(TAG, "onRenderProcessGone")
         return true
     }
 

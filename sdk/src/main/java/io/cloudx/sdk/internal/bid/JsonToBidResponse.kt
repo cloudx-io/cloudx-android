@@ -4,7 +4,7 @@ import android.os.Bundle
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.CLXError
 import io.cloudx.sdk.internal.CLXErrorCode
-import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.toAdNetwork
 import io.cloudx.sdk.internal.toBundle
 import io.cloudx.sdk.internal.util.Result
@@ -20,7 +20,7 @@ internal suspend fun jsonToBidResponse(json: String): Result<BidResponse, CLXErr
 
             if (!root.has("seatbid")) {
                 val errorJson = root.optJSONObject("ext")?.optJSONObject("errors")?.toString()
-                CloudXLogger.d(
+                CXLogger.d(
                     "jsonToBidResponse",
                     "No seatbid — interpreting as no-bid. Ext errors: $errorJson"
                 )
@@ -30,7 +30,7 @@ internal suspend fun jsonToBidResponse(json: String): Result<BidResponse, CLXErr
             Result.Success(root.toBidResponse())
         } catch (e: Exception) {
             val errStr = e.toString()
-            CloudXLogger.e(component = "jsonToBidResponse", message = errStr)
+            CXLogger.e(component = "jsonToBidResponse", message = errStr)
             Result.Failure(CLXError(CLXErrorCode.INVALID_RESPONSE))
         }
     }

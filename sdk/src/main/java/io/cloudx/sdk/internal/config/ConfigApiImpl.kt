@@ -3,12 +3,12 @@ package io.cloudx.sdk.internal.config
 import io.cloudx.sdk.CloudXInitializationServer
 import io.cloudx.sdk.internal.CLXError
 import io.cloudx.sdk.internal.CLXErrorCode
-import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.HEADER_CLOUDX_STATUS
 import io.cloudx.sdk.internal.STATUS_ADS_DISABLED
 import io.cloudx.sdk.internal.STATUS_SDK_DISABLED
-import io.cloudx.sdk.internal.network.httpCatching
-import io.cloudx.sdk.internal.network.postJsonWithRetry
+import io.cloudx.sdk.internal.httpclient.httpCatching
+import io.cloudx.sdk.internal.httpclient.postJsonWithRetry
 import io.cloudx.sdk.internal.util.Result
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.Dispatchers
@@ -38,7 +38,7 @@ internal class ConfigApiImpl(
         }
     ) {
         val body = withContext(Dispatchers.IO) {
-            configRequest.toJson().also { CloudXLogger.d(tag, "Serialized body (${it.length} chars)") }
+            configRequest.toJson().also { CXLogger.d(tag, "Serialized body (${it.length} chars)") }
         }
         httpClient.postJsonWithRetry(
             url = initServer.url,

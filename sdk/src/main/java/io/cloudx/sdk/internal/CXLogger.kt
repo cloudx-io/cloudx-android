@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 /**
  * Modern, performant logger for CloudX SDK
  */
-object CloudXLogger {
+object CXLogger {
 
     private const val TAG_PREFIX = "CX"
     internal const val DEFAULT_COMPONENT = "SDK"

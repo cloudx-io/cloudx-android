@@ -10,7 +10,7 @@ import io.cloudx.demo.demoapp.loglistview.setupLogListView
 import io.cloudx.sdk.CloudXAdListener
 import io.cloudx.sdk.CloudXFullscreenAd
 import io.cloudx.sdk.CloudXIsAdLoadedListener
-import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.CXLogger
 
 abstract class FullPageAdFragment : Fragment(R.layout.fragment_fullscreen_ad) {
 
@@ -36,12 +36,12 @@ abstract class FullPageAdFragment : Fragment(R.layout.fragment_fullscreen_ad) {
             if (ad != null) return@repeatOnStart
             ad = createAd(LoggedCloudXAdListener(logTag, placementName))
             if (ad == null) {
-                CloudXLogger.e(
+                CXLogger.e(
                     logTag,
                     "can't create $adType ad: $placementName placement is missing in SDK config"
                 )
             } else {
-                CloudXLogger.i(
+                CXLogger.i(
                     logTag,
                     "$adType created for $placementName placement"
                 )
@@ -82,7 +82,7 @@ abstract class FullPageAdFragment : Fragment(R.layout.fragment_fullscreen_ad) {
     private fun onLoadClick() {
         val ad = this.ad
         if (ad == null) {
-            CloudXLogger.e(
+            CXLogger.e(
                 logTag,
                 "Can't load: $adType ad wasn't created for placement: $placementName;"
             )
@@ -95,7 +95,7 @@ abstract class FullPageAdFragment : Fragment(R.layout.fragment_fullscreen_ad) {
     private fun onShowClick() {
         val ad = this.ad
         if (ad == null) {
-            CloudXLogger.e(
+            CXLogger.e(
                 logTag,
                 "Can't show: $adType ad wasn't created for placement: $placementName;"
             )

@@ -38,7 +38,6 @@ internal fun BidRequestProvider.Params.withEffectivePlacementId(): String {
     return placementId
 }
 
-
 internal fun BidRequestProvider(
     bidRequestExtrasProviders: Map<AdNetwork, CloudXAdapterBidRequestExtrasProvider>
 ) = BidRequestProviderImpl(

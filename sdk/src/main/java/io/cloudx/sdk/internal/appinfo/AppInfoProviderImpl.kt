@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.os.Build
-import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.CXLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -35,7 +35,7 @@ internal class AppInfoProviderImpl(
                 }
             }
         } catch (e: Exception) {
-            CloudXLogger.e(tag, e.toString())
+            CXLogger.e(tag, e.toString())
             AppInfo("", "", "")
         }
 

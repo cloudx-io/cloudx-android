@@ -5,7 +5,7 @@ import io.cloudx.adapter.meta.enableMetaAudienceNetworkTestMode
 import io.cloudx.sdk.CloudX
 import io.cloudx.sdk.CloudXAdError
 import io.cloudx.sdk.CloudXInitializationListener
-import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.CXLogger
 
 class DemoApplication : Application() {
 
@@ -26,8 +26,8 @@ class DemoApplication : Application() {
         // Get the settings for SDK initialization
         val settings = settings()
 
-        CloudXLogger.i(TAG, "🚀 Auto-initializing CloudX SDK on app startup")
-        CloudXLogger.i(TAG, "AppKey: ${settings.appKey}, Endpoint: ${settings.initUrl}")
+        CXLogger.i(TAG, "🚀 Auto-initializing CloudX SDK on app startup")
+        CXLogger.i(TAG, "AppKey: ${settings.appKey}, Endpoint: ${settings.initUrl}")
 
         // Use the CloudXInitializer which now accepts Context
         CloudXInitializer.initializeCloudX(
@@ -36,11 +36,11 @@ class DemoApplication : Application() {
             logTag = TAG,
             listener = object : CloudXInitializationListener {
                 override fun onInitialized() {
-                    CloudXLogger.i(TAG, "✅ CloudX SDK initialized successfully")
+                    CXLogger.i(TAG, "✅ CloudX SDK initialized successfully")
                 }
 
                 override fun onInitializationFailed(error: CloudXAdError) {
-                    CloudXLogger.i(
+                    CXLogger.i(
                         TAG,
                         "❌ CloudX SDK initialization failed: ${error.description}"
                     )

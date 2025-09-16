@@ -123,7 +123,6 @@ internal class AdFactoryImpl(
             eventTracker = eventTracker,
             metricsTracker = metricsTracker,
             connectionStatusService = connectionStatusService,
-            listener = params.listener,
             accountId = config.accountId ?: "",
             appKey = appKey
         )
@@ -151,7 +150,6 @@ internal class AdFactoryImpl(
             eventTracker = eventTracker,
             metricsTracker = metricsTracker,
             connectionStatusService = connectionStatusService,
-            listener = params.listener,
             accountId = config.accountId ?: "",
             appKey = appKey
         )

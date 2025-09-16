@@ -5,8 +5,8 @@ import io.cloudx.sdk.CloudXIsAdLoadedListener
 import io.cloudx.sdk.CloudXRewardedInterstitialAd
 import io.cloudx.sdk.CloudXRewardedInterstitialListener
 import io.cloudx.sdk.internal.CXLogger
-import io.cloudx.sdk.internal.ads.AdFactory
 import io.cloudx.sdk.internal.CXSdk
+import io.cloudx.sdk.internal.ads.AdFactory
 import io.cloudx.sdk.internal.initialization.InitializationState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
@@ -15,7 +15,6 @@ import kotlinx.coroutines.launch
 
 internal class CXRewardedInterstitialAd(
     private val placementName: String,
-    private val listener: CloudXRewardedInterstitialListener?
 ) : CloudXRewardedInterstitialAd {
 
     private val TAG = "CXRewardedInterstitialAd"
@@ -30,10 +29,17 @@ internal class CXRewardedInterstitialAd(
             rewardedInterstitial = initState.initializationService.adFactory!!.createRewarded(
                 AdFactory.CreateAdParams(placementName, listener)
             )
+            rewardedInterstitial?.listener = listener
             rewardedInterstitial?.setIsAdLoadedListener(isAdLoadedListener)
             rewardedInterstitial?.load()
         }
     }
+
+    override var listener: CloudXRewardedInterstitialListener? = null
+        set(value) {
+            field = value
+            rewardedInterstitial?.listener = value
+        }
 
     override val isAdLoaded: Boolean
         get() = rewardedInterstitial?.isAdLoaded ?: false

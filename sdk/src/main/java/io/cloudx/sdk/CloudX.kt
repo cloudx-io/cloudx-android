@@ -65,7 +65,9 @@ object CloudX {
         listener: CloudXInterstitialListener?
     ): CloudXInterstitialAd? {
         CXSdk.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.CreateInterstitial)
-        return CXInterstitialAd(placementName, listener)
+        return CXInterstitialAd(placementName).apply {
+            this.listener = listener
+        }
     }
 
 
@@ -78,7 +80,9 @@ object CloudX {
         listener: CloudXRewardedInterstitialListener?
     ): CloudXRewardedInterstitialAd? {
         CXSdk.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.CreateRewarded)
-        return CXRewardedInterstitialAd(placementName, listener)
+        return CXRewardedInterstitialAd(placementName).apply {
+            this.listener = listener
+        }
     }
 
     /**

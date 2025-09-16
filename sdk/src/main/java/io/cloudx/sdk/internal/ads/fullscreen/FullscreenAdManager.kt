@@ -22,14 +22,12 @@ import kotlinx.coroutines.launch
 // TODO. Yeah, more generics, classes, interfaces...
 internal class FullscreenAdManager<
         Delegate : FullscreenAdAdapterDelegate<DelegateEvent>,
-        DelegateEvent,
-        Listener : CloudXAdListener>(
+        DelegateEvent>(
     private val adLoader: AdLoader<Delegate>,
     private val placementType: AdType,
-    private val listener: Listener?,
     // Listens to the current ad events and returns FullscreenAdEvent if similar.
-    private val tryHandleCurrentEvent: DelegateEvent.(cloudXAd: CloudXAd) -> FullscreenAdEvent?
-) : CloudXFullscreenAd {
+    private val tryHandleCurrentEvent: DelegateEvent.(cloudXAd: CloudXAd) -> FullscreenAdEvent?,
+) : CloudXFullscreenAd<CloudXAdListener> {
 
     // Core components
     private val scope = CoroutineScope(Dispatchers.Main)
@@ -46,6 +44,8 @@ internal class FullscreenAdManager<
     private var lastShowJobStartedTimeMillis: Long = -1
 
     // Listener management methods
+    override var listener: CloudXAdListener? = null
+
     override fun setIsAdLoadedListener(listener: CloudXIsAdLoadedListener?) {
         isAdLoadedListener = listener
         isAdLoadedListener?.onIsAdLoadedStatusChanged(lastLoadedAd != null)

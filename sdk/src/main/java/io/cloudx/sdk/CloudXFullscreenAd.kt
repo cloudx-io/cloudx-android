@@ -3,7 +3,8 @@ package io.cloudx.sdk
 /**
  * Fullscreen ad interface
  */
-interface CloudXFullscreenAd : Destroyable {
+interface CloudXFullscreenAd<T: CloudXAdListener> : Destroyable {
+    var listener: T?
 
     /**
      * Tells about current ad load status.

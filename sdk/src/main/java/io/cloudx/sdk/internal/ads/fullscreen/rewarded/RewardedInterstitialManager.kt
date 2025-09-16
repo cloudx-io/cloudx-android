@@ -1,6 +1,6 @@
 package io.cloudx.sdk.internal.ads.fullscreen.rewarded
 
-import io.cloudx.sdk.CloudXFullscreenAd
+import io.cloudx.sdk.CloudXIsAdLoadedListener
 import io.cloudx.sdk.CloudXRewardedInterstitialAd
 import io.cloudx.sdk.CloudXRewardedInterstitialListener
 import io.cloudx.sdk.internal.AdNetwork
@@ -19,12 +19,10 @@ import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
 
 private class RewardedInterstitialManager(
     private val adLoader: AdLoader<RewardedInterstitialAdapterDelegate>,
-    private val listener: CloudXRewardedInterstitialListener?,
-) : CloudXRewardedInterstitialAd,
-    CloudXFullscreenAd by FullscreenAdManager(
+) : CloudXRewardedInterstitialAd {
+    val fullscreenAdManager = FullscreenAdManager(
         adLoader = adLoader,
         placementType = AdType.Rewarded,
-        listener = listener,
         tryHandleCurrentEvent = { cloudXAd ->
             when (this) {
                 RewardedInterstitialAdapterDelegateEvent.Show -> FullscreenAdEvent.Show
@@ -39,6 +37,22 @@ private class RewardedInterstitialManager(
             }
         }
     )
+    override var listener: CloudXRewardedInterstitialListener? = null
+        set(value) {
+            field = value
+            fullscreenAdManager.listener = value
+        }
+
+    override val isAdLoaded: Boolean
+        get() = fullscreenAdManager.isAdLoaded
+
+    override fun setIsAdLoadedListener(listener: CloudXIsAdLoadedListener?) =
+        fullscreenAdManager.setIsAdLoadedListener(listener)
+
+    override fun load() = fullscreenAdManager.load()
+    override fun show() = fullscreenAdManager.show()
+    override fun destroy() = fullscreenAdManager.destroy()
+}
 
 internal fun RewardedInterstitialManager(
     placementId: String,
@@ -51,28 +65,27 @@ internal fun RewardedInterstitialManager(
     eventTracker: EventTracker,
     metricsTracker: MetricsTracker,
     connectionStatusService: ConnectionStatusService,
-    listener: CloudXRewardedInterstitialListener?,
     accountId: String,
     appKey: String
 ): CloudXRewardedInterstitialAd {
 
     val bidRequestProvider = BidRequestProvider(
-        bidRequestExtrasProviders
+        bidRequestExtrasProviders = bidRequestExtrasProviders
     )
 
     val bidSource =
         BidRewardedInterstitialSource(
-            bidFactories,
-            placementId,
-            placementName,
-            bidApi,
-            cdpApi,
-            bidRequestProvider,
-            eventTracker,
-            metricsTracker,
-            0,
-            accountId,
-            appKey
+            factories = bidFactories,
+            placementId = placementId,
+            placementName = placementName,
+            requestBid = bidApi,
+            cdpApi = cdpApi,
+            generateBidRequest = bidRequestProvider,
+            eventTracker = eventTracker,
+            metricsTracker = metricsTracker,
+            bidRequestTimeoutMillis = 0,
+            accountId = accountId,
+            appKey = appKey
         )
 
     val adLoader = AdLoader(
@@ -85,6 +98,5 @@ internal fun RewardedInterstitialManager(
 
     return RewardedInterstitialManager(
         adLoader = adLoader,
-        listener = listener
     )
 }

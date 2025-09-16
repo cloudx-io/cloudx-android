@@ -1,8 +1,8 @@
 package io.cloudx.sdk.internal.httpclient
 
 import io.cloudx.sdk.internal.CLOUDX_DEFAULT_RETRY_MS
-import io.cloudx.sdk.internal.CLXError
-import io.cloudx.sdk.internal.CLXErrorCode
+import io.cloudx.sdk.CloudXError
+import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.util.Result
 import io.ktor.client.HttpClient
@@ -57,40 +57,40 @@ internal suspend fun HttpClient.postJsonWithRetry(
 
 /** Common try/catch around an HTTP call – maps exceptions to CLXError. */
 internal suspend inline fun <T> httpCatching(
-    crossinline block: suspend () -> Result<T, CLXError>
-): Result<T, CLXError> =
+    crossinline block: suspend () -> Result<T, CloudXError>
+): Result<T, CloudXError> =
     try {
         block()
     } catch (e: CancellationException) {
         throw e
     } catch (e: HttpRequestTimeoutException) {
-        Result.Failure(CLXError(CLXErrorCode.NETWORK_TIMEOUT, cause = e))
+        Result.Failure(CloudXError(CloudXErrorCode.NETWORK_TIMEOUT, cause = e))
     } catch (e: IOException) {
-        Result.Failure(CLXError(CLXErrorCode.NETWORK_ERROR, cause = e))
+        Result.Failure(CloudXError(CloudXErrorCode.NETWORK_ERROR, cause = e))
     } catch (e: ServerResponseException) {
-        Result.Failure(CLXError(CLXErrorCode.SERVER_ERROR, cause = e))
+        Result.Failure(CloudXError(CloudXErrorCode.SERVER_ERROR, cause = e))
     } catch (e: Exception) {
-        Result.Failure(CLXError(CLXErrorCode.NETWORK_ERROR, e.message, e))
+        Result.Failure(CloudXError(CloudXErrorCode.NETWORK_ERROR, e.message, e))
     }
 
 /** Map a response to Result using pluggable OK/NoContent handlers. */
 internal suspend inline fun <T> HttpResponse.mapToResult(
     tag: String,
-    crossinline onOk: suspend (body: String) -> Result<T, CLXError>,
-    crossinline onNoContent: suspend (resp: HttpResponse, body: String) -> Result<T, CLXError>
-): Result<T, CLXError> {
+    crossinline onOk: suspend (body: String) -> Result<T, CloudXError>,
+    crossinline onNoContent: suspend (resp: HttpResponse, body: String) -> Result<T, CloudXError>
+): Result<T, CloudXError> {
     val body = bodyAsText()
     CXLogger.d(tag, "HTTP ← ${status.value}\n$body")
     return when (status) {
         HttpStatusCode.OK -> onOk(body)
         HttpStatusCode.NoContent -> onNoContent(this, body)
-        HttpStatusCode.TooManyRequests -> Result.Failure(CLXError(CLXErrorCode.TOO_MANY_REQUESTS))
+        HttpStatusCode.TooManyRequests -> Result.Failure(CloudXError(CloudXErrorCode.TOO_MANY_REQUESTS))
         else -> when (status.value) {
-            in 400..499 -> Result.Failure(CLXError(CLXErrorCode.CLIENT_ERROR))
-            in 500..599 -> Result.Failure(CLXError(CLXErrorCode.SERVER_ERROR))
+            in 400..499 -> Result.Failure(CloudXError(CloudXErrorCode.CLIENT_ERROR))
+            in 500..599 -> Result.Failure(CloudXError(CloudXErrorCode.SERVER_ERROR))
             else -> Result.Failure(
-                CLXError(
-                    CLXErrorCode.UNEXPECTED_ERROR,
+                CloudXError(
+                    CloudXErrorCode.UNEXPECTED_ERROR,
                     "Unexpected status: $status"
                 )
             )
@@ -127,9 +127,9 @@ internal suspend fun HttpClient.getWithRetry(
 /** Convenience wrapper that combines httpCatching + postJsonWithRetry + mapToResult */
 internal suspend inline fun <T> httpCatching(
     tag: String,
-    crossinline onOk: suspend (body: String) -> Result<T, CLXError>,
-    crossinline onNoContent: suspend (resp: HttpResponse, body: String) -> Result<T, CLXError>,
+    crossinline onOk: suspend (body: String) -> Result<T, CloudXError>,
+    crossinline onNoContent: suspend (resp: HttpResponse, body: String) -> Result<T, CloudXError>,
     crossinline block: suspend () -> HttpResponse
-): Result<T, CLXError> = httpCatching {
+): Result<T, CloudXError> = httpCatching {
     block().mapToResult(tag, onOk, onNoContent)
 }

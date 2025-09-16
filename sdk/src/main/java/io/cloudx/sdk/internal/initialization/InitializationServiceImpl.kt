@@ -4,8 +4,8 @@ import android.content.Context
 import com.xor.XorEncryption
 import io.cloudx.sdk.BuildConfig
 import io.cloudx.sdk.internal.AdType
-import io.cloudx.sdk.internal.CLXError
-import io.cloudx.sdk.internal.CLXErrorCode
+import io.cloudx.sdk.CloudXError
+import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.ads.AdFactory
 import io.cloudx.sdk.internal.bid.BidRequestProvider
@@ -65,7 +65,7 @@ internal class InitializationServiceImpl(
         private set
 
 
-    override suspend fun initialize(appKey: String): Result<Config, CLXError> {
+    override suspend fun initialize(appKey: String): Result<Config, CloudXError> {
         CXLogger.i(TAG, "Starting SDK initialization with appKey: $appKey")
         this.appKey = appKey
 
@@ -77,13 +77,13 @@ internal class InitializationServiceImpl(
             return Result.Success(config)
         }
 
-        val configApiResult: Result<Config, CLXError>
+        val configApiResult: Result<Config, CloudXError>
         val configApiRequestMillis = measureTimeMillis {
             configApiResult = configApi.invoke(appKey, provideConfigRequest())
         }
 
         if (configApiResult is Result.Failure) {
-            if (configApiResult.value.code == CLXErrorCode.SDK_DISABLED) {
+            if (configApiResult.value.code == CloudXErrorCode.SDK_DISABLED) {
                 CXLogger.w(
                     TAG,
                     "SDK disabled by server via traffic control (0%). No ads this session."
@@ -105,7 +105,7 @@ internal class InitializationServiceImpl(
 
             metricsTracker.start(cfg)
 
-            val geoDataResult: Result<Map<String, String>, CLXError>
+            val geoDataResult: Result<Map<String, String>, CloudXError>
             val geoRequestMillis = measureTimeMillis {
                 geoDataResult = geoApi.fetchGeoHeaders(ResolvedEndpoints.geoEndpoint)
             }

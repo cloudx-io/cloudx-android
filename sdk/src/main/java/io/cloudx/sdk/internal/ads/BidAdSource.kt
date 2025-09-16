@@ -4,7 +4,7 @@ import android.os.Bundle
 import com.xor.XorEncryption
 import io.cloudx.sdk.Destroyable
 import io.cloudx.sdk.internal.AdNetwork
-import io.cloudx.sdk.internal.CLXError
+import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.PlacementLoopIndexTracker
 import io.cloudx.sdk.internal.bid.BidApi
@@ -27,7 +27,7 @@ internal interface BidAdSource<T : Destroyable> {
     /**
      * @return the bid or null if no bid
      */
-    suspend fun requestBid(): Result<BidAdSourceResponse<T>, CLXError>
+    suspend fun requestBid(): Result<BidAdSourceResponse<T>, CloudXError>
 }
 
 internal open class BidAdSourceResponse<T : Destroyable>(
@@ -90,7 +90,7 @@ private class BidAdSourceImpl<T : Destroyable>(
 
     private val logTag = "BidAdSourceImpl"
 
-    override suspend fun requestBid(): Result<BidAdSourceResponse<T>, CLXError> {
+    override suspend fun requestBid(): Result<BidAdSourceResponse<T>, CloudXError> {
         val auctionId = UUID.randomUUID().toString()
         val bidRequestParamsJson = provideBidRequest.invoke(bidRequestParams, auctionId)
 
@@ -134,7 +134,7 @@ private class BidAdSourceImpl<T : Destroyable>(
             "Sending BidRequest [loop-index=$currentLoopIndex] for placementId: ${bidRequestParams.placementId}"
         )
 
-        val result: Result<BidResponse, CLXError>
+        val result: Result<BidResponse, CloudXError>
         val bidRequestLatencyMillis = measureTimeMillis {
             result = requestBid.invoke(bidRequestParams.appKey, enrichedPayload)
         }

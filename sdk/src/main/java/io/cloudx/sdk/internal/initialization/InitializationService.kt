@@ -2,7 +2,7 @@ package io.cloudx.sdk.internal.initialization
 
 import android.content.Context
 import io.cloudx.sdk.internal.ApplicationContext
-import io.cloudx.sdk.internal.CLXError
+import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.internal.ads.AdFactory
 import io.cloudx.sdk.internal.config.Config
 import io.cloudx.sdk.internal.config.ConfigApi
@@ -27,9 +27,9 @@ internal interface InitializationService {
     /**
      * Initialize CloudX SDK
      * @param appKey - unique application key/identifier; comes from app's Publisher.
-     * @return [Config] upon successful initialization, [CLXError] otherwise
+     * @return [Config] upon successful initialization, [CloudXError] otherwise
      */
-    suspend fun initialize(appKey: String): Result<Config, CLXError>
+    suspend fun initialize(appKey: String): Result<Config, CloudXError>
 
     fun deinitialize()
 }

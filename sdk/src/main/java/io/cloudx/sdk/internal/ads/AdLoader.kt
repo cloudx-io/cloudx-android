@@ -1,7 +1,7 @@
 package io.cloudx.sdk.internal.ads
 
-import io.cloudx.sdk.internal.CLXError
-import io.cloudx.sdk.internal.CLXErrorCode
+import io.cloudx.sdk.CloudXError
+import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.bid.LossReason
 import io.cloudx.sdk.internal.bid.LossTracker
@@ -24,7 +24,7 @@ internal class AdLoader<T : CXAdapterDelegate>(
     /**
      * Returns a loaded ad or null (no fill / failure)
      */
-    suspend fun load(): Result<T, CLXError> {
+    suspend fun load(): Result<T, CloudXError> {
         return when (val result = bidAdSource.requestBid()) {
             is Result.Success -> {
                 val banner = loadWinner(result.value)
@@ -32,8 +32,8 @@ internal class AdLoader<T : CXAdapterDelegate>(
                     Result.Success(banner)
                 } else {
                     Result.Failure(
-                        CLXError(
-                            CLXErrorCode.NO_FILL,
+                        CloudXError(
+                            CloudXErrorCode.NO_FILL,
                             "No fill - all candidates failed to load"
                         )
                     )

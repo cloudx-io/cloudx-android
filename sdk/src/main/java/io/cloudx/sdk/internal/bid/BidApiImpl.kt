@@ -1,7 +1,7 @@
 package io.cloudx.sdk.internal.bid
 
-import io.cloudx.sdk.internal.CLXError
-import io.cloudx.sdk.internal.CLXErrorCode
+import io.cloudx.sdk.CloudXError
+import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.HEADER_CLOUDX_STATUS
 import io.cloudx.sdk.internal.STATUS_ADS_DISABLED
@@ -25,7 +25,7 @@ internal class BidApiImpl(
     override suspend fun invoke(
         appKey: String,
         bidRequest: JSONObject
-    ): Result<BidResponse, CLXError> = httpCatching(
+    ): Result<BidResponse, CloudXError> = httpCatching(
         tag = tag,
         onOk = { json -> 
             val parseResult = jsonToBidResponse(json)
@@ -40,9 +40,9 @@ internal class BidApiImpl(
         onNoContent = { response, _ ->
             val xStatus = response.headers[HEADER_CLOUDX_STATUS]
             if (xStatus == STATUS_ADS_DISABLED) {
-                Result.Failure(CLXError(CLXErrorCode.ADS_DISABLED))
+                Result.Failure(CloudXError(CloudXErrorCode.ADS_DISABLED))
             } else {
-                Result.Failure(CLXError(CLXErrorCode.NO_FILL))
+                Result.Failure(CloudXError(CloudXErrorCode.NO_FILL))
             }
         }
     ) {

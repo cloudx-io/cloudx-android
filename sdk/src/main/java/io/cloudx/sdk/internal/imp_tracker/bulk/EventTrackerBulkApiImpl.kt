@@ -1,7 +1,7 @@
 package io.cloudx.sdk.internal.imp_tracker.bulk
 
-import io.cloudx.sdk.internal.CLXError
-import io.cloudx.sdk.internal.CLXErrorCode
+import io.cloudx.sdk.CloudXError
+import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.util.Result
 import io.ktor.client.HttpClient
@@ -22,7 +22,7 @@ internal class EventTrackerBulkApiImpl(
 
     override suspend fun send(
         endpointUrl: String, items: List<EventAM>
-    ): Result<Unit, CLXError> {
+    ): Result<Unit, CloudXError> {
 
         CXLogger.d(tag, buildString {
             appendLine("Sending event tracking  request:")
@@ -55,13 +55,13 @@ internal class EventTrackerBulkApiImpl(
                 Result.Success(Unit)
             } else {
                 CXLogger.d(tag, "Bad response status: ${response.status}")
-                Result.Failure(CLXError(CLXErrorCode.SERVER_ERROR))
+                Result.Failure(CloudXError(CloudXErrorCode.SERVER_ERROR))
             }
 
         } catch (e: Exception) {
             val errStr = "Tracking request failed: ${e.message}"
             CXLogger.e(tag, errStr)
-            Result.Failure(CLXError(CLXErrorCode.NETWORK_ERROR))
+            Result.Failure(CloudXError(CloudXErrorCode.NETWORK_ERROR))
         }
     }
 }

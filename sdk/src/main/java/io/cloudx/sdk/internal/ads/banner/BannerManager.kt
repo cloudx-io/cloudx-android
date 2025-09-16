@@ -6,7 +6,7 @@ import io.cloudx.sdk.CloudXAdViewListener
 import io.cloudx.sdk.Destroyable
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.AdType
-import io.cloudx.sdk.internal.CLXError
+import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.adapter.BannerFactoryMiscParams
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
@@ -71,7 +71,7 @@ private class BannerManagerImpl(
     private var bannerRefreshJob: Job? = null
 
     // Backup banner management
-    private val backupBanner = MutableStateFlow<Result<BannerAdapterDelegate, CLXError>?>(null)
+    private val backupBanner = MutableStateFlow<Result<BannerAdapterDelegate, CloudXError>?>(null)
     private var backupBannerLoadJob: Job? = null
     private var backupBannerErrorHandlerJob: Job? = null
 
@@ -165,7 +165,7 @@ private class BannerManagerImpl(
         }
     }
 
-    private suspend fun loadBackupBanner(): Result<BannerAdapterDelegate, CLXError> {
+    private suspend fun loadBackupBanner(): Result<BannerAdapterDelegate, CloudXError> {
         loadBackupBannerIfAbsent()
 
         val banner = backupBanner.mapNotNull { it }.first()

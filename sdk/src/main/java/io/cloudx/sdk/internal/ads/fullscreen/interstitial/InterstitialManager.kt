@@ -88,7 +88,8 @@ internal fun InterstitialManager(
         placementId = placementId,
         bidAdSource = bidSource,
         bidAdLoadTimeoutMillis = bidAdLoadTimeoutMillis,
-        connectionStatusService = connectionStatusService
+        connectionStatusService = connectionStatusService,
+        winLossTracker = winLossTracker
     )
 
     return InterstitialManagerImpl(

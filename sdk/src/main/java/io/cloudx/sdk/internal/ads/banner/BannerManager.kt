@@ -279,7 +279,8 @@ internal fun BannerManager(
         bidAdLoadTimeoutMillis = bidAdLoadTimeoutMillis,
         placementName = placementName,
         placementId = placementId,
-        connectionStatusService = connectionStatusService
+        connectionStatusService = connectionStatusService,
+        winLossTracker = winLossTracker
     )
 
     return BannerManagerImpl(

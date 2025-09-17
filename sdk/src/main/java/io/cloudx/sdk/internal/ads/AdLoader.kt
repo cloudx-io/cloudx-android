@@ -16,7 +16,8 @@ internal class AdLoader<T : CXAdapterDelegate>(
     private val placementId: String,
     private val bidAdSource: BidAdSource<T>,
     private val bidAdLoadTimeoutMillis: Long,
-    private val connectionStatusService: ConnectionStatusService
+    private val connectionStatusService: ConnectionStatusService,
+    private val winLossTracker: io.cloudx.sdk.internal.imp_tracker.win_loss.WinLossTracker
 ) {
     private val TAG = "AdLoader"
 
@@ -58,36 +59,41 @@ internal class AdLoader<T : CXAdapterDelegate>(
             val ad = loadAd(bidAdLoadTimeoutMillis, bidItem.createBidAd)
 
             if (ad != null) {
-//                CXLogger.i(
-//                    TAG, placementName, placementId,
-//                    "Loaded: ${bidItem.adNetworkOriginal.networkName} (rank=${bidItem.rank})"
-//                )
+                CXLogger.i(
+                    TAG, placementName, placementId,
+                    "Loaded: ${bidItem.adNetworkOriginal.networkName} (rank=${bidItem.bid.rank})"
+                )
                 winner = ad
                 winnerIndex = index
+
+                // Mark this bid as the winner
+                winLossTracker.setWinner(bids.auctionId, bidItem.bid.id)
+                winLossTracker.setBidLoadResult(bids.auctionId, bidItem.bid.id, true)
                 break
             } else {
-//                CXLogger.w(
-//                    TAG, placementName, placementId,
-//                    "Failed: ${bidItem.adNetworkOriginal.networkName} (rank=${bidItem.rank})"
-//                )
+                CXLogger.w(
+                    TAG, placementName, placementId,
+                    "Failed: ${bidItem.adNetworkOriginal.networkName} (rank=${bidItem.bid.rank})"
+                )
                 lossReasons[bidItem.bid.id] = LossReason.TechnicalError
+
+                // Mark this bid as failed to load
+                winLossTracker.setBidLoadResult(bids.auctionId, bidItem.bid.id, false, LossReason.TechnicalError)
             }
         }
 
-        // fire LURLs for non-winners
+        // Mark remaining bids as lost to higher bid if we have a winner
         if (winnerIndex != -1) {
-            bids.bidItemsByRank.forEachIndexed { idx, item ->
-//                if (idx != winnerIndex && !lossReasons.containsKey(item.id)) {
-//                    lossReasons[item.id] = LossReason.LostToHigherBid
-//                }
-            }
-            bids.bidItemsByRank.forEachIndexed { idx, item ->
-                if (idx != winnerIndex) {
-//                    val reason = lossReasons[item.id] ?: LossReason.LostToHigherBid
-//                    item.lurl?.takeIf { it.isNotBlank() }?.let { LossTracker.trackLoss(it, reason) }
+            bids.bidItemsByRank.forEachIndexed { index, bidItem ->
+                if (index != winnerIndex && !lossReasons.containsKey(bidItem.bid.id)) {
+                    lossReasons[bidItem.bid.id] = LossReason.LostToHigherBid
+                    winLossTracker.setBidLoadResult(bids.auctionId, bidItem.bid.id, false, LossReason.LostToHigherBid)
                 }
             }
         }
+
+        // Process all win/loss notifications for this auction
+        winLossTracker.processAuctionResults(bids.auctionId)
 
         winner
     }

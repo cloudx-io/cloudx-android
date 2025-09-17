@@ -92,7 +92,8 @@ internal fun RewardedInterstitialManager(
         placementId = placementId,
         bidAdSource = bidSource,
         bidAdLoadTimeoutMillis = bidAdLoadTimeoutMillis,
-        connectionStatusService = connectionStatusService
+        connectionStatusService = connectionStatusService,
+        winLossTracker = winLossTracker
     )
 
     return RewardedInterstitialManager(

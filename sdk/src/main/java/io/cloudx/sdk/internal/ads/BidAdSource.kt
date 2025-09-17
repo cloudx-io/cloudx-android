@@ -164,6 +164,30 @@ private class BidAdSourceImpl<T : Destroyable>(
         return when (result) {
             is Result.Success -> {
                 val resp = result.value.toBidAdSourceResponse(bidRequestParams, createBidAd, auctionId)
+
+                if (resp.bidItemsByRank.isEmpty()) {
+                    CXLogger.d(logTag, "NO_BID")
+                } else {
+                    val bidDetails =
+                        resp.bidItemsByRank.joinToString(separator = ",\n") {
+                            val bid = it.bid
+                            val cpm = bid.priceRaw ?: "0.0"
+                            "\"bidder\": \"${it.adNetworkOriginal.networkName}\", cpm: $cpm, rank: ${bid.rank}"
+                        }
+                    CXLogger.d(
+                        logTag,
+                        "Bid Success — received ${resp.bidItemsByRank.size} bid(s): [$bidDetails]"
+                    )
+
+                    // Add all bids to WinLossTracker for auction processing
+                    resp.bidItemsByRank.forEach { bidItem ->
+                        winLossTracker.addBid(
+                            auctionId = auctionId,
+                            bid = bidItem.bid
+                        )
+                    }
+                }
+
                 Result.Success(resp)
             }
 

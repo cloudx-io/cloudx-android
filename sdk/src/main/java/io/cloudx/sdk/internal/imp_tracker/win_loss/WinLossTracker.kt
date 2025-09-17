@@ -27,11 +27,6 @@ internal interface WinLossTracker {
     )
 
     /**
-     * Process all win/loss notifications for a completed auction
-     */
-    fun processAuctionResults(auctionId: String)
-
-    /**
      * Add a bid to an auction for tracking
      */
     fun addBid(
@@ -48,6 +43,11 @@ internal interface WinLossTracker {
      * Mark bid load result (success/failure)
      */
     fun setBidLoadResult(auctionId: String, bidId: String, success: Boolean, lossReason: LossReason? = null)
+
+    /**
+     * Clear auction data (for cleanup when no winner)
+     */
+    fun clearAuction(auctionId: String)
 }
 
 internal fun WinLossTracker(): WinLossTracker = LazySingleInstance

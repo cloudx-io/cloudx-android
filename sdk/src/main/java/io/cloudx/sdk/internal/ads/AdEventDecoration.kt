@@ -1,22 +1,22 @@
 package io.cloudx.sdk.internal.ads
 
+import com.xor.XorEncryption
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.GlobalScopes
+import io.cloudx.sdk.internal.adapter.CloudXAdapterError
 import io.cloudx.sdk.internal.ads.banner.BannerAdapterDelegate
-import io.cloudx.sdk.internal.ads.fullscreen.interstitial.InterstitialAdapterDelegate
-import io.cloudx.sdk.internal.ads.fullscreen.rewarded.RewardedInterstitialAdapterDelegate
 import io.cloudx.sdk.internal.ads.banner.DecoratedBannerAdapterDelegate
 import io.cloudx.sdk.internal.ads.fullscreen.interstitial.DecoratedInterstitialAdapterDelegate
+import io.cloudx.sdk.internal.ads.fullscreen.interstitial.InterstitialAdapterDelegate
 import io.cloudx.sdk.internal.ads.fullscreen.rewarded.DecoratedRewardedInterstitialAdapterDelegate
+import io.cloudx.sdk.internal.ads.fullscreen.rewarded.RewardedInterstitialAdapterDelegate
+import io.cloudx.sdk.internal.imp_tracker.ClickCounterTracker
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.EventType
 import io.cloudx.sdk.internal.imp_tracker.TrackingFieldResolver
 import kotlinx.coroutines.launch
-import com.xor.XorEncryption
-import io.cloudx.sdk.internal.adapter.CloudXAdapterError
-import io.cloudx.sdk.internal.imp_tracker.ClickCounterTracker
 
 private typealias Func = (() -> Unit)
 private typealias ClickFunc = (() -> Unit)
@@ -146,11 +146,13 @@ internal fun bidAdDecoration(
     bidId: String,
     auctionId: String,
     eventTracker: EventTracker,
+    winLossTracker: io.cloudx.sdk.internal.imp_tracker.win_loss.WinLossTracker,
 ) = AdEventDecoration(
     onLoad = {},
     onImpression = {
         val scope = GlobalScopes.IO
         scope.launch {
+            // Save the loaded bid for existing impression tracking
             TrackingFieldResolver.saveLoadedBid(auctionId, bidId)
             var payload = TrackingFieldResolver.buildPayload(auctionId)
             payload = payload?.replace(auctionId, auctionId)
@@ -162,6 +164,10 @@ internal fun bidAdDecoration(
                 val impressionId = XorEncryption.encrypt(payload, secret)
                 eventTracker.send(impressionId, campaignId, "1", EventType.IMPRESSION)
             }
+
+            // THIS IS THE REAL WINNER DETERMINATION - when impression fires
+            // Mark this bid as the actual winner (automatically sends win notification and cleans up)
+            winLossTracker.setWinner(auctionId, bidId)
         }
     },
     onClick = {

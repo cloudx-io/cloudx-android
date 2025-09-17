@@ -38,20 +38,39 @@ internal class WinLossTrackerImpl(
     }
 
     override fun setWinner(auctionId: String, winningBidId: String, actualWinPrice: Double?) {
+        // Set the winner status
         AuctionBidManager.setBidWinner(auctionId, winningBidId, actualWinPrice)
+
+        // Automatically send win notification and clean up
+        scope.launch {
+            val winningBid = AuctionBidManager.getWinningBid(auctionId)
+            if (winningBid != null) {
+                val winPrice = actualWinPrice ?: winningBid.price?.toDouble() ?: 0.0
+                val baseData = mapOf(
+                    "bidId" to winningBid.id,
+                    "networkName" to winningBid.adNetwork.networkName,
+                    "bidPrice" to (winningBid.price?.toDouble() ?: 0.0),
+                    "rank" to winningBid.rank,
+                    "rawBid" to winningBid.rawJson
+                )
+
+                // Send win notification
+                sendWin(auctionId, winPrice, baseData)
+
+                // Clean up auction data
+                AuctionBidManager.clearAuction(auctionId)
+            }
+        }
     }
 
     override fun setBidLoadResult(auctionId: String, bidId: String, success: Boolean, lossReason: LossReason?) {
         AuctionBidManager.setBidLoadResult(auctionId, bidId, success, lossReason)
     }
 
-    override fun processAuctionResults(auctionId: String) {
-        scope.launch {
-            CXLogger.d(tag, "Processing win/loss results for auction: $auctionId")
-            AuctionBidManager.processAuctionWinLoss(auctionId, this@WinLossTrackerImpl)
-            AuctionBidManager.clearAuction(auctionId)
-        }
+    override fun clearAuction(auctionId: String) {
+        AuctionBidManager.clearAuction(auctionId)
     }
+
 
     override fun sendWin(
         auctionId: String,

@@ -66,8 +66,7 @@ internal class AdLoader<T : CXAdapterDelegate>(
                 winner = ad
                 winnerIndex = index
 
-                // Mark this bid as the winner
-                winLossTracker.setWinner(bids.auctionId, bidItem.bid.id)
+                // Mark this bid as successfully loaded but not yet winner (winner determined on impression)
                 winLossTracker.setBidLoadResult(bids.auctionId, bidItem.bid.id, true)
                 break
             } else {
@@ -77,23 +76,56 @@ internal class AdLoader<T : CXAdapterDelegate>(
                 )
                 lossReasons[bidItem.bid.id] = LossReason.TechnicalError
 
-                // Mark this bid as failed to load
+                // Mark this bid as failed to load and send loss notification IMMEDIATELY
                 winLossTracker.setBidLoadResult(bids.auctionId, bidItem.bid.id, false, LossReason.TechnicalError)
+                winLossTracker.sendLoss(
+                    bids.auctionId,
+                    LossReason.TechnicalError,
+                    mapOf(
+                        "bidId" to bidItem.bid.id,
+                        "networkName" to bidItem.bid.adNetwork.networkName,
+                        "bidPrice" to (bidItem.bid.price?.toDouble() ?: 0.0),
+                        "rank" to bidItem.bid.rank,
+                        "rawBid" to bidItem.bid.rawJson,
+                        "lossReasonCode" to LossReason.TechnicalError.code
+                    )
+                )
             }
         }
 
-        // Mark remaining bids as lost to higher bid if we have a winner
+        // Mark remaining bids as lost to higher bid if we have a loaded winner
+        // Send loss notifications IMMEDIATELY for all non-winning bids
         if (winnerIndex != -1) {
             bids.bidItemsByRank.forEachIndexed { index, bidItem ->
                 if (index != winnerIndex && !lossReasons.containsKey(bidItem.bid.id)) {
                     lossReasons[bidItem.bid.id] = LossReason.LostToHigherBid
                     winLossTracker.setBidLoadResult(bids.auctionId, bidItem.bid.id, false, LossReason.LostToHigherBid)
+
+                    // Send loss notification IMMEDIATELY
+                    winLossTracker.sendLoss(
+                        bids.auctionId,
+                        LossReason.LostToHigherBid,
+                        mapOf(
+                            "bidId" to bidItem.bid.id,
+                            "networkName" to bidItem.bid.adNetwork.networkName,
+                            "bidPrice" to (bidItem.bid.price?.toDouble() ?: 0.0),
+                            "rank" to bidItem.bid.rank,
+                            "rawBid" to bidItem.bid.rawJson,
+                            "lossReasonCode" to LossReason.LostToHigherBid.code
+                        )
+                    )
                 }
             }
         }
 
-        // Process all win/loss notifications for this auction
-        winLossTracker.processAuctionResults(bids.auctionId)
+        // If no winner found, clear auction data (all losses already sent)
+        if (winner == null) {
+            CXLogger.d(TAG, "No winner found for auction ${bids.auctionId}, clearing auction data")
+            winLossTracker.clearAuction(bids.auctionId)
+        }
+
+        // Note: Winner determination and final auction processing will happen later on impression
+        // via the bidAdDecoration onImpression callback (if we have a winner)
 
         winner
     }

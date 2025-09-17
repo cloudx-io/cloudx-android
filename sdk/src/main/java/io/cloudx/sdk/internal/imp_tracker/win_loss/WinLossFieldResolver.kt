@@ -134,6 +134,21 @@ internal object WinLossFieldResolver {
                 }
             }
 
+            // SDK Win/Loss specific fields
+            fieldPath == "sdk.win" -> if (winLossData.isWin) "win" else null
+            fieldPath == "sdk.loss" -> if (!winLossData.isWin) "loss" else null
+            fieldPath == "sdk.lossReason" -> winLossData.lossReason?.code
+            fieldPath == "sdk.[win|loss]" -> if (winLossData.isWin) "win" else "loss"
+            fieldPath == "sdk.[bid.nurl|bid.lurl]" -> {
+                // Smart URL selection based on win/loss status
+                val currentBidData = winLossData.additionalData
+                if (winLossData.isWin) {
+                    currentBidData["nurl"]
+                } else {
+                    currentBidData["lurl"]
+                }
+            }
+
             // Current bid specific fields (for the bid being processed)
             fieldPath.startsWith("currentBid.") -> {
                 val field = fieldPath.removePrefix("currentBid.")

@@ -37,8 +37,7 @@ internal object AuctionBidManager {
 
     enum class AuctionStatus {
         ACTIVE,      // Auction in progress, collecting bids
-        COMPLETED,   // Auction completed, winner determined
-        CANCELLED    // Auction cancelled
+        COMPLETED    // Auction completed, winner determined
     }
 
     /**
@@ -101,46 +100,20 @@ internal object AuctionBidManager {
         }
     }
 
-    /**
-     * Cancel an auction - mark all bids as lost with technical error
-     */
-    fun cancelAuction(auctionId: String) {
-        val bids = auctionBids[auctionId] ?: return
-
-        bids.forEach { bid ->
-            if (bid.status == BidStatus.PENDING) {
-                bid.status = BidStatus.LOST
-                bid.lossReason = LossReason.TechnicalError
-            }
-        }
-
-        auctionStatus[auctionId] = AuctionStatus.CANCELLED
-        CXLogger.d(tag, "Cancelled auction $auctionId")
-    }
 
     /**
-     * Get winning bid for an auction
+     * Get winning bid for an auction (only WON status, not LOADED)
      */
     fun getWinningBid(auctionId: String): Bid? {
         return auctionBids[auctionId]
-            ?.firstOrNull { it.status == BidStatus.WON || it.status == BidStatus.LOADED }
+            ?.firstOrNull { it.status == BidStatus.WON }
             ?.bid
     }
 
     fun getWinningBidPrice(auctionId: String): Double? {
         return auctionBids[auctionId]
-            ?.firstOrNull { it.status == BidStatus.WON || it.status == BidStatus.LOADED }
+            ?.firstOrNull { it.status == BidStatus.WON }
             ?.let { it.actualWinPrice ?: it.bid.price?.toDouble() }
-    }
-
-    /**
-     * Get all losing bids for an auction
-     */
-    fun getLosingBids(auctionId: String): List<Bid> {
-        return auctionBids[auctionId]
-            ?.filter { it.status == BidStatus.LOST || it.status == BidStatus.FAILED }
-            ?.map { it.bid }
-            ?: emptyList()
     }
 
     /**
@@ -150,57 +123,6 @@ internal object AuctionBidManager {
         return auctionBids[auctionId]?.map { it.bid } ?: emptyList()
     }
 
-    /**
-     * Get a specific bid
-     */
-    fun getBid(auctionId: String, bidId: String): Bid? {
-        return auctionBids[auctionId]?.find { it.bid.id == bidId }?.bid
-    }
-
-    /**
-     * Process all win/loss notifications for an auction
-     */
-    fun processAuctionWinLoss(auctionId: String, winLossTracker: WinLossTracker) {
-        val bids = auctionBids[auctionId] ?: return
-
-        bids.forEach { entry ->
-            val bid = entry.bid
-            val baseData = mutableMapOf<String, Any>(
-                "bidId" to bid.id,
-                "networkName" to bid.adNetwork.networkName,
-                "bidPrice" to (bid.price?.toDouble() ?: 0.0),
-                "rank" to bid.rank,
-                "rawBid" to bid.rawJson
-            )
-
-            when (entry.status) {
-                BidStatus.WON, BidStatus.LOADED -> {
-                    val winPrice = entry.actualWinPrice ?: bid.price?.toDouble() ?: 0.0
-                    winLossTracker.sendWin(auctionId, winPrice, baseData)
-                }
-
-                BidStatus.LOST, BidStatus.FAILED -> {
-                    val lossReason = entry.lossReason ?: LossReason.LostToHigherBid
-                    winLossTracker.sendLoss(
-                        auctionId,
-                        lossReason,
-                        baseData + ("lossReasonCode" to lossReason.code)
-                    )
-                }
-
-                BidStatus.PENDING -> {
-                    // Auction incomplete, mark as lost to higher bid (default)
-                    entry.status = BidStatus.LOST
-                    entry.lossReason = LossReason.LostToHigherBid
-                    winLossTracker.sendLoss(
-                        auctionId,
-                        LossReason.LostToHigherBid,
-                        baseData + ("lossReasonCode" to LossReason.LostToHigherBid.code)
-                    )
-                }
-            }
-        }
-    }
 
     /**
      * Clear auction data (call after processing win/loss)

@@ -77,7 +77,7 @@ internal fun BidInterstitialSource(
             ) as Result.Success).value
         }.decorate(
             baseAdDecoration() +
-                    bidAdDecoration(bidId, auctionId, eventTracker) +
+                    bidAdDecoration(bidId, auctionId, eventTracker, winLossTracker) +
                     adapterLoggingDecoration(
                         placementId = placementId,
                         adNetwork = adNetwork,

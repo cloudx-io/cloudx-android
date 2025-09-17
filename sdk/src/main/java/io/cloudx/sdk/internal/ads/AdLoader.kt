@@ -7,6 +7,7 @@ import io.cloudx.sdk.internal.bid.LossReason
 import io.cloudx.sdk.internal.bid.LossTracker
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.util.Result
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.ensureActive
@@ -99,6 +100,8 @@ internal class AdLoader<T : CXAdapterDelegate>(
     ): T? {
         val ad = try {
             createAd()
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             return null
         }
@@ -120,6 +123,8 @@ internal class AdLoader<T : CXAdapterDelegate>(
             CXLogger.w(TAG, placementName, placementId, "Load timeout ${timeoutMs}ms", e)
             ad.timeout()
             null
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             CXLogger.e(TAG, placementName, placementId, "Load failed", e)
             null

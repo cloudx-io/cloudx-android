@@ -3,10 +3,12 @@ package io.cloudx.adapter.cloudx
 import android.view.View
 import io.cloudx.cd.staticrenderer.ExternalLinkHandlerImpl
 import io.cloudx.cd.staticrenderer.StaticWebView
+import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapter
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterListener
 import io.cloudx.sdk.internal.context.ContextProvider
+import io.cloudx.sdk.toCloudXError
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -38,7 +40,7 @@ internal class StaticBidBanner(
 
         scope.launch {
             staticWebView.hasUnrecoverableError.first { it }
-            listener.onError()
+            listener.onError(CloudXErrorCode.UNEXPECTED_ERROR.toCloudXError())
         }
 
         scope.launch {
@@ -52,7 +54,7 @@ internal class StaticBidBanner(
                 listener.onShow()
                 listener.onImpression()
             } else {
-                listener.onError()
+                listener.onError(CloudXErrorCode.UNEXPECTED_ERROR.toCloudXError())
             }
         }
     }

@@ -58,9 +58,9 @@ object CloudXInitializer {
                     listener?.onInitialized()
                 }
 
-                override fun onInitializationFailed(error: CloudXError) {
+                override fun onInitializationFailed(cloudXError: CloudXError) {
                     _initState.value = InitializationState.FailedToInitialize
-                    listener?.onInitializationFailed(error)
+                    listener?.onInitializationFailed(cloudXError)
                 }
             }
         )

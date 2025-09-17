@@ -1,13 +1,13 @@
 package io.cloudx.sdk.internal.ads.banner
 
-import io.cloudx.sdk.internal.adapter.CloudXAdapterError
+import io.cloudx.sdk.CloudXError
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 private typealias BannerFunc = (() -> Unit)?
-private typealias ErrorBannerFunc = ((error: CloudXAdapterError) -> Unit)?
+private typealias ErrorBannerFunc = ((error: CloudXError) -> Unit)?
 
 internal class DecoratedBannerAdapterDelegate(
     onLoad: BannerFunc = null,

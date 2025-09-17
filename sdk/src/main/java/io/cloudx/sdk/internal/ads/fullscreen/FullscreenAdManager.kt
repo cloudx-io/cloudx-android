@@ -1,14 +1,14 @@
 package io.cloudx.sdk.internal.ads.fullscreen
 
 import io.cloudx.sdk.CloudXAd
-import io.cloudx.sdk.CloudXAdError
 import io.cloudx.sdk.CloudXAdListener
+import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.CloudXFullscreenAd
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.ads.AdLoader
-import io.cloudx.sdk.internal.util.Result
 import io.cloudx.sdk.internal.util.utcNowEpochMillis
+import io.cloudx.sdk.toCloudXError
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -18,7 +18,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-// TODO. Yeah, more generics, classes, interfaces...
 internal class FullscreenAdManager<
         Delegate : FullscreenAdAdapterDelegate<DelegateEvent>,
         DelegateEvent>(
@@ -46,17 +45,15 @@ internal class FullscreenAdManager<
     override fun load() {
         if (lastLoadJob?.isActive == true || lastLoadedAd != null) return
         lastLoadJob = scope.launch {
-            val ad = adLoader.load()
-            when (ad) {
-                is Result.Failure -> {
-                    listener?.onAdLoadFailed(CloudXAdError("Failed to load ad"))
+            adLoader.load().fold(
+                onSuccess = {
+                    lastLoadedAd = it
+                    listener?.onAdLoaded(it)
+                },
+                onFailure = {
+                    listener?.onAdLoadFailed(it)
                 }
-
-                is Result.Success -> {
-                    lastLoadedAd = ad.value
-                    listener?.onAdLoaded(ad.value)
-                }
-            }
+            )
         }
     }
 
@@ -74,7 +71,7 @@ internal class FullscreenAdManager<
             if (job.isActive) {
                 val timeToWaitForHideEventMillis = 90 * 1000
                 if (utcNowEpochMillis() <= (lastShowJobStartedTimeMillis + timeToWaitForHideEventMillis)) {
-                    listener?.onAdDisplayFailed(CloudXAdError(description = "Ad is already displaying"))
+                    listener?.onAdDisplayFailed(CloudXErrorCode.AD_ALREADY_DISPLAYED.toCloudXError())
                     return
                 } else {
                     job.cancel("No adHidden or adError event received. Cancelling job")
@@ -91,7 +88,7 @@ internal class FullscreenAdManager<
 
             val ad = lastLoadedAd
             if (ad == null) {
-                listener?.onAdDisplayFailed(CloudXAdError(description = "No ads loaded yet"))
+                listener?.onAdDisplayFailed(CloudXErrorCode.AD_NOT_READY.toCloudXError())
                 return@launch
             }
 
@@ -172,7 +169,8 @@ internal class FullscreenAdManager<
                 }
             }
             launch {
-                ad.lastErrorEvent.first { it != null }
+                val error = ad.lastErrorEvent.first { it != null }
+                error?.let { listener?.onAdDisplayFailed(error) }
                 onLastError()
             }
         }

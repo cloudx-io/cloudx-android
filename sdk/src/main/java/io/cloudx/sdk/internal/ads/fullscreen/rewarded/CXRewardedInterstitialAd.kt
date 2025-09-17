@@ -1,12 +1,13 @@
 package io.cloudx.sdk.internal.ads.fullscreen.rewarded
 
-import io.cloudx.sdk.CloudXAdError
+import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.CloudXRewardedInterstitialAd
 import io.cloudx.sdk.CloudXRewardedInterstitialListener
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.CXSdk
 import io.cloudx.sdk.internal.ads.AdFactory
 import io.cloudx.sdk.internal.initialization.InitializationState
+import io.cloudx.sdk.toCloudXError
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.first
@@ -48,8 +49,9 @@ internal class CXRewardedInterstitialAd(
         }
 
         if (CXSdk.initState.value is InitializationState.Uninitialized) {
-            CXLogger.e(TAG, "CloudX SDK is uninitialized")
-            listener?.onAdLoadFailed(CloudXAdError("CloudX SDK is uninitialized"))
+            val error = CloudXErrorCode.NOT_INITIALIZED.toCloudXError()
+            CXLogger.e(TAG, error.effectiveMessage)
+            listener?.onAdLoadFailed(error)
         }
     }
 
@@ -60,8 +62,9 @@ internal class CXRewardedInterstitialAd(
         }
 
         if (CXSdk.initState.value is InitializationState.Uninitialized) {
-            CXLogger.e(TAG, "CloudX SDK is uninitialized")
-            listener?.onAdDisplayFailed(CloudXAdError("CloudX SDK is uninitialized"))
+            val error = CloudXErrorCode.NOT_INITIALIZED.toCloudXError()
+            CXLogger.e(TAG, error.effectiveMessage)
+            listener?.onAdDisplayFailed(error)
         }
     }
 

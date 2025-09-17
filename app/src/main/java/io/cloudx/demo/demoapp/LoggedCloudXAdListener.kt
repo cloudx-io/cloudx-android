@@ -1,8 +1,8 @@
 package io.cloudx.demo.demoapp
 
-import io.cloudx.sdk.CloudXAdListener
 import io.cloudx.sdk.CloudXAd
-import io.cloudx.sdk.CloudXAdError
+import io.cloudx.sdk.CloudXAdListener
+import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.internal.CXLogger
 
 class LoggedCloudXAdListener(
@@ -17,10 +17,10 @@ class LoggedCloudXAdListener(
         )
     }
 
-    override fun onAdLoadFailed(cloudXAdError: CloudXAdError) {
+    override fun onAdLoadFailed(cloudXError: CloudXError) {
         CXLogger.i(
             logTag,
-            "Load failed; placement: $placementName; error: ${cloudXAdError.description}"
+            "Load failed; placement: $placementName; error: ${cloudXError.effectiveMessage}"
         )
     }
 
@@ -31,10 +31,10 @@ class LoggedCloudXAdListener(
         )
     }
 
-    override fun onAdDisplayFailed(cloudXAdError: CloudXAdError) {
+    override fun onAdDisplayFailed(cloudXError: CloudXError) {
         CXLogger.i(
             logTag,
-            "Display failed; placement: $placementName; error: ${cloudXAdError.description}"
+            "Display failed; placement: $placementName; error: ${cloudXError.effectiveMessage}"
         )
     }
 

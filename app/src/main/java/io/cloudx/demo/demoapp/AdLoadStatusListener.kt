@@ -1,8 +1,8 @@
 package io.cloudx.demo.demoapp
 
-import io.cloudx.sdk.CloudXAdListener
 import io.cloudx.sdk.CloudXAd
-import io.cloudx.sdk.CloudXAdError
+import io.cloudx.sdk.CloudXAdListener
+import io.cloudx.sdk.CloudXError
 
 interface AdLoadStatusListener {
     fun onIsAdLoadedStatusChanged(isAdLoaded: Boolean)
@@ -20,8 +20,8 @@ class AdLoadStatusListenerWrapper(
         updateAdLoadedStatus(true)
     }
 
-    override fun onAdLoadFailed(cloudXAdError: CloudXAdError) {
-        wrappedListener.onAdLoadFailed(cloudXAdError)
+    override fun onAdLoadFailed(cloudXError: CloudXError) {
+        wrappedListener.onAdLoadFailed(cloudXError)
         updateAdLoadedStatus(false)
     }
 
@@ -29,8 +29,8 @@ class AdLoadStatusListenerWrapper(
         wrappedListener.onAdDisplayed(cloudXAd)
     }
 
-    override fun onAdDisplayFailed(cloudXAdError: CloudXAdError) {
-        wrappedListener.onAdDisplayFailed(cloudXAdError)
+    override fun onAdDisplayFailed(cloudXError: CloudXError) {
+        wrappedListener.onAdDisplayFailed(cloudXError)
         updateAdLoadedStatus(false)
     }
 

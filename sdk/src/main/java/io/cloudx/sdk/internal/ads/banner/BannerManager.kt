@@ -1,6 +1,5 @@
 package io.cloudx.sdk.internal.ads.banner
 
-import io.cloudx.sdk.CloudXAdError
 import io.cloudx.sdk.CloudXAdViewListener
 import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.Destroyable
@@ -84,10 +83,16 @@ private class BannerManagerImpl(
                 ensureActive()
 
                 val banner = loadBackupBanner()
-                banner.successOrNull()?.let {
-                    hideAndDestroyCurrentBanner()
-                    showNewBanner(it)
-                }
+                banner.fold(
+                    onSuccess = {
+                        hideAndDestroyCurrentBanner()
+                        showNewBanner(it)
+                        listener?.onAdLoaded(it)
+                    },
+                    onFailure = {
+                        listener?.onAdLoadFailed(it)
+                    }
+                )
 
                 metricsTracker.trackMethodCall(MetricsType.Method.BannerRefresh)
 
@@ -121,10 +126,8 @@ private class BannerManagerImpl(
              */
             val banner = adLoader.load()
             backupBanner.value = banner
-            banner.successOrNull()?.let {
+            banner.onSuccess {
                 preserveBackupBanner(it)
-            } ?: run {
-                listener?.onAdLoadFailed(CloudXAdError("Failed to load banner"))
             }
         }
     }
@@ -150,7 +153,7 @@ private class BannerManagerImpl(
         backupBannerErrorHandlerJob?.cancel()
 
         with(backupBanner) {
-            value?.successOrNull()?.let {
+            value?.onSuccess {
                 CXLogger.d(TAG, placementName, placementId, "Destroying backup banner")
                 it.destroy()
             }
@@ -192,6 +195,7 @@ private class BannerManagerImpl(
                     placementId,
                     "Banner error detected: $error - restarting refresh cycle"
                 )
+                error?.let { listener?.onAdDisplayFailed(it) }
                 hideAndDestroyCurrentBanner()
                 restartBannerRefresh()
             }

@@ -20,7 +20,7 @@ enum class CloudXErrorCode(
     CLIENT_ERROR(204, "A client error occurred."),
 
     // --- Ad Loading (300–399)
-    NO_FILL(300, "No ad available to show."),
+    NO_FILL(300, "No ad available to display."),
     INVALID_REQUEST(301, "Invalid ad request parameters."),
     INVALID_PLACEMENT(302, "Invalid placement ID. Please check your placement configuration."),
     LOAD_TIMEOUT(303, "Ad loading timed out."),
@@ -32,10 +32,10 @@ enum class CloudXErrorCode(
 
     // --- Ad Display (400–499)
     AD_NOT_READY(400, "Ad is not ready to be displayed."),
-    AD_ALREADY_SHOWN(401, "Ad has already been shown."),
-    AD_EXPIRED(402, "Ad has expired and cannot be shown."),
+    AD_ALREADY_DISPLAYED(401, "Ad has already been displayed."),
+    AD_EXPIRED(402, "Ad has expired and cannot be displayed."),
     INVALID_VIEW_CONTROLLER(403, "Invalid view controller provided for ad display."),
-    SHOW_FAILED(404, "Failed to show ad."),
+    DISPLAY_FAILED(404, "Failed to display ad."),
 
     // --- Configuration (500–599)
     INVALID_AD_UNIT(500, "Invalid ad unit configuration."),

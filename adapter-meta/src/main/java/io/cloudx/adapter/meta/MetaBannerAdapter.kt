@@ -7,6 +7,7 @@ import com.facebook.ads.AdError
 import com.facebook.ads.AdListener
 import com.facebook.ads.AdSize
 import com.facebook.ads.AdView
+import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.internal.AdViewSize
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.adapter.BannerFactoryMiscParams
@@ -14,10 +15,10 @@ import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapter
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterFactory
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterListener
-import io.cloudx.sdk.internal.adapter.CloudXAdapterError
 import io.cloudx.sdk.internal.adapter.CloudXAdapterMetaData
 import io.cloudx.sdk.internal.context.ContextProvider
 import io.cloudx.sdk.internal.util.Result
+import io.cloudx.sdk.toCloudXError
 
 @Keep
 internal object BannerFactory : CloudXAdViewAdapterFactory,
@@ -63,8 +64,9 @@ internal class MetaBannerAdapter(
     override fun load() {
         val placementId = serverExtras.getPlacementId()
         if (placementId == null) {
-            CXLogger.e(TAG, "Placement ID is null")
-            listener?.onError(CloudXAdapterError(description = "Placement ID is null"))
+            val message = "Placement ID is null"
+            CXLogger.e(TAG, message)
+            listener?.onError(CloudXErrorCode.UNEXPECTED_ERROR.toCloudXError(message = message))
             return
         }
 
@@ -109,11 +111,7 @@ internal class MetaBannerAdapter(
                 TAG,
                 "Banner ad failed to load for placement $placementId with error: ${adError?.errorMessage} (${adError?.errorCode})"
             )
-            listener?.onError(
-                CloudXAdapterError(
-                    description = adError?.errorMessage ?: "Unknown error"
-                )
-            )
+            listener?.onError(CloudXErrorCode.UNEXPECTED_ERROR.toCloudXError(message = adError?.errorMessage))
         }
 
         override fun onAdLoaded(ad: Ad?) {

@@ -241,8 +241,8 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                         postInit(INIT_SUCCESS)
                     }
 
-                    override fun onInitializationFailed(error: CloudXError) {
-                        postInit("$INIT_FAILURE ${error.effectiveMessage}")
+                    override fun onInitializationFailed(cloudXError: CloudXError) {
+                        postInit("$INIT_FAILURE ${cloudXError.effectiveMessage}")
                     }
                 })
         }

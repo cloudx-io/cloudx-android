@@ -1,6 +1,5 @@
 package io.cloudx.sdk.internal
 
-import io.cloudx.sdk.CloudXAdError
 import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.CloudXInitializationListener

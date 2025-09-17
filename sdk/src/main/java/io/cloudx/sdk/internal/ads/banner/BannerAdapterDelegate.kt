@@ -1,9 +1,9 @@
 package io.cloudx.sdk.internal.ads.banner
 
+import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapter
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterListener
-import io.cloudx.sdk.internal.adapter.CloudXAdapterError
 import io.cloudx.sdk.internal.ads.CXAdapterDelegate
 import io.cloudx.sdk.internal.bid.WinTracker
 import kotlinx.coroutines.CoroutineScope
@@ -25,7 +25,7 @@ sealed class BannerAdapterDelegateEvent {
     object Show : BannerAdapterDelegateEvent()
     object Impression : BannerAdapterDelegateEvent()
     object Click : BannerAdapterDelegateEvent()
-    data class Error(val error: CloudXAdapterError) : BannerAdapterDelegateEvent()
+    data class Error(val error: CloudXError) : BannerAdapterDelegateEvent()
 }
 
 /**
@@ -76,10 +76,10 @@ private class BannerAdapterDelegateImpl(
     // State management
     private val scope = CoroutineScope(Dispatchers.Main)
     private val _event = MutableSharedFlow<BannerAdapterDelegateEvent>()
-    private val _lastErrorEvent = MutableStateFlow<CloudXAdapterError?>(null)
+    private val _lastErrorEvent = MutableStateFlow<CloudXError?>(null)
 
     override val event: SharedFlow<BannerAdapterDelegateEvent> = _event
-    override val lastErrorEvent: StateFlow<CloudXAdapterError?> = _lastErrorEvent
+    override val lastErrorEvent: StateFlow<CloudXError?> = _lastErrorEvent
 
     // Banner adapter with listener
     private val banner = createBanner(createAdapterListener())
@@ -127,7 +127,7 @@ private class BannerAdapterDelegateImpl(
                 scope.launch { _event.emit(BannerAdapterDelegateEvent.Click) }
             }
 
-            override fun onError(error: CloudXAdapterError) {
+            override fun onError(error: CloudXError) {
                 scope.launch {
                     _event.emit(BannerAdapterDelegateEvent.Error(error))
                     _lastErrorEvent.value = error

@@ -39,10 +39,10 @@ class DemoApplication : Application() {
                     CXLogger.i(TAG, "✅ CloudX SDK initialized successfully")
                 }
 
-                override fun onInitializationFailed(error: CloudXError) {
+                override fun onInitializationFailed(cloudXError: CloudXError) {
                     CXLogger.i(
                         TAG,
-                        "❌ CloudX SDK initialization failed: ${error.effectiveMessage}"
+                        "❌ CloudX SDK initialization failed: ${cloudXError.effectiveMessage}"
                     )
                 }
             }

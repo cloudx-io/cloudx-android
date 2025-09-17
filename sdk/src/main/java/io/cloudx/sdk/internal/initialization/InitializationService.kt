@@ -1,9 +1,10 @@
 package io.cloudx.sdk.internal.initialization
 
 import android.content.Context
-import io.cloudx.sdk.internal.ApplicationContext
 import io.cloudx.sdk.CloudXError
+import io.cloudx.sdk.internal.ApplicationContext
 import io.cloudx.sdk.internal.ads.AdFactory
+import io.cloudx.sdk.internal.appinfo.AppInfoProvider
 import io.cloudx.sdk.internal.config.Config
 import io.cloudx.sdk.internal.config.ConfigApi
 import io.cloudx.sdk.internal.config.ConfigRequestProvider
@@ -46,7 +47,8 @@ internal fun InitializationService(
     winLossTracker: WinLossTracker = WinLossTracker(),
     deviceInfoProvider: DeviceInfoProvider = DeviceInfoProvider(),
     geoApi: GeoApi = GeoApi(),
-    crashReportingService: CrashReportingService = CrashReportingService()
+    crashReportingService: CrashReportingService = CrashReportingService(),
+    appInfoProvider: AppInfoProvider = AppInfoProvider()
 ): InitializationService =
     InitializationServiceImpl(
         context,
@@ -59,5 +61,6 @@ internal fun InitializationService(
         winLossTracker,
         deviceInfoProvider,
         geoApi,
-        crashReportingService
+        crashReportingService,
+        appInfoProvider
     )

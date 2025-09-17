@@ -9,6 +9,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 internal object TrackingFieldResolver {
     const val SDK_PARAM_RESPONSE_IN_MILLIS = "sdk.responseTimeMillis"
+    private const val SDK_PARAM_APP_BUNDLE = "sdk.app.bundle"
     private const val SDK_PARAM_SDK_VERSION = "sdk.releaseVersion"
     private const val SDK_PARAM_DEVICE_TYPE = "sdk.deviceType"
     private const val SDK_PARAM_SESSION_ID = "sdk.sessionId"
@@ -28,6 +29,7 @@ internal object TrackingFieldResolver {
     private var sdkVersion: String? = null
     private var deviceType: String? = null
     private var abTestGroup: String? = null
+    private var appBundle: String? = null
     private var hashedGeoIp: String? = null
 
     private var accountId: String? = null
@@ -42,12 +44,14 @@ internal object TrackingFieldResolver {
         sessionId: String,
         sdkVersion: String,
         deviceType: String,
-        abTestGroup: String
+        abTestGroup: String,
+        appBundle: String
     ) {
         TrackingFieldResolver.sessionId = sessionId
         TrackingFieldResolver.sdkVersion = sdkVersion
         TrackingFieldResolver.deviceType = deviceType
         TrackingFieldResolver.abTestGroup = abTestGroup
+        TrackingFieldResolver.appBundle = appBundle
     }
 
     fun setRequestData(auctionId: String, json: JSONObject) {
@@ -188,6 +192,7 @@ internal object TrackingFieldResolver {
             field.startsWith("sdk.") -> {
                 return when (field) {
                     SDK_PARAM_SESSION_ID -> sessionId
+                    SDK_PARAM_APP_BUNDLE -> appBundle
                     SDK_PARAM_SDK_VERSION -> sdkVersion
                     SDK_PARAM_DEVICE_TYPE -> deviceType
                     SDK_PARAM_LOOP_INDEX -> auctionedLoopIndex[auctionId]?.toString()

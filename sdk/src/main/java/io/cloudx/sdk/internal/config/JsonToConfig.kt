@@ -1,8 +1,8 @@
 package io.cloudx.sdk.internal.config
 
-import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.CloudXErrorCode
+import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.toAdNetwork
 import io.cloudx.sdk.internal.toBundle
@@ -36,7 +36,7 @@ internal suspend fun jsonToConfig(json: String): Result<Config, CloudXError> =
                     accountId = root.optString("accountID", null),
                     appKeyOverride = root.optString("appKeyOverride", null),
                     trackers = root.optJSONArray("tracking")?.toTrackers(),
-                    winLossNotificationPayloadMapping = root.optJSONObject("winLossNotificationPayloadMapping")?.toStringMap() ?: emptyMap(),
+                    winLossNotificationPayloadConfig = root.optJSONObject("winLossNotificationPayloadConfig")?.toStringMap() ?: emptyMap(),
                     geoHeaders = root.optJSONArray("geoHeaders")?.toGeoHeaders(),
                     keyValuePaths = root.optJSONObject("keyValuePaths")?.let { kvp ->
                         Config.KeyValuePaths(

@@ -3,6 +3,7 @@ package io.cloudx.sdk.internal.imp_tracker.win_loss
 import io.cloudx.sdk.internal.bid.LossReason
 import io.cloudx.sdk.internal.config.Config
 import io.cloudx.sdk.internal.imp_tracker.TrackingFieldResolver
+import org.json.JSONObject
 
 internal object WinLossFieldResolver {
 
@@ -44,7 +45,7 @@ internal object WinLossFieldResolver {
     //  }
 
     fun setConfig(config: Config) {
-        winLossPayloadMapping = config.winLossNotificationPayloadMapping
+        winLossPayloadMapping = config.winLossNotificationPayloadConfig
     }
 
     fun setWinData(
@@ -100,15 +101,20 @@ internal object WinLossFieldResolver {
     fun buildWinLossPayload(auctionId: String): Map<String, Any>? {
         val payloadMapping = winLossPayloadMapping ?: return null
         val winLossData = winLossDataMap[auctionId] ?: return null
-
         val result = mutableMapOf<String, Any>()
+
+        // =============
+        println(" ===== ====== ===== ===== ====== ====== ====== ====== ")
 
         payloadMapping.forEach { (payloadKey, fieldPath) ->
             val resolvedValue = resolveWinLossField(auctionId, fieldPath, winLossData)
+            println("hop: resolved fieldPath='$fieldPath' to value='$resolvedValue'")
             if (resolvedValue != null) {
                 result[payloadKey] = resolvedValue
             }
         }
+
+        println(" ===== ====== ===== ===== ====== ====== ====== ====== ")
 
         return result
     }
@@ -139,13 +145,16 @@ internal object WinLossFieldResolver {
             fieldPath == "sdk.loss" -> if (!winLossData.isWin) "loss" else null
             fieldPath == "sdk.lossReason" -> winLossData.lossReason?.code
             fieldPath == "sdk.[win|loss]" -> if (winLossData.isWin) "win" else "loss"
+            fieldPath == "sdk.sdk" -> "sdk"
             fieldPath == "sdk.[bid.nurl|bid.lurl]" -> {
                 // Smart URL selection based on win/loss status
-                val currentBidData = winLossData.additionalData
+                val currentBidData = winLossData.additionalData["rawBid"] as JSONObject
                 if (winLossData.isWin) {
                     currentBidData["nurl"]
+                    // TODO: replace the macro ${AUCTION_PRICE} in the nurl with actual win price
                 } else {
                     currentBidData["lurl"]
+                    // TODO: replace the macro ${AUCTION_PRICE} in the lurl with actual win price + {LOSS_REASON} if possible
                 }
             }
 

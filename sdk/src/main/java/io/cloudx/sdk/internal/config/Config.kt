@@ -26,7 +26,7 @@ internal class Config(
     val bidders: Map<AdNetwork, Bidder>,
     val placements: Map<String, Placement>,
     val trackers: List<String>?,
-    val winLossNotificationPayloadMapping: Map<String, String>,
+    val winLossNotificationPayloadConfig: Map<String, String>,
     val geoHeaders: List<GeoHeader>?,
     val keyValuePaths: KeyValuePaths?,
     val metrics: MetricsConfig?,

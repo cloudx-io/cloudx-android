@@ -107,6 +107,7 @@ internal class WinLossTrackerImpl(
     }
 
     private suspend fun trackWinLoss(payload: Map<String, Any>) {
+        println("hop: tracking win/loss with payload: $payload")
         val eventId = saveToDb(payload)
         CXLogger.d(tag, "Saved win/loss event to database with ID: $eventId")
 

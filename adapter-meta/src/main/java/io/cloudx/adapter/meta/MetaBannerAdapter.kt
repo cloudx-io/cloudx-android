@@ -1,6 +1,5 @@
 package io.cloudx.adapter.meta
 
-import android.app.Activity
 import android.os.Bundle
 import androidx.annotation.Keep
 import com.facebook.ads.Ad
@@ -17,6 +16,7 @@ import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterFactory
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterListener
 import io.cloudx.sdk.internal.adapter.CloudXAdapterError
 import io.cloudx.sdk.internal.adapter.CloudXAdapterMetaData
+import io.cloudx.sdk.internal.context.ContextProvider
 import io.cloudx.sdk.internal.util.Result
 
 @Keep
@@ -24,7 +24,7 @@ internal object BannerFactory : CloudXAdViewAdapterFactory,
     CloudXAdapterMetaData by CloudXAdapterMetaData(AudienceNetworkAdsVersion) {
     // Consider suspend?
     override fun create(
-        activity: Activity,
+        contextProvider: ContextProvider,
         adViewContainer: CloudXAdViewAdapterContainer,
         refreshSeconds: Int?,
         placementId: String,
@@ -35,7 +35,7 @@ internal object BannerFactory : CloudXAdViewAdapterFactory,
         listener: CloudXAdViewAdapterListener,
     ): Result<CloudXAdViewAdapter, String> = Result.Success(
         MetaBannerAdapter(
-            activity = activity,
+            contextProvider = contextProvider,
             adViewContainer = adViewContainer,
             serverExtras = serverExtras,
             adm = adm,
@@ -49,7 +49,7 @@ internal object BannerFactory : CloudXAdViewAdapterFactory,
 }
 
 internal class MetaBannerAdapter(
-    private val activity: Activity,
+    private val contextProvider: ContextProvider,
     private val adViewContainer: CloudXAdViewAdapterContainer,
     private val serverExtras: Bundle,
     private val adm: String,
@@ -70,7 +70,7 @@ internal class MetaBannerAdapter(
 
         CXLogger.d(TAG, "Loading banner ad for placement: $placementId")
         val adView = AdView(
-            activity,
+            contextProvider.getContext(),
             placementId,
             if (adViewSize == AdViewSize.Standard) AdSize.BANNER_HEIGHT_50 else AdSize.RECTANGLE_HEIGHT_250
         )

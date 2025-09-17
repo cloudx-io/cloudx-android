@@ -1,9 +1,8 @@
 package io.cloudx.sdk
 
-import android.app.Activity
 import io.cloudx.sdk.internal.AdType
-import io.cloudx.sdk.internal.CXSdk
 import io.cloudx.sdk.internal.CXLogger
+import io.cloudx.sdk.internal.CXSdk
 import io.cloudx.sdk.internal.ads.fullscreen.interstitial.CXInterstitialAd
 import io.cloudx.sdk.internal.ads.fullscreen.rewarded.CXRewardedInterstitialAd
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsType
@@ -31,11 +30,10 @@ object CloudX {
      */
     @JvmStatic
     fun createBanner(
-        activity: Activity,
         placementName: String,
     ): CloudXAdView {
         CXSdk.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.CreateBanner)
-        return CloudXAdView(activity, placementName, AdType.Banner.Standard)
+        return CloudXAdView(placementName, AdType.Banner.Standard)
     }
 
     /**
@@ -43,11 +41,10 @@ object CloudX {
      */
     @JvmStatic
     fun createMREC(
-        activity: Activity,
         placementName: String,
     ): CloudXAdView {
         CXSdk.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.CreateMrec)
-        return CloudXAdView(activity, placementName, AdType.Banner.MREC)
+        return CloudXAdView(placementName, AdType.Banner.MREC)
     }
 
     /**
@@ -78,11 +75,10 @@ object CloudX {
      */
     @JvmStatic
     fun createNativeAdSmall(
-        activity: Activity,
         placementName: String,
     ): CloudXAdView {
         CXSdk.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.CreateNative)
-        return CloudXAdView(activity, placementName, AdType.Native.Small)
+        return CloudXAdView(placementName, AdType.Native.Small)
     }
 
     /**
@@ -90,11 +86,10 @@ object CloudX {
      */
     @JvmStatic
     fun createNativeAdMedium(
-        activity: Activity,
         placementName: String,
     ): CloudXAdView {
         CXSdk.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.CreateNative)
-        return CloudXAdView(activity, placementName, AdType.Native.Medium)
+        return CloudXAdView(placementName, AdType.Native.Medium)
     }
 
     @JvmStatic

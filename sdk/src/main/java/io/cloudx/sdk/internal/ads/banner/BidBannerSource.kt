@@ -1,6 +1,5 @@
 package io.cloudx.sdk.internal.ads.banner
 
-import android.app.Activity
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.adapter.BannerFactoryMiscParams
@@ -14,12 +13,12 @@ import io.cloudx.sdk.internal.ads.decorate
 import io.cloudx.sdk.internal.bid.BidApi
 import io.cloudx.sdk.internal.bid.BidRequestProvider
 import io.cloudx.sdk.internal.cdp.CdpApi
+import io.cloudx.sdk.internal.context.ContextProvider
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
 import io.cloudx.sdk.internal.util.Result
 
 internal fun BidBannerSource(
-    activity: Activity,
     adViewContainer: CloudXAdViewAdapterContainer,
     refreshSeconds: Int?,
     factories: Map<AdNetwork, CloudXAdViewAdapterFactory>,
@@ -71,8 +70,15 @@ internal fun BidBannerSource(
         ) { listener ->
             // TODO. Explicit Result cast isn't "cool", even though there's try catch somewhere.
             (factories[network]?.create(
-                activity, adViewContainer, refreshSeconds, placementId, bidId,
-                adm, params, miscParams, listener
+                contextProvider = ContextProvider(),
+                adViewContainer = adViewContainer,
+                refreshSeconds = refreshSeconds,
+                placementId = placementId,
+                bidId = bidId,
+                adm = adm,
+                serverExtras = params,
+                miscParams = miscParams,
+                listener = listener
             ) as Result.Success).value
         }.decorate(
             baseAdDecoration() +

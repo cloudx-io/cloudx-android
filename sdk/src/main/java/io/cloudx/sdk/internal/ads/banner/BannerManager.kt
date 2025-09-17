@@ -1,12 +1,11 @@
 package io.cloudx.sdk.internal.ads.banner
 
-import android.app.Activity
 import io.cloudx.sdk.CloudXAdError
 import io.cloudx.sdk.CloudXAdViewListener
+import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.Destroyable
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.AdType
-import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.adapter.BannerFactoryMiscParams
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
@@ -16,7 +15,6 @@ import io.cloudx.sdk.internal.ads.AdLoader
 import io.cloudx.sdk.internal.bid.BidApi
 import io.cloudx.sdk.internal.bid.BidRequestProvider
 import io.cloudx.sdk.internal.cdp.CdpApi
-import io.cloudx.sdk.internal.common.service.ActivityLifecycleService
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
@@ -40,14 +38,12 @@ internal interface BannerManager : Destroyable {
 }
 
 private class BannerManagerImpl(
-    activity: Activity,
     private val placementId: String,
     private val placementName: String,
     private val adLoader: AdLoader<BannerAdapterDelegate>,
     bannerVisibility: StateFlow<Boolean>,
     private val refreshSeconds: Int,
     suspendPreloadWhenInvisible: Boolean,
-    activityLifecycleService: ActivityLifecycleService,
     private val metricsTracker: MetricsTracker,
 ) : BannerManager {
 
@@ -62,9 +58,7 @@ private class BannerManagerImpl(
     // Banner refresh management
     private val bannerRefreshTimer =
         BannerSuspendableTimer(
-            activity,
             bannerVisibility,
-            activityLifecycleService,
             suspendPreloadWhenInvisible
         )
     private var bannerRefreshJob: Job? = null
@@ -234,7 +228,6 @@ private class BannerManagerImpl(
 }
 
 internal fun BannerManager(
-    activity: Activity,
     placementId: String,
     placementName: String,
     adViewContainer: CloudXAdViewAdapterContainer,
@@ -250,7 +243,6 @@ internal fun BannerManager(
     eventTracker: EventTracker,
     metricsTracker: MetricsTracker,
     connectionStatusService: ConnectionStatusService,
-    activityLifecycleService: ActivityLifecycleService,
     accountId: String,
     appKey: String
 ): BannerManager {
@@ -261,22 +253,21 @@ internal fun BannerManager(
 
     val bidSource =
         BidBannerSource(
-            activity,
-            adViewContainer,
-            refreshSeconds,
-            bidFactories,
-            placementId,
-            placementName,
-            adType,
-            bidApi,
-            cdpApi,
-            bidRequestProvider,
-            eventTracker,
-            metricsTracker,
-            miscParams,
-            0,
-            accountId,
-            appKey
+            adViewContainer = adViewContainer,
+            refreshSeconds = refreshSeconds,
+            factories = bidFactories,
+            placementId = placementId,
+            placementName = placementName,
+            placementType = adType,
+            requestBid = bidApi,
+            cdpApi = cdpApi,
+            generateBidRequest = bidRequestProvider,
+            eventTracker = eventTracker,
+            metricsTracker = metricsTracker,
+            miscParams = miscParams,
+            bidRequestTimeoutMillis = 0,
+            accountId = accountId,
+            appKey = appKey
         )
 
 
@@ -289,14 +280,12 @@ internal fun BannerManager(
     )
 
     return BannerManagerImpl(
-        activity = activity,
         placementId = placementId,
         placementName = placementName,
         adLoader = adLoader,
         bannerVisibility = bannerVisibility,
         refreshSeconds = refreshSeconds,
         suspendPreloadWhenInvisible = true,
-        activityLifecycleService = activityLifecycleService,
         metricsTracker = metricsTracker
     )
 }

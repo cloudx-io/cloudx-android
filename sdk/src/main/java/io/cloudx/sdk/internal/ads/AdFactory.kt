@@ -1,16 +1,10 @@
 package io.cloudx.sdk.internal.ads
 
-import android.app.Activity
-import io.cloudx.sdk.CloudXAdViewListener
 import io.cloudx.sdk.CloudXInterstitialAd
-import io.cloudx.sdk.CloudXInterstitialListener
 import io.cloudx.sdk.CloudXRewardedInterstitialAd
-import io.cloudx.sdk.CloudXRewardedInterstitialListener
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
 import io.cloudx.sdk.internal.ads.banner.BannerManager
-import io.cloudx.sdk.internal.common.service.ActivityLifecycleService
-import io.cloudx.sdk.internal.common.service.AppLifecycleService
 import io.cloudx.sdk.internal.config.Config
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
@@ -33,7 +27,6 @@ internal interface AdFactory {
     open class CreateAdParams(val placementName: String)
 
     class CreateBannerParams(
-        val activity: Activity,
         val adType: AdType,
         val adViewAdapterContainer: CloudXAdViewAdapterContainer,
         val bannerVisibility: StateFlow<Boolean>,
@@ -48,16 +41,12 @@ internal fun AdFactory(
     metricsTracker: MetricsTracker,
     eventTracker: EventTracker,
     connectionStatusService: ConnectionStatusService,
-    appLifecycleService: AppLifecycleService,
-    activityLifecycleService: ActivityLifecycleService
 ): AdFactory =
     AdFactoryImpl(
-        appKey,
-        config,
-        factories,
-        metricsTracker,
-        eventTracker,
-        connectionStatusService,
-        appLifecycleService,
-        activityLifecycleService
+        appKey = appKey,
+        config = config,
+        factories = factories,
+        metricsTracker = metricsTracker,
+        eventTracker = eventTracker,
+        connectionStatusService = connectionStatusService,
     )

@@ -13,10 +13,10 @@ import androidx.constraintlayout.widget.ConstraintSet
 import androidx.fragment.app.Fragment
 import io.cloudx.demo.demoapp.loglistview.commonLogTagListRules
 import io.cloudx.demo.demoapp.loglistview.setupLogListView
-import io.cloudx.sdk.CloudXAdViewListener
-import io.cloudx.sdk.CloudXAdListener
 import io.cloudx.sdk.CloudX
+import io.cloudx.sdk.CloudXAdListener
 import io.cloudx.sdk.CloudXAdView
+import io.cloudx.sdk.CloudXAdViewListener
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.AdViewSize
 import io.cloudx.sdk.internal.CXLogger
@@ -37,7 +37,7 @@ abstract class BannerProgrammaticFragment : Fragment(R.layout.fragment_banner_pr
     abstract fun logTagFilterRule(logTag: String, forTag: String): String?
 
     abstract fun createAdView(
-        activity: Activity, placementName: String, listener: CloudXAdViewListener?
+        placementName: String, listener: CloudXAdViewListener?
     ): CloudXAdView
 
     abstract val adViewSize: AdViewSize
@@ -103,7 +103,7 @@ abstract class BannerProgrammaticFragment : Fragment(R.layout.fragment_banner_pr
         placements.forEachIndexed { index, placementName ->
             if (placementName.isNullOrBlank()) return@forEachIndexed
             val bannerAdView =
-                createAdView(requireActivity(), placementName, createBannerListener(placementName))
+                createAdView(placementName, createBannerListener(placementName))
             CXLogger.i(logTag, "Banner ad created for \"$placementName\" placement")
             bannerAdView.visibility = VISIBLE
             val adContainer = llAds.getChildAt(index) as AdContainerLayout
@@ -194,9 +194,9 @@ class StandardBannerProgrammaticFragment : BannerProgrammaticFragment() {
         }
 
     override fun createAdView(
-        activity: Activity, placementName: String, listener: CloudXAdViewListener?
+        placementName: String, listener: CloudXAdViewListener?
     ): CloudXAdView =
-        CloudX.createBanner(activity, placementName).apply {
+        CloudX.createBanner(placementName).apply {
             this.listener = listener
         }
 
@@ -212,8 +212,8 @@ class MRECProgrammaticFragment : BannerProgrammaticFragment() {
         }
 
     override fun createAdView(
-        activity: Activity, placementName: String, listener: CloudXAdViewListener?
-    ): CloudXAdView = CloudX.createMREC(activity, placementName).apply {
+        placementName: String, listener: CloudXAdViewListener?
+    ): CloudXAdView = CloudX.createMREC(placementName).apply {
         this.listener = listener
     }
 
@@ -229,9 +229,9 @@ class NativeAdSmallProgrammaticFragment : BannerProgrammaticFragment() {
         }
 
     override fun createAdView(
-        activity: Activity, placementName: String, listener: CloudXAdViewListener?
+        placementName: String, listener: CloudXAdViewListener?
     ): CloudXAdView =
-        CloudX.createNativeAdSmall(activity, placementName).apply {
+        CloudX.createNativeAdSmall(placementName).apply {
             this.listener = listener
         }
 
@@ -247,9 +247,9 @@ class NativeAdMediumProgrammaticFragment : BannerProgrammaticFragment() {
         }
 
     override fun createAdView(
-        activity: Activity, placementName: String, listener: CloudXAdViewListener?
+        placementName: String, listener: CloudXAdViewListener?
     ): CloudXAdView =
-        CloudX.createNativeAdMedium(activity, placementName).apply {
+        CloudX.createNativeAdMedium(placementName).apply {
             this.listener = listener
         }
 

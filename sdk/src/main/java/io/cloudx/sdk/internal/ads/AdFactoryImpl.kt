@@ -2,24 +2,20 @@ package io.cloudx.sdk.internal.ads
 
 import io.cloudx.sdk.CloudXInterstitialAd
 import io.cloudx.sdk.CloudXRewardedInterstitialAd
-import io.cloudx.sdk.internal.ads.fullscreen.interstitial.InterstitialManager
-import io.cloudx.sdk.CloudXInterstitialListener
-import io.cloudx.sdk.internal.ads.fullscreen.rewarded.RewardedInterstitialManager
-import io.cloudx.sdk.CloudXRewardedInterstitialListener
 import io.cloudx.sdk.internal.AdType
-import io.cloudx.sdk.internal.ads.banner.BannerManager
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.adapter.BannerFactoryMiscParams
+import io.cloudx.sdk.internal.ads.banner.BannerManager
+import io.cloudx.sdk.internal.ads.fullscreen.interstitial.InterstitialManager
+import io.cloudx.sdk.internal.ads.fullscreen.rewarded.RewardedInterstitialManager
 import io.cloudx.sdk.internal.bid.BidApi
 import io.cloudx.sdk.internal.cdp.CdpApi
-import io.cloudx.sdk.internal.common.service.ActivityLifecycleService
-import io.cloudx.sdk.internal.common.service.AppLifecycleService
 import io.cloudx.sdk.internal.config.Config
 import io.cloudx.sdk.internal.config.ResolvedEndpoints
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
-import io.cloudx.sdk.internal.initialization.BidAdNetworkFactories
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
+import io.cloudx.sdk.internal.initialization.BidAdNetworkFactories
 import io.cloudx.sdk.internal.size
 
 internal class AdFactoryImpl(
@@ -29,8 +25,6 @@ internal class AdFactoryImpl(
     private val metricsTracker: MetricsTracker,
     private val eventTracker: EventTracker,
     private val connectionStatusService: ConnectionStatusService,
-    private val appLifecycleService: AppLifecycleService,
-    private val activityLifecycleService: ActivityLifecycleService
 ) : AdFactory {
 
     private val TAG = "AdFactoryImpl"
@@ -77,7 +71,6 @@ internal class AdFactoryImpl(
         }
 
         return BannerManager(
-            activity = params.activity,
             placementId = placement.id,
             placementName = placement.name,
             adViewContainer = params.adViewAdapterContainer,
@@ -93,7 +86,6 @@ internal class AdFactoryImpl(
             eventTracker = eventTracker,
             metricsTracker = metricsTracker,
             connectionStatusService = connectionStatusService,
-            activityLifecycleService = activityLifecycleService,
             accountId = config.accountId ?: "",
             appKey = appKey
         )

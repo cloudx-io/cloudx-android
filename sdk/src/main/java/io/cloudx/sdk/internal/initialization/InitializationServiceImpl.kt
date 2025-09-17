@@ -3,14 +3,12 @@ package io.cloudx.sdk.internal.initialization
 import android.content.Context
 import com.xor.XorEncryption
 import io.cloudx.sdk.BuildConfig
-import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.CloudXErrorCode
+import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.ads.AdFactory
 import io.cloudx.sdk.internal.bid.BidRequestProvider
-import io.cloudx.sdk.internal.common.service.ActivityLifecycleService
-import io.cloudx.sdk.internal.common.service.AppLifecycleService
 import io.cloudx.sdk.internal.config.Config
 import io.cloudx.sdk.internal.config.ConfigApi
 import io.cloudx.sdk.internal.config.ConfigRequestProvider
@@ -189,8 +187,6 @@ internal class InitializationServiceImpl(
             metricsTracker,
             eventTracker,
             ConnectionStatusService(),
-            AppLifecycleService(),
-            ActivityLifecycleService()
         )
     }
 

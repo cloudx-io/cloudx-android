@@ -1,7 +1,6 @@
 package io.cloudx.sdk
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -11,16 +10,17 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import androidx.core.view.setPadding
 import io.cloudx.sdk.internal.AdType
-import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.ApplicationContext
+import io.cloudx.sdk.internal.CXLogger
+import io.cloudx.sdk.internal.CXSdk
 import io.cloudx.sdk.internal.PlacementLoopIndexTracker
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
 import io.cloudx.sdk.internal.ads.AdFactory
 import io.cloudx.sdk.internal.ads.banner.BannerManager
 import io.cloudx.sdk.internal.common.createViewabilityTracker
-import io.cloudx.sdk.internal.common.dpToPx
-import io.cloudx.sdk.internal.CXSdk
 import io.cloudx.sdk.internal.initialization.InitializationState
 import io.cloudx.sdk.internal.size
+import io.cloudx.sdk.internal.util.dpToPx
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -31,10 +31,9 @@ import kotlinx.coroutines.launch
 
 @SuppressLint("ViewConstructor")
 class CloudXAdView internal constructor(
-    activity: Activity,
     private val placementName: String,
     private val adType: AdType,
-) : FrameLayout(activity), Destroyable {
+) : FrameLayout(ApplicationContext()), Destroyable {
 
     private val TAG = "CloudXAdView"
 
@@ -68,12 +67,10 @@ class CloudXAdView internal constructor(
             isBannerAttachedToWindow.first { it }
             bannerManager = adFactory!!.createBannerManager(
                 AdFactory.CreateBannerParams(
-                    activity = activity,
                     adType = adType,
                     adViewAdapterContainer = createBannerContainer(),
                     bannerVisibility = viewabilityTracker.isViewable,
                     placementName = placementName,
-                    listener = listener
                 )
             )
             updateBannerListener()
@@ -208,13 +205,13 @@ class CloudXAdView internal constructor(
                     bannerContainer.addView(closeButton, closeBtnParams)
                 }
 
-                CloudXLogger.i(
+                CXLogger.i(
                     TAG,
                     message = "added banner view to the background layer: ${bannerViewToAdd.javaClass.simpleName}"
                 )
 
             } catch (e: Exception) {
-                CloudXLogger.e(
+                CXLogger.e(
                     TAG,
                     message = "CloudXAdView exception during adding ad view ${bannerViewToAdd.javaClass.simpleName}: $e",
                 )

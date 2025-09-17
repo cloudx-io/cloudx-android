@@ -1,13 +1,13 @@
 package io.cloudx.sdk.internal.bid
 
-import io.cloudx.sdk.internal.CLXError
-import io.cloudx.sdk.internal.CLXErrorCode
-import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.CloudXError
+import io.cloudx.sdk.CloudXErrorCode
+import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.HEADER_CLOUDX_STATUS
 import io.cloudx.sdk.internal.STATUS_ADS_DISABLED
 import io.cloudx.sdk.internal.imp_tracker.TrackingFieldResolver
-import io.cloudx.sdk.internal.network.httpCatching
-import io.cloudx.sdk.internal.network.postJsonWithRetry
+import io.cloudx.sdk.internal.httpclient.httpCatching
+import io.cloudx.sdk.internal.httpclient.postJsonWithRetry
 import io.cloudx.sdk.internal.util.Result
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.Dispatchers
@@ -25,7 +25,7 @@ internal class BidApiImpl(
     override suspend fun invoke(
         appKey: String,
         bidRequest: JSONObject
-    ): Result<BidResponse, CLXError> = httpCatching(
+    ): Result<BidResponse, CloudXError> = httpCatching(
         tag = tag,
         onOk = { json -> 
             val parseResult = jsonToBidResponse(json)
@@ -40,14 +40,14 @@ internal class BidApiImpl(
         onNoContent = { response, _ ->
             val xStatus = response.headers[HEADER_CLOUDX_STATUS]
             if (xStatus == STATUS_ADS_DISABLED) {
-                Result.Failure(CLXError(CLXErrorCode.ADS_DISABLED))
+                Result.Failure(CloudXError(CloudXErrorCode.ADS_DISABLED))
             } else {
-                Result.Failure(CLXError(CLXErrorCode.NO_FILL))
+                Result.Failure(CloudXError(CloudXErrorCode.NO_FILL))
             }
         }
     ) {
         val body = withContext(Dispatchers.IO) {
-            bidRequest.toString().also { CloudXLogger.d(tag, "Serialized body (${it.length} chars)") }
+            bidRequest.toString().also { CXLogger.d(tag, "Serialized body (${it.length} chars)") }
         }
         httpClient.postJsonWithRetry(
             url = endpointUrl,

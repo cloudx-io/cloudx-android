@@ -3,8 +3,8 @@ package io.cloudx.sdk.internal.ads
 import com.xor.XorEncryption
 import io.cloudx.sdk.Destroyable
 import io.cloudx.sdk.internal.AdNetwork
-import io.cloudx.sdk.internal.CLXError
-import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.CloudXError
+import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.PlacementLoopIndexTracker
 import io.cloudx.sdk.internal.bid.Bid
 import io.cloudx.sdk.internal.bid.BidApi
@@ -15,7 +15,6 @@ import io.cloudx.sdk.internal.config.ResolvedEndpoints
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.EventType
 import io.cloudx.sdk.internal.imp_tracker.TrackingFieldResolver
-import io.cloudx.sdk.internal.imp_tracker.TrackingFieldResolver.SDK_PARAM_RESPONSE_IN_MILLIS
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsType
 import io.cloudx.sdk.internal.imp_tracker.win_loss.WinLossTracker
@@ -29,7 +28,7 @@ internal interface BidAdSource<T : Destroyable> {
     /**
      * @return the bid or null if no bid
      */
-    suspend fun requestBid(): BidAdSourceResponse<T>?
+    suspend fun requestBid(): Result<BidAdSourceResponse<T>, CloudXError>
 }
 
 internal open class BidAdSourceResponse<T : Destroyable>(
@@ -92,37 +91,37 @@ private class BidAdSourceImpl<T : Destroyable>(
 
     private val logTag = "BidAdSourceImpl"
 
-    override suspend fun requestBid(): BidAdSourceResponse<T>? {
+    override suspend fun requestBid(): Result<BidAdSourceResponse<T>, CloudXError> {
         val auctionId = UUID.randomUUID().toString()
         val bidRequestParamsJson = provideBidRequest.invoke(bidRequestParams, auctionId)
 
         val currentLoopIndex = PlacementLoopIndexTracker.getCount(bidRequestParams.placementName)
 
-        CloudXLogger.d(logTag, "")
-        CloudXLogger.d(logTag, "======== loop-index=$currentLoopIndex")
-        CloudXLogger.d(logTag, "")
+        CXLogger.d(logTag, "")
+        CXLogger.d(logTag, "======== loop-index=$currentLoopIndex")
+        CXLogger.d(logTag, "")
 // User Params
         val userParams = SdkKeyValueState.userKeyValues
-        CloudXLogger.d(logTag, "user params: $userParams")
+        CXLogger.d(logTag, "user params: $userParams")
 
-        val appParams = SdkKeyValueState.userKeyValues
-        CloudXLogger.d(logTag, "app params: $appParams")
+        val appParams = SdkKeyValueState.appKeyValues
+        CXLogger.d(logTag, "app params: $appParams")
 
         val isCdpDisabled = ResolvedEndpoints.cdpEndpoint.isBlank()
 
         val enrichedPayload = if (isCdpDisabled) {
-            CloudXLogger.d(logTag, "Skipping enrichment.")
+            CXLogger.d(logTag, "Skipping enrichment.")
             bidRequestParamsJson
         } else {
-            CloudXLogger.d(logTag, "Making a call to CDP")
+            CXLogger.d(logTag, "Making a call to CDP")
             when (val enrichResult = cdpApi.enrich(bidRequestParamsJson)) {
                 is Result.Success -> {
-                    CloudXLogger.d(logTag, "Received enriched data from CDP")
+                    CXLogger.d(logTag, "Received enriched data from CDP")
                     enrichResult.value
                 }
 
                 is Result.Failure -> {
-                    CloudXLogger.e(
+                    CXLogger.e(
                         logTag,
                         "CDP enrichment failed: ${enrichResult.value.effectiveMessage}. Using original payload."
                     )
@@ -131,12 +130,12 @@ private class BidAdSourceImpl<T : Destroyable>(
             }
         }
 
-        CloudXLogger.d(
+        CXLogger.d(
             logTag,
             "Sending BidRequest [loop-index=$currentLoopIndex] for placementId: ${bidRequestParams.placementId}"
         )
 
-        val result: Result<BidResponse, CLXError>
+        val result: Result<BidResponse, CloudXError>
         val bidRequestLatencyMillis = measureTimeMillis {
             result = requestBid.invoke(bidRequestParams.appKey, enrichedPayload)
         }
@@ -163,44 +162,13 @@ private class BidAdSourceImpl<T : Destroyable>(
         }
 
         return when (result) {
-            is Result.Failure -> {
-                CloudXLogger.e(logTag, result.value.effectiveMessage)
-                null
+            is Result.Success -> {
+                val resp = result.value.toBidAdSourceResponse(bidRequestParams, createBidAd)
+                Result.Success(resp)
             }
 
-            is Result.Success -> {
-                val bidAdSourceResponse = result.value.toBidAdSourceResponse(bidRequestParams, createBidAd, auctionId)
-
-                if (bidAdSourceResponse.bidItemsByRank.isEmpty()) {
-                    CloudXLogger.d(logTag, "NO_BID")
-                } else {
-                    val bidDetails =
-                        bidAdSourceResponse.bidItemsByRank.joinToString(separator = ",\n") {
-                            val bid = it.bid
-                            val cpm = bid.priceRaw ?: "0.0"
-                            "\"bidder\": \"${it.adNetworkOriginal.networkName}\", cpm: $cpm, rank: ${bid.rank}"
-                        }
-                    CloudXLogger.d(
-                        logTag,
-                        "Bid Success — received ${bidAdSourceResponse.bidItemsByRank.size} bid(s): [$bidDetails]"
-                    )
-
-                    TrackingFieldResolver.setSdkParam(
-                        auctionId,
-                        SDK_PARAM_RESPONSE_IN_MILLIS,
-                        bidRequestLatencyMillis.toString()
-                    )
-
-                    // Add all bids to WinLossTracker for auction processing
-                    bidAdSourceResponse.bidItemsByRank.forEach { bidItem ->
-                        winLossTracker.addBid(
-                            auctionId = auctionId,
-                            bid = bidItem.bid
-                        )
-                    }
-                }
-
-                bidAdSourceResponse
+            is Result.Failure -> {
+                Result.Failure(result.value)
             }
         }
     }

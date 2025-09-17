@@ -4,106 +4,67 @@ import io.cloudx.sdk.CloudXAd
 import io.cloudx.sdk.CloudXAdError
 import io.cloudx.sdk.CloudXAdListener
 import io.cloudx.sdk.CloudXFullscreenAd
-import io.cloudx.sdk.CloudXIsAdLoadedListener
 import io.cloudx.sdk.internal.AdType
-import io.cloudx.sdk.internal.CloudXLogger
-import io.cloudx.sdk.internal.ads.BidAdSource
-import io.cloudx.sdk.internal.common.service.AppLifecycleService
-import io.cloudx.sdk.internal.common.utcNowEpochMillis
-import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
+import io.cloudx.sdk.internal.CXLogger
+import io.cloudx.sdk.internal.ads.AdLoader
+import io.cloudx.sdk.internal.util.Result
+import io.cloudx.sdk.internal.util.utcNowEpochMillis
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeoutOrNull
 
 // TODO. Yeah, more generics, classes, interfaces...
 internal class FullscreenAdManager<
         Delegate : FullscreenAdAdapterDelegate<DelegateEvent>,
-        DelegateEvent,
-        Listener : CloudXAdListener>(
-    bidAdSource: BidAdSource<Delegate>,
-    bidMaxBackOffTimeMillis: Long,
-    bidAdLoadTimeoutMillis: Long,
-    cacheSize: Int,
+        DelegateEvent>(
+    private val adLoader: AdLoader<Delegate>,
     private val placementType: AdType,
-    connectionStatusService: ConnectionStatusService,
-    appLifecycleService: AppLifecycleService,
-    private val listener: Listener?,
-    // TODO. Ahaha. stop it, please.
     // Listens to the current ad events and returns FullscreenAdEvent if similar.
-    private val tryHandleCurrentEvent: DelegateEvent.(cloudXAd: CloudXAd) -> FullscreenAdEvent?
-) : CloudXFullscreenAd {
+    private val tryHandleCurrentEvent: DelegateEvent.(cloudXAd: CloudXAd) -> FullscreenAdEvent?,
+) : CloudXFullscreenAd<CloudXAdListener> {
 
     // Core components
     private val scope = CoroutineScope(Dispatchers.Main)
-    private val cachedAdRepository = CachedAdRepository(
-        bidAdSource,
-        cacheSize,
-        preCachedAdLifetimeMinutes = 30,
-        bidMaxBackOffTimeMillis = bidMaxBackOffTimeMillis,
-        bidLoadTimeoutMillis = bidAdLoadTimeoutMillis,
-        createCacheableAd = { CacheableFullscreenAd(it) },
-        placementType = placementType,
-        connectionStatusService = connectionStatusService,
-        appLifecycleService = appLifecycleService
-    )
-
-    // Listener management
-    private var isAdReadyListenerJob: Job? = null
 
     // Loading state
     private var lastLoadJob: Job? = null
+    private var lastLoadedAd: FullscreenAdAdapterDelegate<DelegateEvent>? = null
 
     // Showing state
     private var lastShowJob: Job? = null
     private var lastShowJobStartedTimeMillis: Long = -1
-    private var lastShownAd: FullscreenAdAdapterDelegate<DelegateEvent>? = null
 
-    // Listener management methods
-    override fun setIsAdLoadedListener(listener: CloudXIsAdLoadedListener?) {
-        isAdReadyListenerJob?.cancel()
-        listener ?: return
-
-        isAdReadyListenerJob = cachedAdRepository.hasAds
-            .onEach { hasAds ->
-                listener.onIsAdLoadedStatusChanged(hasAds)
-            }
-            .launchIn(scope)
-    }
+    // Listener management
+    override var listener: CloudXAdListener? = null
 
     // Ad loading methods
-    // TODO. Duplicate of Interstitial + errors
     override fun load() {
-        if (lastLoadJob?.isActive == true) return
-
+        if (lastLoadJob?.isActive == true || lastLoadedAd != null) return
         lastLoadJob = scope.launch {
-            val hasAds = withTimeoutOrNull(2000) {
-                cachedAdRepository.hasAds.first { it }
-                true
-            }
+            val ad = adLoader.load()
+            when (ad) {
+                is Result.Failure -> {
+                    listener?.onAdLoadFailed(CloudXAdError("Failed to load ad"))
+                }
 
-            val topAd = cachedAdRepository.topCloudXAd
-            if (hasAds == true && topAd != null) {
-                listener?.onAdLoaded(topAd)
-            } else {
-                listener?.onAdLoadFailed(CloudXAdError(description = "No ads loaded yet"))
+                is Result.Success -> {
+                    lastLoadedAd = ad.value
+                    listener?.onAdLoaded(ad.value)
+                }
             }
         }
     }
 
-    override val isAdLoaded get() = cachedAdRepository.hasAds.value
+    override val isAdLoaded get() = lastLoadedAd != null
 
     // Ad showing methods
     override fun show() {
-        CloudXLogger.i(
+        CXLogger.i(
             "CloudX${if (placementType == AdType.Interstitial) "Interstitial" else "Rewarded"}",
             "show() was called"
         )
@@ -117,9 +78,10 @@ internal class FullscreenAdManager<
                     return
                 } else {
                     job.cancel("No adHidden or adError event received. Cancelling job")
-                    lastShownAd?.let {
+                    lastLoadedAd?.let {
                         listener?.onAdHidden(it)
                     }
+                    lastLoadedAd = null
                 }
             }
         }
@@ -127,50 +89,19 @@ internal class FullscreenAdManager<
         lastShowJob = scope.launch {
             lastShowJobStartedTimeMillis = utcNowEpochMillis()
 
-            val ad = popAdAndSetLastShown()
+            val ad = lastLoadedAd
             if (ad == null) {
                 listener?.onAdDisplayFailed(CloudXAdError(description = "No ads loaded yet"))
                 return@launch
             }
 
-            // TODO refactor this part of code. It's hard to understand.
-            showWithRetry(ad)
-        }
-    }
-
-    /**
-     * Tries to show the ad, but in case some error occurs, then it will retry for up to 3 times.
-     */
-    private suspend fun showWithRetry(ad: FullscreenAdAdapterDelegate<DelegateEvent>) {
-        val showRetryDelayMillis = 100L
-        val showRetryCountMax = 3
-        var showRetryCount = 0
-        var showRetryAd: FullscreenAdAdapterDelegate<DelegateEvent>? = ad
-        while (showRetryAd != null) {
-            val shown: Boolean
             try {
-                shown = show(showRetryAd) == true
+                show(ad)
             } finally {
-                showRetryAd.destroy()
-            }
-
-            showRetryAd =
-                if (shown || ++showRetryCount >= showRetryCountMax) null else popAdAndSetLastShown()
-
-            if (!shown) {
-                CloudXLogger.i(
-                    "CloudX ${if (placementType == AdType.Interstitial) "Interstitial" else "Rewarded"}",
-                    "Ad was not shown, retry show ${showRetryAd != null}, retry count $showRetryCount"
-                )
-
-                // we delay to give resources a chance to clean up
-                delay(showRetryDelayMillis)
+                ad.destroy()
+                lastLoadedAd = null
             }
         }
-    }
-
-    private fun popAdAndSetLastShown(): FullscreenAdAdapterDelegate<DelegateEvent>? {
-        return cachedAdRepository.popAd().apply { lastShownAd = this }
     }
 
     private suspend fun show(ad: FullscreenAdAdapterDelegate<DelegateEvent>) =
@@ -249,17 +180,9 @@ internal class FullscreenAdManager<
     // Cleanup methods
     override fun destroy() {
         scope.cancel()
-        cachedAdRepository.destroy()
     }
 }
 
-private class CacheableFullscreenAd<SuspendableFullscreenAdEvent>(
-    suspendableFullscreenAd: FullscreenAdAdapterDelegate<SuspendableFullscreenAdEvent>,
-) :
-    CacheableAd,
-    FullscreenAdAdapterDelegate<SuspendableFullscreenAdEvent> by suspendableFullscreenAd
-
-// TODO. Ahaha, stop it, please.
 internal enum class FullscreenAdEvent {
     Show, Click, Hide
 }

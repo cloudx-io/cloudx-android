@@ -1,16 +1,10 @@
 package io.cloudx.sdk.internal.ads
 
-import android.app.Activity
-import io.cloudx.sdk.CloudXAdViewListener
 import io.cloudx.sdk.CloudXInterstitialAd
-import io.cloudx.sdk.CloudXInterstitialListener
 import io.cloudx.sdk.CloudXRewardedInterstitialAd
-import io.cloudx.sdk.CloudXRewardedInterstitialListener
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
 import io.cloudx.sdk.internal.ads.banner.BannerManager
-import io.cloudx.sdk.internal.common.service.ActivityLifecycleService
-import io.cloudx.sdk.internal.common.service.AppLifecycleService
 import io.cloudx.sdk.internal.config.Config
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
@@ -26,26 +20,19 @@ internal interface AdFactory {
     fun createBannerManager(params: CreateBannerParams): BannerManager?
 
     // Interstitial Ad creation
-    fun createInterstitial(params: CreateAdParams<CloudXInterstitialListener>): CloudXInterstitialAd?
+    fun createInterstitial(params: CreateAdParams): CloudXInterstitialAd?
 
     // Rewarded Ad creation
-    fun createRewarded(params: CreateAdParams<CloudXRewardedInterstitialListener>): CloudXRewardedInterstitialAd?
+    fun createRewarded(params: CreateAdParams): CloudXRewardedInterstitialAd?
 
-    open class CreateAdParams<T>(
-        val placementName: String,
-        val listener: T?
-    )
+    open class CreateAdParams(val placementName: String)
 
     class CreateBannerParams(
-        val activity: Activity,
         val adType: AdType,
         val adViewAdapterContainer: CloudXAdViewAdapterContainer,
         val bannerVisibility: StateFlow<Boolean>,
         placementName: String,
-        listener: CloudXAdViewListener?,
-    ) : CreateAdParams<CloudXAdViewListener>(
-        placementName, listener
-    )
+    ) : CreateAdParams(placementName)
 }
 
 internal fun AdFactory(
@@ -56,17 +43,13 @@ internal fun AdFactory(
     eventTracker: EventTracker,
     winLossTracker: WinLossTracker,
     connectionStatusService: ConnectionStatusService,
-    appLifecycleService: AppLifecycleService,
-    activityLifecycleService: ActivityLifecycleService
 ): AdFactory =
     AdFactoryImpl(
-        appKey,
-        config,
-        factories,
-        metricsTracker,
-        eventTracker,
+        appKey = appKey,
+        config = config,
+        factories = factories,
+        metricsTracker = metricsTracker,
+        eventTracker = eventTracker,
         winLossTracker,
-        connectionStatusService,
-        appLifecycleService,
-        activityLifecycleService
+        connectionStatusService = connectionStatusService,
     )

@@ -6,7 +6,7 @@ import com.facebook.ads.Ad
 import com.facebook.ads.AdError
 import com.facebook.ads.RewardedInterstitialAd
 import com.facebook.ads.RewardedInterstitialAdListener
-import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.adapter.AlwaysReadyToLoadAd
 import io.cloudx.sdk.internal.adapter.CloudXAdLoadOperationAvailability
 import io.cloudx.sdk.internal.adapter.CloudXAdapterError
@@ -52,7 +52,7 @@ internal class MetaRewardedInterstitialAdapter(
     override fun load() {
         val placementId = serverExtras.getPlacementId()
         if (placementId == null) {
-            CloudXLogger.e(TAG, "Placement ID is null")
+            CXLogger.e(TAG, "Placement ID is null")
             listener?.onError(CloudXAdapterError(description = "Placement ID is null"))
             return
         }

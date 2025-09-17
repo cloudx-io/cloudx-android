@@ -1,8 +1,8 @@
 package io.cloudx.sdk.internal.geo
 
-import io.cloudx.sdk.internal.CLXError
-import io.cloudx.sdk.internal.CLXErrorCode
-import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.CloudXError
+import io.cloudx.sdk.CloudXErrorCode
+import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.util.Result
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.retry
@@ -19,8 +19,8 @@ internal class GeoApiImpl(
 
     private val tag = "GeoApiImpl"
 
-    override suspend fun fetchGeoHeaders(endpointUrl: String): Result<Map<String, String>, CLXError> {
-        CloudXLogger.d(tag, "Fetching geo headers from $endpointUrl")
+    override suspend fun fetchGeoHeaders(endpointUrl: String): Result<Map<String, String>, CloudXError> {
+        CXLogger.d(tag, "Fetching geo headers from $endpointUrl")
 
         return try {
             val response: HttpResponse = httpClient.head(endpointUrl) {
@@ -41,17 +41,17 @@ internal class GeoApiImpl(
             val headersMap = response.headers.entries()
                 .associate { (key, values) -> key to values.joinToString(",") }
 
-            CloudXLogger.d(tag, "Fetched headers: $headersMap")
+            CXLogger.d(tag, "Fetched headers: $headersMap")
 
             if (response.status == HttpStatusCode.OK && headersMap.isNotEmpty()) {
                 Result.Success(headersMap)
             } else {
-                CloudXLogger.d(tag, "No headers found in response")
-                Result.Failure(CLXError(CLXErrorCode.INVALID_RESPONSE))
+                CXLogger.d(tag, "No headers found in response")
+                Result.Failure(CloudXError(CloudXErrorCode.INVALID_RESPONSE))
             }
         } catch (e: Exception) {
-            CloudXLogger.e(tag, "Geo fetch failed: ${e.message}")
-            Result.Failure(CLXError(CLXErrorCode.NETWORK_ERROR))
+            CXLogger.e(tag, "Geo fetch failed: ${e.message}")
+            Result.Failure(CloudXError(CloudXErrorCode.NETWORK_ERROR))
         }
     }
 }

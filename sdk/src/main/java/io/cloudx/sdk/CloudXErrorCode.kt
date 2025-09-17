@@ -1,26 +1,9 @@
-package io.cloudx.sdk.internal
+package io.cloudx.sdk
 
-/**
- * Generic CloudX Error class
- */
-internal data class CLXError(
-    val code: CLXErrorCode, 
-    val message: String? = null,
-    val cause: Throwable? = null
-) {
-    /**
-     * Gets the effective error message - uses custom message if provided,
-     * otherwise falls back to the error code's default description
-     */
-    val effectiveMessage: String
-        get() = message ?: code.description
-}
-
-internal enum class CLXErrorCode(
+internal enum class CloudXErrorCode(
     val code: Int,
     val description: String
 ) {
-
     // --- Initialization (100–199)
     NOT_INITIALIZED(100, "SDK not initialized. Please initialize the SDK before using it."),
     INITIALIZATION_IN_PROGRESS(101, "SDK initialization is already in progress."),

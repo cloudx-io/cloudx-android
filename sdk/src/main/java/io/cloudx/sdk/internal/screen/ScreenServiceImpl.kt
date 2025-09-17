@@ -5,6 +5,7 @@ import android.util.DisplayMetrics
 import android.view.WindowManager
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
+import io.cloudx.sdk.internal.util.pxToDp
 
 internal class ScreenServiceImpl(
     private val context: Context

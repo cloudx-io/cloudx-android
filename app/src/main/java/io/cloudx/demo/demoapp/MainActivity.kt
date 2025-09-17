@@ -16,7 +16,7 @@ import io.cloudx.sdk.CloudX
 import io.cloudx.sdk.CloudXAdError
 import io.cloudx.sdk.CloudXInitializationListener
 import io.cloudx.sdk.CloudXPrivacy
-import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.CXLogger
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -223,13 +223,13 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         lifecycleScope.launch {
             val settings = settings()
 
-            CloudXLogger.i(
+            CXLogger.i(
                 TAG,
                 "🚀 Starting SDK init with appKey: ${settings.appKey}, endpoint: ${settings.initUrl}"
             )
 
             val postInit = { msg: String ->
-                CloudXLogger.i(TAG, msg)
+                CXLogger.i(TAG, msg)
                 shortSnackbar(bottomNavBar, msg)
             }
             CloudXInitializer.initializeCloudX(

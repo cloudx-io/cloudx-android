@@ -24,7 +24,7 @@ internal fun JSONObject.toBundle(): Bundle {
             }
 
             else -> {
-                CloudXLogger.w(
+                CXLogger.w(
                     "JSONObject.toBundle",
                     "Unsupported type for key '$key': ${value?.javaClass?.name}"
                 )

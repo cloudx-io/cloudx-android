@@ -1,7 +1,7 @@
 package io.cloudx.sdk
 
-import android.app.Activity
 import io.cloudx.sdk.internal.AdType
+import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.CXSdk
 import io.cloudx.sdk.internal.ads.fullscreen.interstitial.CXInterstitialAd
 import io.cloudx.sdk.internal.ads.fullscreen.rewarded.CXRewardedInterstitialAd
@@ -30,14 +30,10 @@ object CloudX {
      */
     @JvmStatic
     fun createBanner(
-        activity: Activity,
         placementName: String,
-        listener: CloudXAdViewListener?
-    ): CloudXAdView? {
+    ): CloudXAdView {
         CXSdk.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.CreateBanner)
-        return CloudXAdView(activity, placementName, AdType.Banner.Standard).apply {
-            this.listener = listener
-        }
+        return CloudXAdView(placementName, AdType.Banner.Standard)
     }
 
     /**
@@ -45,14 +41,10 @@ object CloudX {
      */
     @JvmStatic
     fun createMREC(
-        activity: Activity,
         placementName: String,
-        listener: CloudXAdViewListener?
-    ): CloudXAdView? {
+    ): CloudXAdView {
         CXSdk.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.CreateMrec)
-        return CloudXAdView(activity, placementName, AdType.Banner.MREC).apply {
-            this.listener = listener
-        }
+        return CloudXAdView(placementName, AdType.Banner.MREC)
     }
 
     /**
@@ -61,10 +53,9 @@ object CloudX {
     @JvmStatic
     fun createInterstitial(
         placementName: String,
-        listener: CloudXInterstitialListener?
-    ): CloudXInterstitialAd? {
+    ): CloudXInterstitialAd {
         CXSdk.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.CreateInterstitial)
-        return CXInterstitialAd(placementName, listener)
+        return CXInterstitialAd(placementName)
     }
 
 
@@ -74,10 +65,9 @@ object CloudX {
     @JvmStatic
     fun createRewardedInterstitial(
         placementName: String,
-        listener: CloudXRewardedInterstitialListener?
-    ): CloudXRewardedInterstitialAd? {
+    ): CloudXRewardedInterstitialAd {
         CXSdk.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.CreateRewarded)
-        return CXRewardedInterstitialAd(placementName, listener)
+        return CXRewardedInterstitialAd(placementName)
     }
 
     /**
@@ -85,14 +75,10 @@ object CloudX {
      */
     @JvmStatic
     fun createNativeAdSmall(
-        activity: Activity,
         placementName: String,
-        listener: CloudXAdViewListener?
-    ): CloudXAdView? {
+    ): CloudXAdView {
         CXSdk.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.CreateNative)
-        return CloudXAdView(activity, placementName, AdType.Native.Small).apply {
-            this.listener = listener
-        }
+        return CloudXAdView(placementName, AdType.Native.Small)
     }
 
     /**
@@ -100,14 +86,20 @@ object CloudX {
      */
     @JvmStatic
     fun createNativeAdMedium(
-        activity: Activity,
         placementName: String,
-        listener: CloudXAdViewListener?
-    ): CloudXAdView? {
+    ): CloudXAdView {
         CXSdk.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.CreateNative)
-        return CloudXAdView(activity, placementName, AdType.Native.Medium).apply {
-            this.listener = listener
-        }
+        return CloudXAdView(placementName, AdType.Native.Medium)
+    }
+
+    @JvmStatic
+    fun setLoggingEnabled(isEnabled: Boolean) {
+        CXLogger.isEnabled = isEnabled
+    }
+
+    @JvmStatic
+    fun setMinLogLevel(minLogLevel: CloudXLogLevel) {
+        CXLogger.minLogLevel = minLogLevel
     }
 
     /**

@@ -93,7 +93,7 @@ internal object CXSdk {
         listener: CloudXInitializationListener?,
         initializationService: InitializationService?
     ) {
-        CloudXLogger.i(TAG, "CloudX SDK initialization succeeded")
+        CXLogger.i(TAG, "CloudX SDK initialization succeeded")
         initializationService?.let {
             _initState.value = InitializationState.Initialized(it)
         }
@@ -108,7 +108,7 @@ internal object CXSdk {
         e: Throwable? = null
     ) {
         val str = "CloudX SDK initialization failed: $message"
-        CloudXLogger.e(TAG, str, e)
+        CXLogger.e(TAG, str, e)
         _initState.value = InitializationState.Uninitialized
         ThreadUtils.runOnMainThread {
             listener?.onInitializationFailed(CloudXAdError(str))

@@ -1,6 +1,6 @@
 package io.cloudx.sdk.internal.imp_tracker
 
-import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.db.CloudXDb
 import io.cloudx.sdk.internal.db.imp_tracking.CachedTrackingEvents
 import io.cloudx.sdk.internal.imp_tracker.bulk.EventAM
@@ -38,12 +38,12 @@ internal class EventTrackerImpl(
         encoded: String, campaignId: String, eventValue: String, eventType: EventType
     ) {
         val eventId = saveToDb(encoded, campaignId, eventValue, eventType)
-        CloudXLogger.d(tag, "Saved $eventType event to database with ID: $eventId")
+        CXLogger.d(tag, "Saved $eventType event to database with ID: $eventId")
 
         val endpointUrl = baseEndpoint
 
         if (endpointUrl.isNullOrBlank()) {
-            CloudXLogger.e(tag, "No endpoint for $eventType, event will be retried later")
+            CXLogger.e(tag, "No endpoint for $eventType, event will be retried later")
             return
         }
 
@@ -53,10 +53,10 @@ internal class EventTrackerImpl(
         )
         
         if (result is Result.Success) {
-            CloudXLogger.d(tag, "$eventType sent successfully, removing from database")
+            CXLogger.d(tag, "$eventType sent successfully, removing from database")
             db.cachedTrackingEventDao().delete(eventId)
         } else {
-            CloudXLogger.e(tag, "$eventType failed to send. Will retry later.")
+            CXLogger.e(tag, "$eventType failed to send. Will retry later.")
         }
     }
 
@@ -64,10 +64,10 @@ internal class EventTrackerImpl(
         scope.launch {
             val cached = db.cachedTrackingEventDao().getAll()
             if (cached.isEmpty()) {
-                CloudXLogger.d(tag, "No pending tracking events to send")
+                CXLogger.d(tag, "No pending tracking events to send")
                 return@launch
             }
-            CloudXLogger.d(tag, "Found ${cached.size} pending events to retry")
+            CXLogger.d(tag, "Found ${cached.size} pending events to retry")
             sendBulk(cached)
         }
     }

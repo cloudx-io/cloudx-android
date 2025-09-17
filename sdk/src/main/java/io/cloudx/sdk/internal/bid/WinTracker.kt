@@ -1,6 +1,6 @@
 package io.cloudx.sdk.internal.bid
 
-import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.httpclient.CloudXHttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
@@ -19,12 +19,12 @@ internal object WinTracker {
     ) {
         nurl?.let { url ->
             val completeUrl = url.replace("\${AUCTION_PRICE}", revenue?.toString() ?: "")
-            CloudXLogger.d(TAG, placementName, placementId, "Tracking win: $completeUrl")
+            CXLogger.d(TAG, placementName, placementId, "Tracking win: $completeUrl")
 
             try {
                 val response: HttpResponse = CloudXHttpClient().get(completeUrl)
                 if (!response.status.isSuccess()) {
-                    CloudXLogger.w(
+                    CXLogger.w(
                         TAG,
                         placementName,
                         placementId,
@@ -32,7 +32,7 @@ internal object WinTracker {
                     )
                 }
             } catch (e: Exception) {
-                CloudXLogger.e(
+                CXLogger.e(
                     TAG,
                     placementName,
                     placementId,

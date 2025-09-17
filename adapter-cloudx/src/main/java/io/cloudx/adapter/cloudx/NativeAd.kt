@@ -1,6 +1,5 @@
 package io.cloudx.adapter.cloudx
 
-import android.app.Activity
 import android.content.Context
 import android.graphics.drawable.Drawable
 import android.os.Build
@@ -19,6 +18,7 @@ import io.cloudx.sdk.internal.adapter.CloudXAdapterError
 import io.cloudx.sdk.internal.ads.native.NativeAdSpecs
 import io.cloudx.sdk.internal.ads.native.viewtemplates.CloudXNativeAdViewTemplate
 import io.cloudx.sdk.internal.ads.native.viewtemplates.cloudXNativeAdTemplate
+import io.cloudx.sdk.internal.context.ContextProvider
 import io.cloudx.sdk.internal.util.Result
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -31,7 +31,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 internal class NativeAd(
-    private val activity: Activity,
+    private val contextProvider: ContextProvider,
     private val adViewContainer: CloudXAdViewAdapterContainer,
     private val adm: String,
     private val adType: AdType.Native,
@@ -41,10 +41,11 @@ internal class NativeAd(
     private val scope = CoroutineScope(Dispatchers.Main)
 
     private var cloudXNativeAdViewTemplate: CloudXNativeAdViewTemplate? = null
-    private val externalLinkHandler = ExternalLinkHandlerImpl(activity)
+    private val externalLinkHandler = ExternalLinkHandlerImpl(contextProvider.getContext())
 
     override fun load() {
-        val inflater = activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+        val inflater = contextProvider.getContext()
+            .getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         val nativeAdTemplate = inflater.cloudXNativeAdTemplate(adType)
         cloudXNativeAdViewTemplate = nativeAdTemplate
 
@@ -130,7 +131,9 @@ internal class NativeAd(
                     }
                 }
 
-                is NativeAdSpecs.Asset.Title -> title = (preparedAsset as? PreparedNativeAsset.Title)?.text
+                is NativeAdSpecs.Asset.Title -> title =
+                    (preparedAsset as? PreparedNativeAsset.Title)?.text
+
                 is NativeAdSpecs.Asset.Video -> { /* no-op */
                 }
             }

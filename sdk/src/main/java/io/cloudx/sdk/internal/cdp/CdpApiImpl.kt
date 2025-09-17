@@ -1,9 +1,9 @@
 package io.cloudx.sdk.internal.cdp
 
-import io.cloudx.sdk.internal.CLXError
-import io.cloudx.sdk.internal.CLXErrorCode
-import io.cloudx.sdk.internal.CloudXLogger
-import io.cloudx.sdk.internal.requestTimeoutMillis
+import io.cloudx.sdk.CloudXError
+import io.cloudx.sdk.CloudXErrorCode
+import io.cloudx.sdk.internal.CXLogger
+import io.cloudx.sdk.internal.httpclient.requestTimeoutMillis
 import io.cloudx.sdk.internal.util.Result
 import io.ktor.client.HttpClient
 import io.ktor.client.request.post
@@ -24,10 +24,10 @@ internal class CdpApiImpl(
 
     private val tag = "CdpApi"
 
-    override suspend fun enrich(original: JSONObject): Result<JSONObject, CLXError> {
+    override suspend fun enrich(original: JSONObject): Result<JSONObject, CloudXError> {
         val requestBody = withContext(Dispatchers.IO) { original.toString() }
 
-        CloudXLogger.d(tag, buildString {
+        CXLogger.d(tag, buildString {
             appendLine("Calling CDP Lambda:")
             appendLine("  Endpoint: $endpointUrl")
             appendLine("  Request: $requestBody")
@@ -41,7 +41,7 @@ internal class CdpApiImpl(
             }
 
             val responseBody = response.bodyAsText()
-            CloudXLogger.d(tag, buildString {
+            CXLogger.d(tag, buildString {
                 appendLine("CDP Response:")
                 appendLine("  Status: ${response.status}")
                 appendLine("  Body: $responseBody")
@@ -50,11 +50,11 @@ internal class CdpApiImpl(
             if (response.status == HttpStatusCode.OK) {
                 Result.Success(JSONObject(responseBody))
             } else {
-                Result.Failure(CLXError(CLXErrorCode.SERVER_ERROR, "CDP returned error status: ${response.status}"))
+                Result.Failure(CloudXError(CloudXErrorCode.SERVER_ERROR, "CDP returned error status: ${response.status}"))
             }
 
         } catch (e: Exception) {
-            Result.Failure(CLXError(CLXErrorCode.NETWORK_ERROR, "CDP Lambda call failed: ${e.message}"))
+            Result.Failure(CloudXError(CloudXErrorCode.NETWORK_ERROR, "CDP Lambda call failed: ${e.message}"))
         }
     }
 }

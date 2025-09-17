@@ -6,7 +6,7 @@ import android.os.Build
 import android.telephony.TelephonyManager
 import androidx.core.content.ContextCompat
 import io.cloudx.sdk.R
-import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.CXLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.Locale
@@ -29,7 +29,7 @@ internal class DeviceInfoServiceImpl(
                 )?.networkOperatorName ?: ""
             }
         } catch (e: Exception) {
-            CloudXLogger.e(tag, e.toString())
+            CXLogger.e(tag, e.toString())
             ""
         }
 

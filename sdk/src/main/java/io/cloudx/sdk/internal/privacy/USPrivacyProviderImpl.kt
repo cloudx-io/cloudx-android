@@ -2,7 +2,7 @@ package io.cloudx.sdk.internal.privacy
 
 import android.content.Context
 import android.preference.PreferenceManager
-import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.CXLogger
 
 internal class USPrivacyProviderImpl(context: Context) : USPrivacyProvider {
 
@@ -14,7 +14,7 @@ internal class USPrivacyProviderImpl(context: Context) : USPrivacyProvider {
             sharedPrefs.getString(IABUSPrivacy_String, null)
         } catch (e: Exception) {
             // In case value wasn't string, handle exception gracefully.
-            CloudXLogger.e(TAG, e.toString())
+            CXLogger.e(TAG, e.toString())
             null
         }
 

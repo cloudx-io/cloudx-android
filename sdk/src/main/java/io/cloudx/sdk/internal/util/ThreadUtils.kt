@@ -3,7 +3,7 @@ package io.cloudx.sdk.internal.util
 import android.os.Handler
 import android.os.Looper
 import io.cloudx.sdk.Destroyable
-import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.CXLogger
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -193,13 +193,13 @@ internal object ThreadUtils : Destroyable {
                 withContext(context, block)
             }
         } catch (e: TimeoutCancellationException) {
-            CloudXLogger.w("ThreadUtils", "Operation timed out after ${timeoutMs}ms")
+            CXLogger.w("ThreadUtils", "Operation timed out after ${timeoutMs}ms")
             null
         } catch (e: CancellationException) {
-            CloudXLogger.d("ThreadUtils", "Operation was cancelled")
+            CXLogger.d("ThreadUtils", "Operation was cancelled")
             throw e // Re-throw cancellation to maintain coroutine semantics
         } catch (e: Exception) {
-            CloudXLogger.e("ThreadUtils", "Operation failed with exception")
+            CXLogger.e("ThreadUtils", "Operation failed with exception")
             null
         }
     }
@@ -218,7 +218,7 @@ internal object ThreadUtils : Destroyable {
             // Cancel all coroutine scopes
             ApplicationScope.cancel()
         } catch (e: Exception) {
-            CloudXLogger.w("ThreadUtils", "Error during thread pool shutdown")
+            CXLogger.w("ThreadUtils", "Error during thread pool shutdown")
         }
     }
 

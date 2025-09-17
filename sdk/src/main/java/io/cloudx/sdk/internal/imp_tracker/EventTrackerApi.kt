@@ -1,6 +1,6 @@
 package io.cloudx.sdk.internal.imp_tracker
 
-import io.cloudx.sdk.internal.CLXError
+import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.internal.util.Result
 import io.ktor.client.HttpClient
 
@@ -22,7 +22,7 @@ internal fun interface EventTrackerApi {
         campaignId: String,
         eventValue: String,
         eventName: String,
-    ): Result<Unit, CLXError>
+    ): Result<Unit, CloudXError>
 }
 
 internal fun EventTrackerApi(

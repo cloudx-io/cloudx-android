@@ -1,3 +1,3 @@
 package io.cloudx.sdk
 
-interface CloudXRewardedInterstitialAd : CloudXFullscreenAd
+interface CloudXRewardedInterstitialAd : CloudXFullscreenAd<CloudXRewardedInterstitialListener>

@@ -1,7 +1,7 @@
 package io.cloudx.sdk.internal.imp_tracker.metrics
 
 import com.xor.XorEncryption
-import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.config.Config
 import io.cloudx.sdk.internal.db.CloudXDb
 import io.cloudx.sdk.internal.db.metrics.MetricsEvent
@@ -39,14 +39,14 @@ internal class MetricsTrackerImpl(
     override fun start(config: Config) {
         metricConfig = config.metrics
         if (metricConfig == null) {
-            CloudXLogger.w("MetricsTrackerNewImpl", "Metrics configuration is null, skipping metrics tracking")
+            CXLogger.w("MetricsTrackerNewImpl", "Metrics configuration is null, skipping metrics tracking")
             return
         }
 
         endpoint = "${config.trackingEndpointUrl}/bulk?debug=true"
         sendInternalInSeconds = config.metrics?.sendIntervalSeconds ?: 60L
 
-        CloudXLogger.d("MetricsTrackerNewImpl", "Starting metrics tracker with cycle duration: $sendInternalInSeconds seconds")
+        CXLogger.d("MetricsTrackerNewImpl", "Starting metrics tracker with cycle duration: $sendInternalInSeconds seconds")
         metricsSendJob?.cancel()
         metricsSendJob = scope.launch {
             while (true) {
@@ -62,10 +62,10 @@ internal class MetricsTrackerImpl(
     }
 
     override fun trySendingPendingMetrics() {
-        CloudXLogger.d("MetricsTrackerNewImpl", "Attempting to send pending metrics")
+        CXLogger.d("MetricsTrackerNewImpl", "Attempting to send pending metrics")
         scope.launch {
             val metrics = db.metricsEventDao().getAll()
-            CloudXLogger.d("MetricsTrackerNewImpl", "Found ${metrics.size} pending metrics")
+            CXLogger.d("MetricsTrackerNewImpl", "Found ${metrics.size} pending metrics")
             if (metrics.isEmpty() || endpoint == null) return@launch
 
             val items = metrics.map { metric -> buildEvent(metric) }
@@ -75,7 +75,7 @@ internal class MetricsTrackerImpl(
                 // Delete metrics after successful send
                 metrics.forEach { db.metricsEventDao().deleteById(it.id) }
             } else if (result is Result.Failure) {
-                CloudXLogger.e(
+                CXLogger.e(
                     "MetricsTrackerNewImpl", "Failed to send metrics: ${result.value.effectiveMessage}"
                 )
             }
@@ -86,10 +86,10 @@ internal class MetricsTrackerImpl(
         // Respect global and per-method call enablement flags
         val isMethodCallMetricsEnabled = metricConfig?.sdkApiCallsEnabled == true
         if (!isMethodCallMetricsEnabled) {
-            CloudXLogger.w("MetricsTrackerNewImpl", "SDK API call metrics tracking is disabled for ${type.typeCode}")
+            CXLogger.w("MetricsTrackerNewImpl", "SDK API call metrics tracking is disabled for ${type.typeCode}")
             return
         }
-        CloudXLogger.d("MetricsTrackerNewImpl", "Tracking SDK API call: ${type.typeCode}")
+        CXLogger.d("MetricsTrackerNewImpl", "Tracking SDK API call: ${type.typeCode}")
         trackMetric(type)
     }
 
@@ -102,21 +102,21 @@ internal class MetricsTrackerImpl(
             MetricsType.Network.BidRequest -> metricConfig?.networkCallsBidReqEnabled == true
         }
         if (isNetworkCallMetricsEnabled && isCallMetricsEnabled) {
-            CloudXLogger.d("MetricsTrackerNewImpl", "Tracking network request: ${type.typeCode} with latency: $latency ms")
+            CXLogger.d("MetricsTrackerNewImpl", "Tracking network request: ${type.typeCode} with latency: $latency ms")
             trackMetric(type, latency)
         } else {
-            CloudXLogger.w("MetricsTrackerNewImpl", "Network call metrics tracking is disabled for ${type.typeCode}")
+            CXLogger.w("MetricsTrackerNewImpl", "Network call metrics tracking is disabled for ${type.typeCode}")
         }
     }
 
     private fun trackMetric(type: MetricsType, latency: Long = 0) {
-        CloudXLogger.d("MetricsTrackerNewImpl", "Tracking metric: ${type.typeCode} with latency: $latency ms")
+        CXLogger.d("MetricsTrackerNewImpl", "Tracking metric: ${type.typeCode} with latency: $latency ms")
         scope.launch {
             val metricName = type.typeCode
             val existingMetric = db.metricsEventDao().getAllByMetric(metricName)
-            CloudXLogger.d("MetricsTrackerNewImpl", "Existing metric for $metricName: $existingMetric")
+            CXLogger.d("MetricsTrackerNewImpl", "Existing metric for $metricName: $existingMetric")
             val updatedMetric = if (existingMetric == null) {
-                CloudXLogger.d("MetricsTrackerNewImpl", "Creating new metric for $metricName")
+                CXLogger.d("MetricsTrackerNewImpl", "Creating new metric for $metricName")
                 MetricsEvent(
                     id = UUID.randomUUID().toString(),
                     metricName = metricName,
@@ -126,7 +126,7 @@ internal class MetricsTrackerImpl(
                     auctionId = UUID.randomUUID().toString()
                 )
             } else {
-                CloudXLogger.d("MetricsTrackerNewImpl", "Updating existing metric for $metricName")
+                CXLogger.d("MetricsTrackerNewImpl", "Updating existing metric for $metricName")
                 existingMetric.apply {
                     counter += 1
                     totalLatency += latency
@@ -141,7 +141,7 @@ internal class MetricsTrackerImpl(
         val eventId = metric.auctionId
         val metricDetail = "${metric.counter}/${metric.totalLatency}"
         val payload = "$basePayload;${metric.metricName};$metricDetail".replace("{eventId}", eventId)
-        CloudXLogger.d("MetricsTrackerNewImpl", "Building event for metric: ${metric.metricName} with payload: $payload")
+        CXLogger.d("MetricsTrackerNewImpl", "Building event for metric: ${metric.metricName} with payload: $payload")
 
         val secret = XorEncryption.generateXorSecret(accountId)
         val campaignId = XorEncryption.generateCampaignIdBase64(accountId)

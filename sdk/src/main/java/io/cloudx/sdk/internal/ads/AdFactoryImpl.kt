@@ -3,24 +3,21 @@ package io.cloudx.sdk.internal.ads
 import io.cloudx.sdk.CloudXInterstitialAd
 import io.cloudx.sdk.CloudXInterstitialListener
 import io.cloudx.sdk.CloudXRewardedInterstitialAd
-import io.cloudx.sdk.CloudXRewardedInterstitialListener
 import io.cloudx.sdk.internal.AdType
-import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.adapter.BannerFactoryMiscParams
 import io.cloudx.sdk.internal.ads.banner.BannerManager
 import io.cloudx.sdk.internal.ads.fullscreen.interstitial.InterstitialManager
 import io.cloudx.sdk.internal.ads.fullscreen.rewarded.RewardedInterstitialManager
 import io.cloudx.sdk.internal.bid.BidApi
 import io.cloudx.sdk.internal.cdp.CdpApi
-import io.cloudx.sdk.internal.common.service.ActivityLifecycleService
-import io.cloudx.sdk.internal.common.service.AppLifecycleService
 import io.cloudx.sdk.internal.config.Config
 import io.cloudx.sdk.internal.config.ResolvedEndpoints
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
-import io.cloudx.sdk.internal.imp_tracker.win_loss.WinLossTracker
 import io.cloudx.sdk.internal.initialization.BidAdNetworkFactories
+import io.cloudx.sdk.internal.imp_tracker.win_loss.WinLossTracker
 import io.cloudx.sdk.internal.size
 
 internal class AdFactoryImpl(
@@ -31,8 +28,6 @@ internal class AdFactoryImpl(
     private val eventTracker: EventTracker,
     private val winLossTracker: WinLossTracker,
     private val connectionStatusService: ConnectionStatusService,
-    private val appLifecycleService: AppLifecycleService,
-    private val activityLifecycleService: ActivityLifecycleService
 ) : AdFactory {
 
     private val TAG = "AdFactoryImpl"
@@ -79,17 +74,14 @@ internal class AdFactoryImpl(
         }
 
         return BannerManager(
-            activity = params.activity,
             placementId = placement.id,
             placementName = placement.name,
             adViewContainer = params.adViewAdapterContainer,
             bannerVisibility = params.bannerVisibility,
             refreshSeconds = (refreshRateMillis / 1000),
             adType = adType,
-            preloadTimeMillis = 5000L,
             bidFactories = bidFactories,
             bidRequestExtrasProviders = factories.bidRequestExtrasProviders,
-            bidMaxBackOffTimeMillis = BID_AD_LOAD_BACKOFF_MAX_MILLIS,
             bidAdLoadTimeoutMillis = placement.adLoadTimeoutMillis.toLong(),
             miscParams = miscParams,
             bidApi = createBidApi(placement.bidResponseTimeoutMillis),
@@ -98,18 +90,14 @@ internal class AdFactoryImpl(
             metricsTracker = metricsTracker,
             winnLossTracker = winLossTracker,
             connectionStatusService = connectionStatusService,
-            activityLifecycleService = activityLifecycleService,
-            appLifecycleService = appLifecycleService,
             accountId = config.accountId ?: "",
             appKey = appKey
-        ).apply {
-            listener = params.listener
-        }
+        )
     }
 
     // ===== Interstitial Ad Creation =====
 
-    override fun createInterstitial(params: AdFactory.CreateAdParams<CloudXInterstitialListener>): CloudXInterstitialAd? {
+    override fun createInterstitial(params: AdFactory.CreateAdParams): CloudXInterstitialAd? {
         val placementName = params.placementName
         val placement = config.placements[placementName] as? Config.Placement.Interstitial
         if (placement == null) {
@@ -121,10 +109,8 @@ internal class AdFactoryImpl(
         return InterstitialManager(
             placementId = placement.id,
             placementName = placement.name,
-            cacheSize = config.precacheSize,
             bidFactories = factories.interstitials,
             bidRequestExtrasProviders = factories.bidRequestExtrasProviders,
-            bidMaxBackOffTimeMillis = BID_AD_LOAD_BACKOFF_MAX_MILLIS,
             bidAdLoadTimeoutMillis = placement.adLoadTimeoutMillis.toLong(),
             bidApi = bidApi,
             cdpApi = createCdpApi(),
@@ -132,8 +118,6 @@ internal class AdFactoryImpl(
             metricsTracker = metricsTracker,
             winLossTracker = winLossTracker,
             connectionStatusService = connectionStatusService,
-            appLifecycleService = appLifecycleService,
-            listener = params.listener,
             accountId = config.accountId ?: "",
             appKey = appKey
         )
@@ -141,7 +125,7 @@ internal class AdFactoryImpl(
 
     // ===== Rewarded Ad Creation =====
 
-    override fun createRewarded(params: AdFactory.CreateAdParams<CloudXRewardedInterstitialListener>): CloudXRewardedInterstitialAd? {
+    override fun createRewarded(params: AdFactory.CreateAdParams): CloudXRewardedInterstitialAd? {
         val placementName = params.placementName
         val placement = config.placements[placementName] as? Config.Placement.Rewarded
         if (placement == null) {
@@ -153,10 +137,8 @@ internal class AdFactoryImpl(
         return RewardedInterstitialManager(
             placementId = placement.id,
             placementName = placement.name,
-            cacheSize = config.precacheSize,
             bidFactories = factories.rewardedInterstitials,
             bidRequestExtrasProviders = factories.bidRequestExtrasProviders,
-            bidMaxBackOffTimeMillis = BID_AD_LOAD_BACKOFF_MAX_MILLIS,
             bidAdLoadTimeoutMillis = placement.adLoadTimeoutMillis.toLong(),
             bidApi = bidApi,
             cdpApi = createCdpApi(),
@@ -164,8 +146,6 @@ internal class AdFactoryImpl(
             metricsTracker = metricsTracker,
             winLossTracker = winLossTracker,
             connectionStatusService = connectionStatusService,
-            appLifecycleService = appLifecycleService,
-            listener = params.listener,
             accountId = config.accountId ?: "",
             appKey = appKey
         )
@@ -184,11 +164,9 @@ internal class AdFactoryImpl(
     )
 
     private fun logCantFindPlacement(placement: String) {
-        CloudXLogger.w(TAG, "can't create $placement placement: missing in SDK Config")
+        CXLogger.w(TAG, "can't create $placement placement: missing in SDK Config")
     }
 }
-
-private const val BID_AD_LOAD_BACKOFF_MAX_MILLIS = 20_000L
 
 private fun Config.Placement.toAdType(): AdType? = when (this) {
     is Config.Placement.MREC -> AdType.Banner.MREC

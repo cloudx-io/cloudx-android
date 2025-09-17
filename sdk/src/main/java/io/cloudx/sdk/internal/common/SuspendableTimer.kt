@@ -1,6 +1,7 @@
 package io.cloudx.sdk.internal.common
 
 import io.cloudx.sdk.Destroyable
+import io.cloudx.sdk.internal.util.utcNowEpochMillis
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

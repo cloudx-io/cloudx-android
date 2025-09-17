@@ -17,6 +17,7 @@ import io.cloudx.sdk.internal.httpclient.UserAgentProvider
 import io.cloudx.sdk.internal.privacy.PrivacyService
 import io.cloudx.sdk.internal.screen.ScreenService
 import io.cloudx.sdk.internal.state.SdkKeyValueState
+import io.cloudx.sdk.internal.toBidRequestString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -211,6 +212,24 @@ internal class BidRequestProviderImpl(
 
             requestJson
         }
+}
+
+internal suspend fun JSONObject.putBidRequestAdapterExtras(
+    context: Context,
+    bidRequestExtrasProviders: Map<AdNetwork, CloudXAdapterBidRequestExtrasProvider>
+) {
+    put("adapter_extras", JSONObject().apply {
+        bidRequestExtrasProviders.onEach {
+            val map = it.value(context)
+            if (map.isNullOrEmpty()) return
+
+            put(it.key.toBidRequestString(), JSONObject().apply {
+                map.onEach { (k, v) ->
+                    put(k, v)
+                }
+            })
+        }
+    })
 }
 
 fun JSONObject.putAtDynamicPath(path: String, value: Any) {

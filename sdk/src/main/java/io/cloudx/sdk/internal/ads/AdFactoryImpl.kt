@@ -1,7 +1,6 @@
 package io.cloudx.sdk.internal.ads
 
 import io.cloudx.sdk.CloudXInterstitialAd
-import io.cloudx.sdk.CloudXInterstitialListener
 import io.cloudx.sdk.CloudXRewardedInterstitialAd
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.CXLogger
@@ -16,8 +15,8 @@ import io.cloudx.sdk.internal.config.ResolvedEndpoints
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
-import io.cloudx.sdk.internal.initialization.BidAdNetworkFactories
 import io.cloudx.sdk.internal.imp_tracker.win_loss.WinLossTracker
+import io.cloudx.sdk.internal.initialization.BidAdNetworkFactories
 import io.cloudx.sdk.internal.size
 
 internal class AdFactoryImpl(
@@ -88,7 +87,7 @@ internal class AdFactoryImpl(
             cdpApi = createCdpApi(),
             eventTracker = eventTracker,
             metricsTracker = metricsTracker,
-            winnLossTracker = winLossTracker,
+            winLossTracker = winLossTracker,
             connectionStatusService = connectionStatusService,
             accountId = config.accountId ?: "",
             appKey = appKey

@@ -1,6 +1,6 @@
 package io.cloudx.sdk.internal.imp_tracker.win_loss
 
-import io.cloudx.sdk.internal.CloudXLogger
+import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.bid.Bid
 import io.cloudx.sdk.internal.bid.LossReason
 import java.util.concurrent.ConcurrentHashMap
@@ -52,7 +52,7 @@ internal object AuctionBidManager {
         auctionStatus[auctionId] = AuctionStatus.ACTIVE
 
         val bidPrice = bid.price?.toDouble() ?: 0.0
-        CloudXLogger.d(tag, "Added bid ${bid.id} to auction $auctionId (price: $bidPrice, network: ${bid.adNetwork.networkName})")
+        CXLogger.d(tag, "Added bid ${bid.id} to auction $auctionId (price: $bidPrice, network: ${bid.adNetwork.networkName})")
     }
 
     /**
@@ -68,11 +68,11 @@ internal object AuctionBidManager {
                 entry.actualWinPrice = actualWinPrice
                     ?: entry.bid.price?.toDouble()
                 winnerFound = true
-                CloudXLogger.d(tag, "Bid ${entry.bid.id} won auction $auctionId")
+                CXLogger.d(tag, "Bid ${entry.bid.id} won auction $auctionId")
             } else {
                 entry.status = BidStatus.LOST
                 entry.lossReason = LossReason.LostToHigherBid
-                CloudXLogger.d(tag, "Bid ${entry.bid.id} lost to higher bid in auction $auctionId")
+                CXLogger.d(tag, "Bid ${entry.bid.id} lost to higher bid in auction $auctionId")
             }
         }
 
@@ -92,11 +92,11 @@ internal object AuctionBidManager {
         bids.find { it.bid.id == bidId }?.let { bid ->
             if (success) {
                 bid.status = BidStatus.LOADED
-                CloudXLogger.d(tag, "Bid $bidId successfully loaded for auction $auctionId")
+                CXLogger.d(tag, "Bid $bidId successfully loaded for auction $auctionId")
             } else {
                 bid.status = BidStatus.FAILED
                 bid.lossReason = lossReason ?: LossReason.TechnicalError
-                CloudXLogger.w(tag, "Bid $bidId failed to load for auction $auctionId: ${bid.lossReason}")
+                CXLogger.w(tag, "Bid $bidId failed to load for auction $auctionId: ${bid.lossReason}")
             }
         }
     }
@@ -115,7 +115,7 @@ internal object AuctionBidManager {
         }
 
         auctionStatus[auctionId] = AuctionStatus.CANCELLED
-        CloudXLogger.d(tag, "Cancelled auction $auctionId")
+        CXLogger.d(tag, "Cancelled auction $auctionId")
     }
 
     /**
@@ -208,7 +208,7 @@ internal object AuctionBidManager {
     fun clearAuction(auctionId: String) {
         auctionBids.remove(auctionId)
         auctionStatus.remove(auctionId)
-        CloudXLogger.d(tag, "Cleared auction data for $auctionId")
+        CXLogger.d(tag, "Cleared auction data for $auctionId")
     }
 
     /**
@@ -217,6 +217,6 @@ internal object AuctionBidManager {
     fun clear() {
         auctionBids.clear()
         auctionStatus.clear()
-        CloudXLogger.d(tag, "Cleared all auction data")
+        CXLogger.d(tag, "Cleared all auction data")
     }
 }

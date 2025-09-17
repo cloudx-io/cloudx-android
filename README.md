@@ -695,15 +695,15 @@ Enable debug logging to troubleshoot issues:
 **Kotlin:**
 ```kotlin
 // Access internal logging (for debugging only)
-import io.cloudx.sdk.internal.CloudXLogger
-CloudXLogger.logEnabled = true
+import io.cloudx.sdk.internal.CXLogger
+CXLogger.logEnabled = true
 ```
 
 **Java:**
 ```java
 // Access internal logging (for debugging only)
-import io.cloudx.sdk.internal.CloudXLogger;
-CloudXLogger.setLogEnabled(true);
+import io.cloudx.sdk.internal.CXLogger;
+CXLogger.setLogEnabled(true);
 ```
 
 ## Support

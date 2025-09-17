@@ -1,7 +1,7 @@
 package io.cloudx.sdk.internal.imp_tracker.win_loss
 
-import io.cloudx.sdk.internal.CLXError
-import io.cloudx.sdk.internal.CLXErrorCode
+import io.cloudx.sdk.CloudXError
+import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.internal.util.Result
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.retry
@@ -21,7 +21,7 @@ internal class WinLossTrackerApiImpl(
     override suspend fun send(
         endpointUrl: String,
         payload: Map<String, Any>
-    ): Result<Unit, CLXError> {
+    ): Result<Unit, CloudXError> {
         return try {
             val response = httpClient.post(endpointUrl) {
                 contentType(ContentType.Application.Json)
@@ -37,11 +37,11 @@ internal class WinLossTrackerApiImpl(
             if (code in 200..299) {
                 Result.Success(Unit)
             } else {
-                Result.Failure(CLXError(CLXErrorCode.SERVER_ERROR))
+                Result.Failure(CloudXError(CloudXErrorCode.SERVER_ERROR))
             }
 
         } catch (e: Exception) {
-            Result.Failure(CLXError(CLXErrorCode.NETWORK_ERROR))
+            Result.Failure(CloudXError(CloudXErrorCode.NETWORK_ERROR))
         }
     }
 }

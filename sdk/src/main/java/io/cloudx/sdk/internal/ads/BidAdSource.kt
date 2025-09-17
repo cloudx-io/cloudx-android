@@ -1,9 +1,9 @@
 package io.cloudx.sdk.internal.ads
 
 import com.xor.XorEncryption
+import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.Destroyable
 import io.cloudx.sdk.internal.AdNetwork
-import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.PlacementLoopIndexTracker
 import io.cloudx.sdk.internal.bid.Bid
@@ -163,7 +163,7 @@ private class BidAdSourceImpl<T : Destroyable>(
 
         return when (result) {
             is Result.Success -> {
-                val resp = result.value.toBidAdSourceResponse(bidRequestParams, createBidAd)
+                val resp = result.value.toBidAdSourceResponse(bidRequestParams, createBidAd, auctionId)
                 Result.Success(resp)
             }
 

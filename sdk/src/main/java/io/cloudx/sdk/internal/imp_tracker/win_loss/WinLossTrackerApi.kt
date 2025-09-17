@@ -1,6 +1,6 @@
 package io.cloudx.sdk.internal.imp_tracker.win_loss
 
-import io.cloudx.sdk.internal.CLXError
+import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.internal.httpclient.CloudXHttpClient
 import io.cloudx.sdk.internal.util.Result
 import io.ktor.client.HttpClient
@@ -19,7 +19,7 @@ internal fun interface WinLossTrackerApi {
     suspend fun send(
         endpointUrl: String,
         payload: Map<String, Any>,
-    ): Result<Unit, CLXError>
+    ): Result<Unit, CloudXError>
 }
 
 internal fun WinLossTrackerApi(

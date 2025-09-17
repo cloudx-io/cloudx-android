@@ -44,7 +44,7 @@ internal object ResolvedEndpoints {
 
 //        val totalRatio = tests.sumOf { it.testVariant.ratio }
 //        if (totalRatio != 1.0) {
-//            CloudXLogger.debug("Endpoints", "Error: Total ratio ($totalRatio) must equal 1.0")
+//            CXLogger.debug("Endpoints", "Error: Total ratio ($totalRatio) must equal 1.0")
 //            assignDefaults(config)
 //            return
 //        }

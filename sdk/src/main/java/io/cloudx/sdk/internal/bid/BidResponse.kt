@@ -2,6 +2,7 @@ package io.cloudx.sdk.internal.bid
 
 import android.os.Bundle
 import io.cloudx.sdk.internal.AdNetwork
+import org.json.JSONObject
 
 internal data class NoBidResponse(val id: String, val noBidResponseCode: Int, val ext: String?)
 
@@ -36,4 +37,5 @@ internal class Bid(
     val auctionId: String,
     val adWidth: Int?,
     val adHeight: Int?,
+    val rawJson: JSONObject,
 )

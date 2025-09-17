@@ -16,6 +16,7 @@ import io.cloudx.sdk.internal.bid.BidRequestProvider
 import io.cloudx.sdk.internal.cdp.CdpApi
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
+import io.cloudx.sdk.internal.imp_tracker.win_loss.WinLossTracker
 import io.cloudx.sdk.internal.util.Result
 
 internal fun BidBannerSource(
@@ -31,6 +32,7 @@ internal fun BidBannerSource(
     generateBidRequest: BidRequestProvider,
     eventTracker: EventTracker,
     metricsTracker: MetricsTracker,
+    winLossTracker: WinLossTracker,
     miscParams: BannerFactoryMiscParams,
     bidRequestTimeoutMillis: Long,
     accountId: String,
@@ -48,17 +50,18 @@ internal fun BidBannerSource(
         requestBid,
         cdpApi,
         eventTracker,
-        metricsTracker
+        metricsTracker,
+        winLossTracker
     ) {
 
         val placementName = it.placementName
         val placementId = it.placementId
         val network = it.adNetwork
         val price = it.price
-        val bidId = it.bidId
-        val adm = it.adm
-        val nurl = it.nurl
-        val params = it.adapterExtras
+        val bid = it.bid
+        val bidId = bid.id
+        val adm = bid.adm
+        val params = bid.adapterExtras
         val auctionId = it.auctionId
 
         BannerAdapterDelegate(
@@ -67,7 +70,6 @@ internal fun BidBannerSource(
             adNetwork = network,
             externalPlacementId = null,
             price = price,
-            nurl = nurl,
         ) { listener ->
             // TODO. Explicit Result cast isn't "cool", even though there's try catch somewhere.
             (factories[network]?.create(

@@ -8,7 +8,6 @@ import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterListener
 import io.cloudx.sdk.internal.adapter.CloudXAdapterError
 import io.cloudx.sdk.internal.ads.AdTimeoutEvent
 import io.cloudx.sdk.internal.ads.LastErrorEvent
-import io.cloudx.sdk.internal.bid.WinTracker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -51,7 +50,6 @@ internal fun BannerAdapterDelegate(
     adNetwork: AdNetwork,
     externalPlacementId: String?,
     price: Double?,
-    nurl: String?,
     createBanner: (listener: CloudXAdViewAdapterListener) -> CloudXAdViewAdapter
 ): BannerAdapterDelegate =
     BannerAdapterDelegateImpl(
@@ -60,7 +58,6 @@ internal fun BannerAdapterDelegate(
         bidderName = adNetwork.networkName,
         externalPlacementId = externalPlacementId,
         revenue = price,
-        nurl = nurl,
         createBanner = createBanner
     )
 
@@ -73,7 +70,6 @@ private class BannerAdapterDelegateImpl(
     override val bidderName: String,
     override val externalPlacementId: String?,
     override val revenue: Double?,
-    private val nurl: String?,
     createBanner: (listener: CloudXAdViewAdapterListener) -> CloudXAdViewAdapter,
 ) : BannerAdapterDelegate {
 
@@ -123,7 +119,6 @@ private class BannerAdapterDelegateImpl(
             override fun onImpression() {
                 scope.launch {
                     _event.emit(BannerAdapterDelegateEvent.Impression)
-                    handleWinTracking()
                 }
             }
 
@@ -140,9 +135,4 @@ private class BannerAdapterDelegateImpl(
         }
     }
 
-    private fun handleWinTracking() {
-        scope.launch(Dispatchers.IO) {
-            WinTracker.trackWin(placementName, placementId, nurl, revenue)
-        }
-    }
 }

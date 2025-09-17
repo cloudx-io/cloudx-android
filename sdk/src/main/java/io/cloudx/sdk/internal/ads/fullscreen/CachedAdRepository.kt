@@ -103,7 +103,7 @@ internal class CachedAdRepository<SuspendableAd: Destroyable, C: CacheableAd>(
 
             if (ad != null) {
                 val result = cachedQueue.enqueueBidAd(
-                    bidItem.price,
+                    bidItem.bid.price?.toDouble() ?: 0.0,
                     bidLoadTimeoutMillis,
                     createBidAd = { ad }
                 )
@@ -113,7 +113,7 @@ internal class CachedAdRepository<SuspendableAd: Destroyable, C: CacheableAd>(
                     val lowerRanked = bidResponse.bidItemsByRank.drop(index + 1)
                     for (loserItem in lowerRanked) {
                         LossTracker.trackLoss(
-                            loserItem.lurl,
+                            loserItem.bid.lurl,
                             LossReason.LostToHigherBid
                         )
                     }
@@ -121,11 +121,11 @@ internal class CachedAdRepository<SuspendableAd: Destroyable, C: CacheableAd>(
                     return@coroutineScope result
                 } else {
                     // Ad created but failed to enqueue — technical error
-                    LossTracker.trackLoss(bidItem.lurl, LossReason.TechnicalError)
+                    LossTracker.trackLoss(bidItem.bid.lurl, LossReason.TechnicalError)
                 }
             } else {
                 // Ad failed to create — technical error
-                LossTracker.trackLoss(bidItem.lurl, LossReason.TechnicalError)
+                LossTracker.trackLoss(bidItem.bid.lurl, LossReason.TechnicalError)
             }
         }
 

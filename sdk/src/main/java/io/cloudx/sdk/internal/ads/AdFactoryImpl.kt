@@ -1,15 +1,15 @@
 package io.cloudx.sdk.internal.ads
 
 import io.cloudx.sdk.CloudXInterstitialAd
-import io.cloudx.sdk.CloudXRewardedInterstitialAd
-import io.cloudx.sdk.internal.ads.fullscreen.interstitial.InterstitialManager
 import io.cloudx.sdk.CloudXInterstitialListener
-import io.cloudx.sdk.internal.ads.fullscreen.rewarded.RewardedInterstitialManager
+import io.cloudx.sdk.CloudXRewardedInterstitialAd
 import io.cloudx.sdk.CloudXRewardedInterstitialListener
 import io.cloudx.sdk.internal.AdType
-import io.cloudx.sdk.internal.ads.banner.BannerManager
 import io.cloudx.sdk.internal.CloudXLogger
 import io.cloudx.sdk.internal.adapter.BannerFactoryMiscParams
+import io.cloudx.sdk.internal.ads.banner.BannerManager
+import io.cloudx.sdk.internal.ads.fullscreen.interstitial.InterstitialManager
+import io.cloudx.sdk.internal.ads.fullscreen.rewarded.RewardedInterstitialManager
 import io.cloudx.sdk.internal.bid.BidApi
 import io.cloudx.sdk.internal.cdp.CdpApi
 import io.cloudx.sdk.internal.common.service.ActivityLifecycleService
@@ -17,9 +17,10 @@ import io.cloudx.sdk.internal.common.service.AppLifecycleService
 import io.cloudx.sdk.internal.config.Config
 import io.cloudx.sdk.internal.config.ResolvedEndpoints
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
-import io.cloudx.sdk.internal.initialization.BidAdNetworkFactories
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
+import io.cloudx.sdk.internal.imp_tracker.win_loss.WinLossTracker
+import io.cloudx.sdk.internal.initialization.BidAdNetworkFactories
 import io.cloudx.sdk.internal.size
 
 internal class AdFactoryImpl(
@@ -28,6 +29,7 @@ internal class AdFactoryImpl(
     private val factories: BidAdNetworkFactories,
     private val metricsTracker: MetricsTracker,
     private val eventTracker: EventTracker,
+    private val winLossTracker: WinLossTracker,
     private val connectionStatusService: ConnectionStatusService,
     private val appLifecycleService: AppLifecycleService,
     private val activityLifecycleService: ActivityLifecycleService
@@ -94,6 +96,7 @@ internal class AdFactoryImpl(
             cdpApi = createCdpApi(),
             eventTracker = eventTracker,
             metricsTracker = metricsTracker,
+            winnLossTracker = winLossTracker,
             connectionStatusService = connectionStatusService,
             activityLifecycleService = activityLifecycleService,
             appLifecycleService = appLifecycleService,
@@ -127,6 +130,7 @@ internal class AdFactoryImpl(
             cdpApi = createCdpApi(),
             eventTracker = eventTracker,
             metricsTracker = metricsTracker,
+            winLossTracker = winLossTracker,
             connectionStatusService = connectionStatusService,
             appLifecycleService = appLifecycleService,
             listener = params.listener,
@@ -158,6 +162,7 @@ internal class AdFactoryImpl(
             cdpApi = createCdpApi(),
             eventTracker = eventTracker,
             metricsTracker = metricsTracker,
+            winLossTracker = winLossTracker,
             connectionStatusService = connectionStatusService,
             appLifecycleService = appLifecycleService,
             listener = params.listener,

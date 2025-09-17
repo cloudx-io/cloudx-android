@@ -27,6 +27,7 @@ internal suspend fun jsonToConfig(json: String): Result<Config, CLXError> =
                     auctionEndpointUrl = auctionEndpoint,
                     cdpEndpointUrl = cdpEndpoint,
                     trackingEndpointUrl = root.optString("impressionTrackerURL", null),
+                    winLossNotificationUrl = root.optString("winLossNotificationURL", null),
                     bidders = root.getJSONArray("bidders").toBidders(),
                     placements = root.getJSONArray("placements").toPlacements(),
                     geoDataEndpointUrl = root.optString("geoDataEndpointURL", null),
@@ -35,6 +36,7 @@ internal suspend fun jsonToConfig(json: String): Result<Config, CLXError> =
                     accountId = root.optString("accountID", null),
                     appKeyOverride = root.optString("appKeyOverride", null),
                     trackers = root.optJSONArray("tracking")?.toTrackers(),
+                    winLossNotificationPayloadMapping = root.optJSONObject("winLossNotificationPayloadMapping")?.toStringMap() ?: emptyMap(),
                     geoHeaders = root.optJSONArray("geoHeaders")?.toGeoHeaders(),
                     keyValuePaths = root.optJSONObject("keyValuePaths")?.let { kvp ->
                         Config.KeyValuePaths(
@@ -209,4 +211,17 @@ internal fun JSONObject.toEndpointConfig(field: String): Config.EndpointConfig {
     }
 }
 
+private fun JSONObject.toStringMap(): Map<String, String> {
+    val map = mutableMapOf<String, String>()
+    val keys = keys()
 
+    while (keys.hasNext()) {
+        val key = keys.next()
+        val value = optString(key)
+        if (value.isNotEmpty()) {
+            map[key] = value
+        }
+    }
+
+    return map
+}

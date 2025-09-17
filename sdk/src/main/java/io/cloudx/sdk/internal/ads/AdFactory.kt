@@ -15,6 +15,7 @@ import io.cloudx.sdk.internal.config.Config
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
+import io.cloudx.sdk.internal.imp_tracker.win_loss.WinLossTracker
 import io.cloudx.sdk.internal.initialization.BidAdNetworkFactories
 import kotlinx.coroutines.flow.StateFlow
 
@@ -53,6 +54,7 @@ internal fun AdFactory(
     factories: BidAdNetworkFactories,
     metricsTracker: MetricsTracker,
     eventTracker: EventTracker,
+    winLossTracker: WinLossTracker,
     connectionStatusService: ConnectionStatusService,
     appLifecycleService: AppLifecycleService,
     activityLifecycleService: ActivityLifecycleService
@@ -63,6 +65,7 @@ internal fun AdFactory(
         factories,
         metricsTracker,
         eventTracker,
+        winLossTracker,
         connectionStatusService,
         appLifecycleService,
         activityLifecycleService

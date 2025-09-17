@@ -90,6 +90,7 @@ private fun JSONArray.toBid(auctionId: String): List<Bid> {
                 auctionId = auctionId,
                 adWidth = if (has("w")) getInt("w") else null,
                 adHeight = if (has("h")) getInt("h") else null,
+                rawJson = this
             )
         }
 //        Uncomment the following lines to use test bids.

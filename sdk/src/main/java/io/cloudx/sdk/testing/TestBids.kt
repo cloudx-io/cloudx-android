@@ -3,6 +3,7 @@ package io.cloudx.sdk.testing
 import android.os.Bundle
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.bid.Bid
+import org.json.JSONObject
 
 internal object TestBids {
 
@@ -23,7 +24,8 @@ internal object TestBids {
                 creativeId = null,
                 auctionId = auctionId,
                 adWidth = 320,
-                adHeight = 50
+                adHeight = 50,
+                JSONObject()
             ),
             Bid(
                 id = "test-loser-2",
@@ -40,7 +42,8 @@ internal object TestBids {
                 creativeId = null,
                 auctionId = auctionId,
                 adWidth = 320,
-                adHeight = 50
+                adHeight = 50,
+                JSONObject()
             ),
             Bid(
                 id = "test-loser-3",
@@ -57,7 +60,8 @@ internal object TestBids {
                 creativeId = null,
                 auctionId = auctionId,
                 adWidth = 320,
-                adHeight = 50
+                adHeight = 50,
+                JSONObject()
             ),
         )
     }

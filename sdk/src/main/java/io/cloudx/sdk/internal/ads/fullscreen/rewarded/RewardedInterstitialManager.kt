@@ -17,6 +17,7 @@ import io.cloudx.sdk.internal.common.service.AppLifecycleService
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
+import io.cloudx.sdk.internal.imp_tracker.win_loss.WinLossTracker
 
 private class RewardedInterstitialManager(
     bidAdSource: BidAdSource<RewardedInterstitialAdapterDelegate>,
@@ -63,6 +64,7 @@ internal fun RewardedInterstitialManager(
     cdpApi: CdpApi,
     eventTracker: EventTracker,
     metricsTracker: MetricsTracker,
+    winLossTracker: WinLossTracker,
     connectionStatusService: ConnectionStatusService,
     appLifecycleService: AppLifecycleService,
     listener: CloudXRewardedInterstitialListener?,
@@ -84,6 +86,7 @@ internal fun RewardedInterstitialManager(
             bidRequestProvider,
             eventTracker,
             metricsTracker,
+            winLossTracker,
             0,
             accountId,
             appKey

@@ -25,6 +25,7 @@ import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsType
+import io.cloudx.sdk.internal.imp_tracker.win_loss.WinLossTracker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -64,6 +65,7 @@ internal fun BannerManager(
     cdpApi: CdpApi,
     eventTracker: EventTracker,
     metricsTracker: MetricsTracker,
+    winnLossTracker: WinLossTracker,
     connectionStatusService: ConnectionStatusService,
     activityLifecycleService: ActivityLifecycleService,
     appLifecycleService: AppLifecycleService,
@@ -89,6 +91,7 @@ internal fun BannerManager(
             bidRequestProvider,
             eventTracker,
             metricsTracker,
+            winnLossTracker,
             miscParams,
             0,
             accountId,
@@ -109,7 +112,7 @@ internal fun BannerManager(
         connectionStatusService = connectionStatusService,
         activityLifecycleService = activityLifecycleService,
         appLifecycleService = appLifecycleService,
-        metricsTracker = metricsTracker
+        metricsTracker = metricsTracker,
     )
 }
 
@@ -349,7 +352,7 @@ private class BannerManagerImpl(
                     TAG,
                     placementName,
                     placementId,
-                    "Attempting to load bid: ${bidItem.adNetworkOriginal.networkName}, CPM: $${bidItem.price}, rank: ${bidItem.rank}"
+                    "Attempting to load bid: ${bidItem.adNetworkOriginal.networkName}, CPM: $${bidItem.bid.price?.toDouble() ?: 0.0}, rank: ${bidItem.bid.rank}"
                 )
 
                 val result = loadOrDestroyBanner(bidAdLoadTimeoutMillis, bidItem.createBidAd)
@@ -360,7 +363,7 @@ private class BannerManagerImpl(
                         TAG,
                         placementName,
                         placementId,
-                        "Successfully loaded bid: ${bidItem.adNetworkOriginal.networkName}, CPM: $${bidItem.price}, rank: ${bidItem.rank}"
+                        "Successfully loaded bid: ${bidItem.adNetworkOriginal.networkName}, CPM: $${bidItem.bid.price?.toDouble() ?: 0.0}, rank: ${bidItem.bid.rank}"
                     )
                     loadedBanner = banner
                     winnerIndex = index
@@ -370,34 +373,35 @@ private class BannerManagerImpl(
                         TAG,
                         placementName,
                         placementId,
-                        "Failed to load bid: ${bidItem.adNetworkOriginal.networkName}, CPM: $${bidItem.price}, rank: ${bidItem.rank}"
+                        "Failed to load bid: ${bidItem.adNetworkOriginal.networkName}, CPM: $${bidItem.bid.price?.toDouble() ?: 0.0}, rank: ${bidItem.bid.rank}"
                     )
-                    lossReasons[bidItem.id] = LossReason.TechnicalError
+                    lossReasons[bidItem.bid.id] = LossReason.TechnicalError
                 }
             }
 
             if (winnerIndex != -1) {
                 // Mark all other bids as "Lost to higher bid"
                 bidItemsByRank.forEachIndexed { index, bidItem ->
-                    if (index != winnerIndex && !lossReasons.containsKey(bidItem.id)) {
-                        lossReasons[bidItem.id] = LossReason.LostToHigherBid
+                    if (index != winnerIndex && !lossReasons.containsKey(bidItem.bid.id)) {
+                        lossReasons[bidItem.bid.id] = LossReason.LostToHigherBid
                     }
                 }
 
                 // Fire lurls
                 bidItemsByRank.forEachIndexed { index, bidItem ->
                     if (index != winnerIndex) {
-                        val reason = lossReasons[bidItem.id] ?: return@forEachIndexed
+                        val reason = lossReasons[bidItem.bid.id] ?: return@forEachIndexed
 
-                        if (!bidItem.lurl.isNullOrBlank()) {
+                        val lossUrl = bidItem.bid.lurl
+                        if (!lossUrl.isNullOrBlank()) {
                             CloudXLogger.d(
                                 TAG,
                                 placementName,
                                 placementId,
-                                "Calling LURL for ${bidItem.adNetwork}, reason=${reason.name}, rank=${bidItem.rank}"
+                                "Calling LURL for ${bidItem.adNetwork.networkName}, reason=${reason.name}, rank=${bidItem.bid.rank}"
                             )
 
-                            LossTracker.trackLoss(bidItem.lurl, reason)
+                            LossTracker.trackLoss(lossUrl, reason)
                         }
                     }
                 }
@@ -520,4 +524,3 @@ private class BannerManagerImpl(
         backupBannerLoadTimer.destroy()
     }
 }
-

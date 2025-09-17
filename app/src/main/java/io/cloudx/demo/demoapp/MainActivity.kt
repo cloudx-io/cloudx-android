@@ -13,7 +13,7 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.progressindicator.LinearProgressIndicator
 import io.cloudx.sdk.CloudX
-import io.cloudx.sdk.CloudXAdError
+import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.CloudXInitializationListener
 import io.cloudx.sdk.CloudXPrivacy
 import io.cloudx.sdk.internal.CXLogger
@@ -241,8 +241,8 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                         postInit(INIT_SUCCESS)
                     }
 
-                    override fun onInitializationFailed(error: CloudXAdError) {
-                        postInit("$INIT_FAILURE ${error.description}")
+                    override fun onInitializationFailed(error: CloudXError) {
+                        postInit("$INIT_FAILURE ${error.effectiveMessage}")
                     }
                 })
         }

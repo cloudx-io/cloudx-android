@@ -5,6 +5,5 @@ package io.cloudx.sdk
  */
 interface CloudXInitializationListener {
     fun onInitialized()
-
-    fun onInitializationFailed(error: CloudXAdError)
+    fun onInitializationFailed(error: CloudXError)
 }

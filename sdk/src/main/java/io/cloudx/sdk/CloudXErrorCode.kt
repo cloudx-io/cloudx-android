@@ -1,6 +1,6 @@
 package io.cloudx.sdk
 
-internal enum class CloudXErrorCode(
+enum class CloudXErrorCode(
     val code: Int,
     val description: String
 ) {

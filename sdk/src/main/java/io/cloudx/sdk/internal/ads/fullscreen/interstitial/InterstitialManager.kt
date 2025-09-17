@@ -3,7 +3,6 @@ package io.cloudx.sdk.internal.ads.fullscreen.interstitial
 import io.cloudx.sdk.CloudXInterstitialAd
 import io.cloudx.sdk.CloudXInterstitialListener
 import io.cloudx.sdk.internal.AdNetwork
-import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.adapter.CloudXAdapterBidRequestExtrasProvider
 import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapterFactory
 import io.cloudx.sdk.internal.ads.AdLoader
@@ -17,11 +16,15 @@ import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
 
 private class InterstitialManagerImpl(
+    private val placementName: String,
+    private val placementId: String,
     private val adLoader: AdLoader<InterstitialAdapterDelegate>,
 ) : CloudXInterstitialAd {
     val fullscreenAdManager = FullscreenAdManager(
+        tag = "InterstitialManager",
+        placementName = placementName,
+        placementId = placementId,
         adLoader = adLoader,
-        placementType = AdType.Interstitial,
         tryHandleCurrentEvent = {
             when (this) {
                 InterstitialAdapterDelegateEvent.Show -> FullscreenAdEvent.Show
@@ -38,8 +41,8 @@ private class InterstitialManagerImpl(
             fullscreenAdManager.listener = value
         }
 
-    override val isAdLoaded: Boolean
-        get() = fullscreenAdManager.isAdLoaded
+    override val isAdReady: Boolean
+        get() = fullscreenAdManager.isAdReady
 
     override fun load() = fullscreenAdManager.load()
     override fun show() = fullscreenAdManager.show()
@@ -89,6 +92,8 @@ internal fun InterstitialManager(
     )
 
     return InterstitialManagerImpl(
+        placementName = placementName,
+        placementId = placementId,
         adLoader = adLoader
     )
 }

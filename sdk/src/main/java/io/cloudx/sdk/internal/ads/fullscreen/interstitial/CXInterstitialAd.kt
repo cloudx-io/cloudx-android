@@ -39,8 +39,8 @@ internal class CXInterstitialAd(
             interstitial?.listener = value
         }
 
-    override val isAdLoaded: Boolean
-        get() = interstitial?.isAdLoaded ?: false
+    override val isAdReady: Boolean
+        get() = interstitial?.isAdReady ?: false
 
     override fun load() {
         if (interstitial != null) {

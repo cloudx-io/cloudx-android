@@ -39,8 +39,8 @@ internal class CXRewardedInterstitialAd(
             rewardedInterstitial?.listener = value
         }
 
-    override val isAdLoaded: Boolean
-        get() = rewardedInterstitial?.isAdLoaded ?: false
+    override val isAdReady: Boolean
+        get() = rewardedInterstitial?.isAdReady ?: false
 
     override fun load() {
         if (rewardedInterstitial != null) {

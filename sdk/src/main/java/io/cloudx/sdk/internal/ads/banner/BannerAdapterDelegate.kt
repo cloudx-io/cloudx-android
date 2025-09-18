@@ -45,7 +45,7 @@ internal fun BannerAdapterDelegate(
     placementId: String,
     adNetwork: AdNetwork,
     externalPlacementId: String?,
-    price: Double?,
+    price: Double,
     createBanner: (listener: CloudXAdViewAdapterListener) -> CloudXAdViewAdapter
 ): BannerAdapterDelegate =
     BannerAdapterDelegateImpl(

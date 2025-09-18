@@ -29,12 +29,12 @@ internal interface WinLossTracker {
 
     fun setWinner(auctionId: String, winningBidId: String)
 
-    fun sendWin(
+    fun sendLoss(
         auctionId: String,
         bidId: String
     )
 
-    fun sendLoss(
+    fun sendWin(
         auctionId: String,
         bidId: String
     )

@@ -71,7 +71,7 @@ internal class AdLoader<T : CXAdapterDelegate>(
 
                 lossReasons[bidItem.bid.id] = LossReason.TechnicalError
                 winLossTracker.setBidLoadResult(bids.auctionId, bidItem.bid.id, false, LossReason.TechnicalError)
-                winLossTracker.sendLoss(bids.auctionId)
+                winLossTracker.sendLoss(bids.auctionId, bidItem.bid.id)
             }
         }
 
@@ -80,7 +80,7 @@ internal class AdLoader<T : CXAdapterDelegate>(
                 if (index != winnerIndex && !lossReasons.containsKey(bidItem.bid.id)) {
                     lossReasons[bidItem.bid.id] = LossReason.LostToHigherBid
                     winLossTracker.setBidLoadResult(bids.auctionId, bidItem.bid.id, false, LossReason.LostToHigherBid)
-                    winLossTracker.sendLoss(bids.auctionId)
+                    winLossTracker.sendLoss(bids.auctionId, bidItem.bid.id)
                 }
             }
         }

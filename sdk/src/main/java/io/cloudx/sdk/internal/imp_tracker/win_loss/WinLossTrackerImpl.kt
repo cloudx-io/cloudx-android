@@ -52,7 +52,7 @@ internal class WinLossTrackerImpl(
             val winningBid = AuctionBidManager.getWinningBid(auctionId)
             if (winningBid != null) {
                 // Send win notification
-                sendWin(auctionId)
+                sendWin(auctionId, winningBidId)
 
                 // Clean up auction data
                 AuctionBidManager.clearAuction(auctionId)
@@ -75,9 +75,10 @@ internal class WinLossTrackerImpl(
 
     override fun sendWin(
         auctionId: String,
+        bidId: String
     ) {
         scope.launch {
-            val payload = winLossFieldResolver.buildWinLossPayload(auctionId, isWin = true)
+            val payload = winLossFieldResolver.buildWinLossPayload(auctionId, bidId, isWin = true)
             if (payload != null) {
                 trackWinLoss(payload)
             } else {
@@ -88,9 +89,10 @@ internal class WinLossTrackerImpl(
 
     override fun sendLoss(
         auctionId: String,
+        bidId: String
     ) {
         scope.launch {
-            val payload = winLossFieldResolver.buildWinLossPayload(auctionId, isWin = false)
+            val payload = winLossFieldResolver.buildWinLossPayload(auctionId, bidId, isWin = false)
             if (payload != null) {
                 trackWinLoss(payload)
             } else {

@@ -17,11 +17,13 @@ internal interface WinLossTracker {
     fun setConfig(config: Config)
 
     fun sendWin(
-        auctionId: String
+        auctionId: String,
+        bidId: String
     )
 
     fun sendLoss(
-        auctionId: String
+        auctionId: String,
+        bidId: String
     )
 
     fun addBid(

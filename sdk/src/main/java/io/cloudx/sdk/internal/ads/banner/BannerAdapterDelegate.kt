@@ -65,7 +65,7 @@ private class BannerAdapterDelegateImpl(
     override val placementId: String,
     override val bidderName: String,
     override val externalPlacementId: String?,
-    override val revenue: Double?,
+    override val revenue: Double,
     createBanner: (listener: CloudXAdViewAdapterListener) -> CloudXAdViewAdapter,
 ) : BannerAdapterDelegate {
 

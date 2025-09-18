@@ -6,6 +6,8 @@ package io.cloudx.sdk
 interface CloudXFullscreenAd<T: CloudXAdListener> : Destroyable {
     var listener: T?
 
+    var revenueListener: CloudXAdRevenueListener?
+
     /**
      * Tells about current ad load status.
      */

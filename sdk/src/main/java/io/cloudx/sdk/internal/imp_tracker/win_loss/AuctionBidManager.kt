@@ -6,7 +6,6 @@ import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Manages all bids for auctions and handles win/loss determination.
- * Similar to TrackingFieldResolver but specifically for auction bid management.
  */
 internal class AuctionBidManager {
 

@@ -8,23 +8,13 @@ import io.cloudx.sdk.internal.db.Database
 
 internal interface WinLossTracker {
 
-    fun trySendingPendingWinLossEvents()
-
     fun setAppKey(appKey: String)
 
     fun setEndpoint(endpointUrl: String?)
 
     fun setConfig(config: Config)
 
-    fun sendWin(
-        auctionId: String,
-        bidId: String
-    )
-
-    fun sendLoss(
-        auctionId: String,
-        bidId: String
-    )
+    fun trySendingPendingWinLossEvents()
 
     fun addBid(
         auctionId: String,
@@ -39,6 +29,16 @@ internal interface WinLossTracker {
     )
 
     fun setWinner(auctionId: String, winningBidId: String)
+
+    fun sendWin(
+        auctionId: String,
+        bidId: String
+    )
+
+    fun sendLoss(
+        auctionId: String,
+        bidId: String
+    )
 
     fun clearAuction(auctionId: String)
 }

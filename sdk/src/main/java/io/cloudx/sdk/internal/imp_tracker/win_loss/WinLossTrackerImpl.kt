@@ -34,11 +34,30 @@ internal class WinLossTrackerImpl(
         winLossFieldResolver.setConfig(config)
     }
 
+    override fun trySendingPendingWinLossEvents() {
+        scope.launch {
+            val cached = db.cachedWinLossEventDao().getAll()
+            if (cached.isEmpty()) {
+                return@launch
+            }
+            sendCached(cached)
+        }
+    }
+
     override fun addBid(
         auctionId: String,
         bid: Bid
     ) {
         auctionBidManager.addBid(auctionId, bid)
+    }
+
+    override fun setBidLoadResult(
+        auctionId: String,
+        bidId: String,
+        success: Boolean,
+        lossReason: LossReason?
+    ) {
+        auctionBidManager.setBidLoadResult(auctionId, bidId, success, lossReason)
     }
 
     override fun setWinner(auctionId: String, winningBidId: String) {
@@ -51,19 +70,6 @@ internal class WinLossTrackerImpl(
                 auctionBidManager.clearAuction(auctionId)
             }
         }
-    }
-
-    override fun setBidLoadResult(
-        auctionId: String,
-        bidId: String,
-        success: Boolean,
-        lossReason: LossReason?
-    ) {
-        auctionBidManager.setBidLoadResult(auctionId, bidId, success, lossReason)
-    }
-
-    override fun clearAuction(auctionId: String) {
-        auctionBidManager.clearAuction(auctionId)
     }
 
     override fun sendWin(
@@ -103,6 +109,10 @@ internal class WinLossTrackerImpl(
         }
     }
 
+    override fun clearAuction(auctionId: String) {
+        auctionBidManager.clearAuction(auctionId)
+    }
+
     private suspend fun trackWinLoss(payload: Map<String, Any>) {
         val eventId = saveToDb(payload)
         val endpoint = endpointUrl
@@ -118,14 +128,18 @@ internal class WinLossTrackerImpl(
         }
     }
 
-    override fun trySendingPendingWinLossEvents() {
-        scope.launch {
-            val cached = db.cachedWinLossEventDao().getAll()
-            if (cached.isEmpty()) {
-                return@launch
-            }
-            sendCached(cached)
-        }
+    private suspend fun saveToDb(payload: Map<String, Any>): String {
+        val eventId = UUID.randomUUID().toString()
+        val payloadJson = JSONObject(payload).toString()
+
+        db.cachedWinLossEventDao().insert(
+            CachedWinLossEvents(
+                id = eventId,
+                endpointUrl = endpointUrl ?: "",
+                payload = payloadJson
+            )
+        )
+        return eventId
     }
 
     private suspend fun sendCached(entries: List<CachedWinLossEvents>) {
@@ -145,20 +159,6 @@ internal class WinLossTrackerImpl(
                 }
             }
         }
-    }
-
-    private suspend fun saveToDb(payload: Map<String, Any>): String {
-        val eventId = UUID.randomUUID().toString()
-        val payloadJson = JSONObject(payload).toString()
-
-        db.cachedWinLossEventDao().insert(
-            CachedWinLossEvents(
-                id = eventId,
-                endpointUrl = endpointUrl ?: "",
-                payload = payloadJson
-            )
-        )
-        return eventId
     }
 
     private fun parsePayload(payloadJson: String): Map<String, Any>? {

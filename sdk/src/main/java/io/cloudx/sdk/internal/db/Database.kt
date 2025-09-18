@@ -8,13 +8,16 @@ import io.cloudx.sdk.internal.db.imp_tracking.CachedTrackingEvents
 import io.cloudx.sdk.internal.db.imp_tracking.CachedTrackingEventDao
 import io.cloudx.sdk.internal.db.metrics.MetricsEvent
 import io.cloudx.sdk.internal.db.metrics.MetricsEventDao
+import io.cloudx.sdk.internal.db.win_loss.CachedWinLossEvents
+import io.cloudx.sdk.internal.db.win_loss.CachedWinLossEventDao
 
 @Database(
     entities = [
         CachedTrackingEvents::class,
-        MetricsEvent::class
+        MetricsEvent::class,
+        CachedWinLossEvents::class
     ],
-    version = 8,
+    version = 9,
     // Not yet.
     exportSchema = false
 )
@@ -22,6 +25,10 @@ internal abstract class CloudXDb : RoomDatabase() {
 
     // region EventTracking
     abstract fun cachedTrackingEventDao(): CachedTrackingEventDao
+    // endregion
+
+    // region WinLoss
+    abstract fun cachedWinLossEventDao(): CachedWinLossEventDao
     // endregion
 
     // region Metrics

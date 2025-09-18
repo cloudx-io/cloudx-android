@@ -19,8 +19,7 @@ import io.cloudx.sdk.internal.util.Result
 import io.cloudx.sdk.toCloudXError
 
 @Keep
-internal object InterstitialFactory :
-    CloudXInterstitialAdapterFactory,
+internal object InterstitialFactory : CloudXInterstitialAdapterFactory,
     CloudXAdapterMetaData by CloudXAdapterMetaData(AudienceNetworkAdsVersion) {
 
     override fun create(

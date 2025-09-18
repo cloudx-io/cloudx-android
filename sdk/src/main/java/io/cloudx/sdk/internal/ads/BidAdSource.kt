@@ -57,13 +57,13 @@ internal fun <T : Destroyable> BidAdSource(
     createBidAd: suspend (CreateBidAdParams) -> T,
 ): BidAdSource<T> =
     BidAdSourceImpl(
-        provideBidRequest,
-        bidRequestParams,
-        requestBid,
-        cdpApi,
-        eventTracker,
-        metricsTracker,
-        createBidAd
+        provideBidRequest = provideBidRequest,
+        bidRequestParams = bidRequestParams,
+        requestBid = requestBid,
+        cdpApi = cdpApi,
+        eventTracking = eventTracker,
+        metricsTracker = metricsTracker,
+        createBidAd = createBidAd
     )
 
 internal class CreateBidAdParams(

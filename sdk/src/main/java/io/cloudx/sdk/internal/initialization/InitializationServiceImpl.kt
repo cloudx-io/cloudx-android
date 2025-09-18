@@ -8,6 +8,7 @@ import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.ads.AdFactory
+import io.cloudx.sdk.internal.appinfo.AppInfoProvider
 import io.cloudx.sdk.internal.bid.BidRequestProvider
 import io.cloudx.sdk.internal.config.Config
 import io.cloudx.sdk.internal.config.ConfigApi
@@ -46,7 +47,8 @@ internal class InitializationServiceImpl(
     private val eventTracker: EventTracker,
     private val provideDeviceInfo: DeviceInfoProvider,
     private val geoApi: GeoApi,
-    private val crashReportingService: CrashReportingService
+    private val crashReportingService: CrashReportingService,
+    private val appInfoProvider: AppInfoProvider
 ) : InitializationService {
 
     private val TAG = "InitializationService"
@@ -222,7 +224,8 @@ internal class InitializationServiceImpl(
             sessionId,
             sdkVersion,
             deviceType,
-            ResolvedEndpoints.testGroupName
+            ResolvedEndpoints.testGroupName,
+            appInfoProvider().appVersion
         )
         TrackingFieldResolver.setConfig(cfg)
 

@@ -9,14 +9,13 @@ import java.util.concurrent.ConcurrentHashMap
 
 internal object TrackingFieldResolver {
     const val SDK_PARAM_RESPONSE_IN_MILLIS = "sdk.responseTimeMillis"
-
+    private const val SDK_PARAM_APP_BUNDLE = "sdk.app.bundle"
     private const val SDK_PARAM_SDK_VERSION = "sdk.releaseVersion"
     private const val SDK_PARAM_DEVICE_TYPE = "sdk.deviceType"
     private const val SDK_PARAM_SESSION_ID = "sdk.sessionId"
-    private const val CONFIG_PARAM_AB_TEST_GROUP = "config.testGroupName"
-
-    private const val BID_REQUEST_PARAM_LOOP_INDEX = "bidRequest.loopIndex"
-    private const val BID_REQUEST_PARAM_IFA = "bidRequest.device.ifa"
+    private const val SDK_PARAM_ABTEST_GROUP = "sdk.testGroupName"
+    private const val SDK_PARAM_LOOP_INDEX = "sdk.loopIndex"
+    private const val SDK_PARAM_IFA = "sdk.ifa"
 
     private var tracking: List<String>? = null
     private val requestDataMap = ConcurrentHashMap<String, JSONObject>()
@@ -30,6 +29,7 @@ internal object TrackingFieldResolver {
     private var sdkVersion: String? = null
     private var deviceType: String? = null
     private var abTestGroup: String? = null
+    private var appBundle: String? = null
     private var hashedGeoIp: String? = null
 
     private var accountId: String? = null
@@ -44,12 +44,14 @@ internal object TrackingFieldResolver {
         sessionId: String,
         sdkVersion: String,
         deviceType: String,
-        abTestGroup: String
+        abTestGroup: String,
+        appBundle: String
     ) {
         TrackingFieldResolver.sessionId = sessionId
         TrackingFieldResolver.sdkVersion = sdkVersion
         TrackingFieldResolver.deviceType = deviceType
         TrackingFieldResolver.abTestGroup = abTestGroup
+        TrackingFieldResolver.appBundle = appBundle
     }
 
     fun setRequestData(auctionId: String, json: JSONObject) {
@@ -60,6 +62,7 @@ internal object TrackingFieldResolver {
         responseDataMap[auctionId] = json
     }
 
+    // TODO: missing SDK_PARAM_RESPONSE_IN_MILLIS
     fun setSdkParam(auctionId: String, key: String, value: String) {
         val params = sdkMap.getOrPut(auctionId) { mutableMapOf() }
         params[key] = value
@@ -134,8 +137,7 @@ internal object TrackingFieldResolver {
         return current
     }
 
-
-    private fun resolveField(auctionId: String, field: String): Any? {
+    fun resolveField(auctionId: String, field: String): Any? {
         // placeholder‐expander
         val placeholderRegex = Regex("""\$\{([^}]+)\}""")
         fun expandTemplate(template: String): String =
@@ -168,27 +170,6 @@ internal object TrackingFieldResolver {
 
             // —— BID REQUEST fields ——
             field.startsWith("bidRequest.") -> {
-                if (field == BID_REQUEST_PARAM_LOOP_INDEX) {
-                    return auctionedLoopIndex[auctionId]
-                }
-                if (field == BID_REQUEST_PARAM_IFA) { // TODO: CX-919 Temporary Hardcoded Solution
-                    if (PrivacyService().shouldClearPersonalData()) {
-                        return sessionId
-                    }
-                    val isLimitedAdTrackingEnabled = requestDataMap[auctionId]?.optJSONObject("device")?.optInt("dnt") == 1
-                    return if (isLimitedAdTrackingEnabled) {
-                        val hashedUserId = SdkKeyValueState.hashedUserId.orEmpty()
-                        val hasUserHashedId = hashedUserId.isBlank().not()
-                        if (hasUserHashedId) {
-                            hashedUserId
-                        } else {
-                            hashedGeoIp
-                        }
-                    } else {
-                        // ifa
-                        requestDataMap[auctionId]?.optJSONObject("device")?.optString("ifa")
-                    }
-                }
                 val json = requestDataMap[auctionId] ?: return null
                 val rawTemplate = field.removePrefix("bidRequest.")
                 val expandedPath = expandTemplate(rawTemplate)
@@ -197,9 +178,6 @@ internal object TrackingFieldResolver {
 
             // —— CONFIG fields ——
             field.startsWith("config.") -> {
-                if (field == CONFIG_PARAM_AB_TEST_GROUP) {
-                    return abTestGroup
-                }
                 val rawTemplate = field.removePrefix("config.")
                 val expandedPath = expandTemplate(rawTemplate)
                 configDataMap?.resolveNestedField(expandedPath)
@@ -208,10 +186,14 @@ internal object TrackingFieldResolver {
             // —— SDK fields ——
             field.startsWith("sdk.") -> {
                 return when (field) {
-                    SDK_PARAM_SESSION_ID  -> sessionId
+                    SDK_PARAM_SESSION_ID -> sessionId
+                    SDK_PARAM_APP_BUNDLE -> appBundle
                     SDK_PARAM_SDK_VERSION -> sdkVersion
                     SDK_PARAM_DEVICE_TYPE -> deviceType
-                    else                  -> sdkMap[auctionId]?.get(field)
+                    SDK_PARAM_LOOP_INDEX -> auctionedLoopIndex[auctionId]?.toString()
+                    SDK_PARAM_IFA -> handleIfaField(auctionId)
+                    SDK_PARAM_ABTEST_GROUP -> abTestGroup
+                    else -> sdkMap[auctionId]?.get(field)
                 }
             }
             // —— RESPONSE fields ——
@@ -223,6 +205,26 @@ internal object TrackingFieldResolver {
             }
 
             else -> null
+        }
+    }
+
+    private fun handleIfaField(auctionId: String): String? {
+        if (PrivacyService().shouldClearPersonalData()) {
+            return sessionId
+        }
+        val isLimitedAdTrackingEnabled =
+            requestDataMap[auctionId]?.optJSONObject("device")?.optInt("dnt") == 1
+        return if (isLimitedAdTrackingEnabled) {
+            val hashedUserId = SdkKeyValueState.hashedUserId.orEmpty()
+            val hasUserHashedId = hashedUserId.isBlank().not()
+            if (hasUserHashedId) {
+                hashedUserId
+            } else {
+                hashedGeoIp
+            }
+        } else {
+            // ifa
+            requestDataMap[auctionId]?.optJSONObject("device")?.optString("ifa")
         }
     }
 }

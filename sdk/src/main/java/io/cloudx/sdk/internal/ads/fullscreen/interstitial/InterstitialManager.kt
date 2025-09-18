@@ -15,6 +15,7 @@ import io.cloudx.sdk.internal.cdp.CdpApi
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
+import io.cloudx.sdk.internal.imp_tracker.win_loss.WinLossTracker
 
 private class InterstitialManagerImpl(
     private val placementName: String,
@@ -66,6 +67,7 @@ internal fun InterstitialManager(
     cdpApi: CdpApi,
     eventTracker: EventTracker,
     metricsTracker: MetricsTracker,
+    winLossTracker: WinLossTracker,
     connectionStatusService: ConnectionStatusService,
     accountId: String,
     appKey: String
@@ -85,6 +87,7 @@ internal fun InterstitialManager(
             generateBidRequest = bidRequestProvider,
             eventTracker = eventTracker,
             metricsTracker = metricsTracker,
+            winLossTracker = winLossTracker,
             bidRequestTimeoutMillis = 0,
             accountId = accountId,
             appKey = appKey
@@ -95,7 +98,8 @@ internal fun InterstitialManager(
         placementId = placementId,
         bidAdSource = bidSource,
         bidAdLoadTimeoutMillis = bidAdLoadTimeoutMillis,
-        connectionStatusService = connectionStatusService
+        connectionStatusService = connectionStatusService,
+        winLossTracker = winLossTracker
     )
 
     return InterstitialManagerImpl(

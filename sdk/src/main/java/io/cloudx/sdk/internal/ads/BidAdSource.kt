@@ -1,12 +1,12 @@
 package io.cloudx.sdk.internal.ads
 
-import android.os.Bundle
 import com.xor.XorEncryption
 import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.Destroyable
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.PlacementLoopIndexTracker
+import io.cloudx.sdk.internal.bid.Bid
 import io.cloudx.sdk.internal.bid.BidApi
 import io.cloudx.sdk.internal.bid.BidRequestProvider
 import io.cloudx.sdk.internal.bid.BidResponse
@@ -18,6 +18,7 @@ import io.cloudx.sdk.internal.imp_tracker.TrackingFieldResolver
 import io.cloudx.sdk.internal.imp_tracker.TrackingFieldResolver.SDK_PARAM_RESPONSE_IN_MILLIS
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsType
+import io.cloudx.sdk.internal.imp_tracker.win_loss.WinLossTracker
 import io.cloudx.sdk.internal.state.SdkKeyValueState
 import io.cloudx.sdk.internal.util.Result
 import java.util.UUID
@@ -32,17 +33,18 @@ internal interface BidAdSource<T : Destroyable> {
 }
 
 internal open class BidAdSourceResponse<T : Destroyable>(
-    val bidItemsByRank: List<Item<T>>
+    val bidItemsByRank: List<Item<T>>,
+    val auctionId: String
 ) {
 
+    /**
+     * Holds the full bid payload to allow downstream consumers (tracking, logging, adapters)
+     * to inspect any fields they require without maintaining bespoke mirrors here.
+     */
     class Item<T>(
-        val id: String,
+        val bid: Bid,
         val adNetwork: AdNetwork,
         val adNetworkOriginal: AdNetwork, // todo: only used for demo
-        val price: Double,
-        val priceRaw: String,
-        val rank: Int,
-        val lurl: String?,
         val createBidAd: suspend () -> T,
     )
 }
@@ -54,6 +56,7 @@ internal fun <T : Destroyable> BidAdSource(
     cdpApi: CdpApi,
     eventTracker: EventTracker,
     metricsTracker: MetricsTracker,
+    winLossTracker: WinLossTracker,
     createBidAd: suspend (CreateBidAdParams) -> T,
 ): BidAdSource<T> =
     BidAdSourceImpl(
@@ -63,17 +66,14 @@ internal fun <T : Destroyable> BidAdSource(
         cdpApi,
         eventTracker,
         metricsTracker,
+        winLossTracker,
         createBidAd
     )
 
 internal class CreateBidAdParams(
     val placementName: String,
     val placementId: String,
-    val bidId: String,
-    val adm: String,
-    val adapterExtras: Bundle,
-    val burl: String?,
-    val nurl: String?,
+    val bid: Bid,
     val adNetwork: AdNetwork,
     val price: Double,
     val auctionId: String
@@ -86,6 +86,7 @@ private class BidAdSourceImpl<T : Destroyable>(
     private val cdpApi: CdpApi,
     private val eventTracking: EventTracker,
     private val metricsTracker: MetricsTracker,
+    private val winLossTracker: WinLossTracker,
     private val createBidAd: suspend (CreateBidAdParams) -> T,
 ) : BidAdSource<T> {
 
@@ -168,7 +169,31 @@ private class BidAdSourceImpl<T : Destroyable>(
 
         return when (result) {
             is Result.Success -> {
-                val resp = result.value.toBidAdSourceResponse(bidRequestParams, createBidAd)
+                val resp = result.value.toBidAdSourceResponse(bidRequestParams, createBidAd, auctionId)
+
+                if (resp.bidItemsByRank.isEmpty()) {
+                    CXLogger.d(logTag, "NO_BID")
+                } else {
+                    val bidDetails =
+                        resp.bidItemsByRank.joinToString(separator = ",\n") {
+                            val bid = it.bid
+                            val cpm = bid.priceRaw ?: "0.0"
+                            "\"bidder\": \"${it.adNetworkOriginal.networkName}\", cpm: $cpm, rank: ${bid.rank}"
+                        }
+                    CXLogger.d(
+                        logTag,
+                        "Bid Success — received ${resp.bidItemsByRank.size} bid(s): [$bidDetails]"
+                    )
+
+                    // Add all bids to WinLossTracker for auction processing
+                    resp.bidItemsByRank.forEach { bidItem ->
+                        winLossTracker.addBid(
+                            auctionId = auctionId,
+                            bid = bidItem.bid
+                        )
+                    }
+                }
+
                 Result.Success(resp)
             }
 
@@ -182,14 +207,14 @@ private class BidAdSourceImpl<T : Destroyable>(
 private fun <T : Destroyable> BidResponse.toBidAdSourceResponse(
     bidRequestParams: BidRequestProvider.Params,
     createBidAd: suspend (CreateBidAdParams) -> T,
+    auctionId: String,
 ): BidAdSourceResponse<T> {
 
     val items = seatBid.asSequence()
         .flatMap { it.bid }
         .map { bid ->
 
-            val price = (bid.price ?: 0.0).toDouble()
-            val priceRaw = bid.priceRaw ?: "0.0"
+            val price = (bid.price ?: 0.0f).toDouble()
             val adNetworkOriginal = bid.adNetwork
             val adNetwork = when (adNetworkOriginal) {
                 AdNetwork.CloudXSecond -> AdNetwork.CloudX
@@ -197,23 +222,15 @@ private fun <T : Destroyable> BidResponse.toBidAdSourceResponse(
             }
 
             BidAdSourceResponse.Item(
-                id = bid.id,
+                bid = bid,
                 adNetwork = adNetwork,
                 adNetworkOriginal = adNetworkOriginal,
-                price = price,
-                priceRaw = priceRaw,
-                rank = bid.rank,
-                lurl = bid.lurl,
                 createBidAd = {
                     createBidAd(
                         CreateBidAdParams(
                             placementName = bidRequestParams.placementName,
                             placementId = bidRequestParams.placementId,
-                            bidId = bid.id,
-                            adm = bid.adm,
-                            adapterExtras = bid.adapterExtras,
-                            burl = bid.burl,
-                            nurl = bid.nurl,
+                            bid = bid,
                             adNetwork = adNetwork,
                             price = price,
                             auctionId = bid.auctionId
@@ -222,8 +239,8 @@ private fun <T : Destroyable> BidResponse.toBidAdSourceResponse(
                 }
             )
         }.sortedBy {
-            it.rank
+            it.bid.rank
         }.toList()
 
-    return BidAdSourceResponse(items)
+    return BidAdSourceResponse(items, auctionId)
 }

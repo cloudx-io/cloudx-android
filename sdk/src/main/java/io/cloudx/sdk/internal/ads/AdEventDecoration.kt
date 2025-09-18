@@ -146,11 +146,13 @@ internal fun bidAdDecoration(
     bidId: String,
     auctionId: String,
     eventTracker: EventTracker,
+    winLossTracker: io.cloudx.sdk.internal.imp_tracker.win_loss.WinLossTracker,
 ) = AdEventDecoration(
     onLoad = {},
     onImpression = {
         val scope = GlobalScopes.IO
         scope.launch {
+            // Save the loaded bid for existing impression tracking
             TrackingFieldResolver.saveLoadedBid(auctionId, bidId)
             var payload = TrackingFieldResolver.buildPayload(auctionId)
             payload = payload?.replace(auctionId, auctionId)
@@ -162,6 +164,9 @@ internal fun bidAdDecoration(
                 val impressionId = XorEncryption.encrypt(payload, secret)
                 eventTracker.send(impressionId, campaignId, "1", EventType.IMPRESSION)
             }
+
+            winLossTracker.setWinner(auctionId, bidId)
+            winLossTracker.sendWin(auctionId, bidId)
         }
     },
     onClick = {

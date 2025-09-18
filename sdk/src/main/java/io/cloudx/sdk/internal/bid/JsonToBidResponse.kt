@@ -1,9 +1,9 @@
 package io.cloudx.sdk.internal.bid
 
 import android.os.Bundle
-import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.CloudXErrorCode
+import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.toAdNetwork
 import io.cloudx.sdk.internal.toBundle
@@ -68,8 +68,6 @@ private fun JSONArray.toBid(auctionId: String): List<Bid> {
 
         bids += with(bid) {
 
-            // This is a test HTML method.
-//            val adm = testMethod(bid.getString("id"), getAdNetwork(), getString("adm"))
             val adm = getString("adm")
 
             val priceValue = if (has("price")) getDouble("price").toFloat() else null
@@ -79,9 +77,6 @@ private fun JSONArray.toBid(auctionId: String): List<Bid> {
                 adm = adm,
                 price = priceValue,
                 priceRaw = priceValue?.let { "%.6f".format(it).trimEnd('0').trimEnd('.') },
-                burl = if (has("burl")) getString("burl") else null,
-                nurl = if (has("nurl")) getString("nurl") else null,
-                lurl = if (has("lurl")) getString("lurl") else null,
                 adNetwork = getAdNetwork(),
                 rank = getRank(),
                 adapterExtras = getAdapterExtras(),
@@ -90,11 +85,9 @@ private fun JSONArray.toBid(auctionId: String): List<Bid> {
                 auctionId = auctionId,
                 adWidth = if (has("w")) getInt("w") else null,
                 adHeight = if (has("h")) getInt("h") else null,
+                rawJson = this
             )
         }
-//        Uncomment the following lines to use test bids.
-//        val testBids = TestBids.getTestBids(auctionId)
-//        bids += testBids
     }
 
     return bids

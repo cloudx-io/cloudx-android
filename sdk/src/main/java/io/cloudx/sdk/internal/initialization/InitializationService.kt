@@ -13,6 +13,7 @@ import io.cloudx.sdk.internal.deviceinfo.DeviceInfoProvider
 import io.cloudx.sdk.internal.geo.GeoApi
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
+import io.cloudx.sdk.internal.imp_tracker.win_loss.WinLossTracker
 import io.cloudx.sdk.internal.privacy.PrivacyService
 import io.cloudx.sdk.internal.util.Result
 
@@ -43,6 +44,7 @@ internal fun InitializationService(
     privacyService: PrivacyService = PrivacyService(),
     metricsTracker: MetricsTracker = MetricsTracker(),
     eventTracker: EventTracker = EventTracker(),
+    winLossTracker: WinLossTracker = WinLossTracker(),
     deviceInfoProvider: DeviceInfoProvider = DeviceInfoProvider(),
     geoApi: GeoApi = GeoApi(),
     crashReportingService: CrashReportingService = CrashReportingService(),
@@ -56,6 +58,7 @@ internal fun InitializationService(
         privacyService,
         metricsTracker,
         eventTracker,
+        winLossTracker,
         deviceInfoProvider,
         geoApi,
         crashReportingService,

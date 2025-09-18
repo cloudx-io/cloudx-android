@@ -15,6 +15,7 @@ import io.cloudx.sdk.internal.config.ResolvedEndpoints
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
+import io.cloudx.sdk.internal.imp_tracker.win_loss.WinLossTracker
 import io.cloudx.sdk.internal.initialization.BidAdNetworkFactories
 import io.cloudx.sdk.internal.size
 
@@ -24,6 +25,7 @@ internal class AdFactoryImpl(
     private val factories: BidAdNetworkFactories,
     private val metricsTracker: MetricsTracker,
     private val eventTracker: EventTracker,
+    private val winLossTracker: WinLossTracker,
     private val connectionStatusService: ConnectionStatusService,
 ) : AdFactory {
 
@@ -85,6 +87,7 @@ internal class AdFactoryImpl(
             cdpApi = createCdpApi(),
             eventTracker = eventTracker,
             metricsTracker = metricsTracker,
+            winLossTracker = winLossTracker,
             connectionStatusService = connectionStatusService,
             accountId = config.accountId ?: "",
             appKey = appKey
@@ -112,6 +115,7 @@ internal class AdFactoryImpl(
             cdpApi = createCdpApi(),
             eventTracker = eventTracker,
             metricsTracker = metricsTracker,
+            winLossTracker = winLossTracker,
             connectionStatusService = connectionStatusService,
             accountId = config.accountId ?: "",
             appKey = appKey
@@ -139,6 +143,7 @@ internal class AdFactoryImpl(
             cdpApi = createCdpApi(),
             eventTracker = eventTracker,
             metricsTracker = metricsTracker,
+            winLossTracker = winLossTracker,
             connectionStatusService = connectionStatusService,
             accountId = config.accountId ?: "",
             appKey = appKey

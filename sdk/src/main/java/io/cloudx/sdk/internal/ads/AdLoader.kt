@@ -50,8 +50,8 @@ internal class AdLoader<T : CXAdapterDelegate>(
     private suspend fun loadWinner(
         bids: BidAdSourceResponse<T>
     ): T? = coroutineScope {
-        var winner: T? = null
-        var winnerIndex = -1
+        var loadedAd: T? = null
+        var loadedAdIndex = -1
         val lossReasons = mutableMapOf<String, LossReason>()
 
         for ((index, bidItem) in bids.bidItemsByRank.withIndex()) {
@@ -62,8 +62,8 @@ internal class AdLoader<T : CXAdapterDelegate>(
             if (ad != null) {
                 CXLogger.i(TAG, placementName, placementId, "Loaded: ${bidItem.adNetworkOriginal.networkName} (rank=${bidItem.bid.rank})")
 
-                winner = ad
-                winnerIndex = index
+                loadedAd = ad
+                loadedAdIndex = index
                 winLossTracker.setBidLoadResult(bids.auctionId, bidItem.bid.id, true)
                 break
             } else {
@@ -75,9 +75,9 @@ internal class AdLoader<T : CXAdapterDelegate>(
             }
         }
 
-        if (winnerIndex != -1) {
+        if (loadedAdIndex != -1) {
             bids.bidItemsByRank.forEachIndexed { index, bidItem ->
-                if (index != winnerIndex && !lossReasons.containsKey(bidItem.bid.id)) {
+                if (index != loadedAdIndex && !lossReasons.containsKey(bidItem.bid.id)) {
                     lossReasons[bidItem.bid.id] = LossReason.LostToHigherBid
                     winLossTracker.setBidLoadResult(bids.auctionId, bidItem.bid.id, false, LossReason.LostToHigherBid)
                     winLossTracker.sendLoss(bids.auctionId, bidItem.bid.id)
@@ -85,16 +85,12 @@ internal class AdLoader<T : CXAdapterDelegate>(
             }
         }
 
-        // If no winner found, clear auction data (all losses already sent)
-        if (winner == null) {
-            CXLogger.d(TAG, "No winner found for auction ${bids.auctionId}, clearing auction data")
+        if (loadedAd == null) {
+            CXLogger.d(TAG, "No loaded ad found for auction ${bids.auctionId}, clearing auction data")
             winLossTracker.clearAuction(bids.auctionId)
         }
 
-        // Note: Winner determination and final auction processing will happen later on impression
-        // via the bidAdDecoration onImpression callback (if we have a winner)
-
-        winner
+        loadedAd
     }
 
     private suspend fun loadAd(

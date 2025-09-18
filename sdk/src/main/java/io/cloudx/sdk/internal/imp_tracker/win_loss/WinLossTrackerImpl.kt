@@ -14,15 +14,14 @@ import java.util.UUID
 
 internal class WinLossTrackerImpl(
     private val scope: CoroutineScope,
-    private val db: CloudXDb
+    private val winLossFieldResolver: WinLossFieldResolver,
+    private val db: CloudXDb,
+    private val trackerApi: WinLossTrackerApi,
 ) : WinLossTracker {
     private val tag = "WinLossTracker"
 
     private lateinit var appKey: String
     private var endpointUrl: String? = null
-
-    private val winLossFieldResolver = WinLossFieldResolver()
-    private val trackerApi = WinLossTrackerApi()
 
     override fun setAppKey(appKey: String) {
         this.appKey = appKey

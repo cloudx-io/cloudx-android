@@ -48,6 +48,8 @@ internal fun WinLossTracker(): WinLossTracker = LazySingleInstance
 private val LazySingleInstance by lazy {
     WinLossTrackerImpl(
         GlobalScopes.IO,
-        Database()
+        WinLossFieldResolver(),
+        Database(),
+        WinLossTrackerApi()
     )
 }

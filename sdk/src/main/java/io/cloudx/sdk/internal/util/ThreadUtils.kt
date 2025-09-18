@@ -41,8 +41,8 @@ internal object ThreadUtils : Destroyable {
     val DatabaseDispatcher: CoroutineDispatcher = databaseExecutor.asCoroutineDispatcher()
 
     // Application-wide coroutine scope for SDK operations
-    // Note: This scope lives for the entire SDK lifecycle
-    val ApplicationScope = CoroutineScope(SupervisorJob() + IODispatcher)
+    // Note: This scope defines lifecycle, not threading - operations should explicitly choose dispatcher
+    val ApplicationScope = CoroutineScope(SupervisorJob())
 
     // UI-focused coroutine scope for main thread operations
     // Note: Use this for UI-related work, ad display, listener callbacks

@@ -17,6 +17,7 @@ internal fun interface WinLossTrackerApi {
      * @param payload - dynamic key-value payload data
      */
     suspend fun send(
+        appKey: String,
         endpointUrl: String,
         payload: Map<String, Any>,
     ): Result<Unit, CloudXError>

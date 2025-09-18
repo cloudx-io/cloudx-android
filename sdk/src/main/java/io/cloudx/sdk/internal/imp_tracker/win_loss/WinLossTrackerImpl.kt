@@ -16,18 +16,24 @@ internal class WinLossTrackerImpl(
     private val scope: CoroutineScope,
     private val db: CloudXDb
 ) : WinLossTracker {
-
     private val tag = "WinLossTracker"
+
+    private lateinit var appKey: String
     private var endpointUrl: String? = null
 
+    private val winLossFieldResolver = WinLossFieldResolver()
     private val trackerApi = WinLossTrackerApi()
+
+    override fun setAppKey(appKey: String) {
+        this.appKey = appKey
+    }
 
     override fun setEndpoint(endpointUrl: String?) {
         this.endpointUrl = endpointUrl
     }
 
     override fun setConfig(config: Config) {
-        WinLossFieldResolver.setConfig(config)
+        winLossFieldResolver.setConfig(config)
     }
 
     override fun addBid(
@@ -63,7 +69,12 @@ internal class WinLossTrackerImpl(
         }
     }
 
-    override fun setBidLoadResult(auctionId: String, bidId: String, success: Boolean, lossReason: LossReason?) {
+    override fun setBidLoadResult(
+        auctionId: String,
+        bidId: String,
+        success: Boolean,
+        lossReason: LossReason?
+    ) {
         AuctionBidManager.setBidLoadResult(auctionId, bidId, success, lossReason)
     }
 
@@ -78,11 +89,11 @@ internal class WinLossTrackerImpl(
         additionalData: Map<String, Any>
     ) {
         scope.launch {
-            WinLossFieldResolver.setWinData(auctionId, winPrice, additionalData)
-            val payload = WinLossFieldResolver.buildWinLossPayload(auctionId)
+            winLossFieldResolver.setWinData(auctionId, winPrice, additionalData)
+            val payload = winLossFieldResolver.buildWinLossPayload(auctionId)
             if (payload != null) {
                 trackWinLoss(payload)
-                WinLossFieldResolver.clearAuction(auctionId)
+                winLossFieldResolver.clearAuction(auctionId)
             } else {
                 CXLogger.w(tag, "No payload mapping configured for win/loss notifications")
             }
@@ -95,11 +106,11 @@ internal class WinLossTrackerImpl(
         additionalData: Map<String, Any>
     ) {
         scope.launch {
-            WinLossFieldResolver.setLossData(auctionId, lossReason, additionalData)
-            val payload = WinLossFieldResolver.buildWinLossPayload(auctionId)
+            winLossFieldResolver.setLossData(auctionId, lossReason, additionalData)
+            val payload = winLossFieldResolver.buildWinLossPayload(auctionId)
             if (payload != null) {
                 trackWinLoss(payload)
-                WinLossFieldResolver.clearAuction(auctionId)
+                winLossFieldResolver.clearAuction(auctionId)
             } else {
                 CXLogger.w(tag, "No payload mapping configured for win/loss notifications")
             }
@@ -107,7 +118,7 @@ internal class WinLossTrackerImpl(
     }
 
     private suspend fun trackWinLoss(payload: Map<String, Any>) {
-        println("hop: tracking win/loss with payload: $payload")
+        println("hop: win/loss with payload: $payload")
         val eventId = saveToDb(payload)
         CXLogger.d(tag, "Saved win/loss event to database with ID: $eventId")
 
@@ -118,7 +129,7 @@ internal class WinLossTrackerImpl(
             return
         }
 
-        val result = trackerApi.send(endpoint, payload)
+        val result = trackerApi.send(appKey, endpoint, payload)
 
         if (result is Result.Success) {
             CXLogger.d(tag, "Win/loss event sent successfully, removing from database")
@@ -151,7 +162,8 @@ internal class WinLossTrackerImpl(
         entries.forEach { entry ->
             val payload = parsePayload(entry.payload)
             if (payload != null) {
-                val result = trackerApi.send(entry.endpointUrl.ifBlank { endpoint }, payload)
+                val result =
+                    trackerApi.send(appKey, entry.endpointUrl.ifBlank { endpoint }, payload)
                 if (result is Result.Success) {
                     db.cachedWinLossEventDao().delete(entry.id)
                     CXLogger.d(tag, "Cached win/loss event sent successfully: ${entry.id}")

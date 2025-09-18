@@ -10,6 +10,8 @@ internal interface WinLossTracker {
 
     fun trySendingPendingWinLossEvents()
 
+    fun setAppKey(appKey: String)
+
     fun setEndpoint(endpointUrl: String?)
 
     fun setConfig(config: Config)

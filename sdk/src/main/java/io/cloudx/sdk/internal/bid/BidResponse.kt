@@ -18,9 +18,6 @@ internal data class Bid(
     val adm: String,
     val price: Float?,
     val priceRaw: String?,
-    val burl: String?,
-    val nurl: String?,
-    val lurl: String?,
     val adNetwork: AdNetwork,
     /**
      * Bid rank across other bids within [BidResponse], can be used sorting.

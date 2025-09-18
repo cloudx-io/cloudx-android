@@ -102,10 +102,6 @@ internal object TrackingFieldResolver {
         auctionedLoopIndex.clear()
     }
 
-    fun resolveFieldPublic(auctionId: String, field: String): Any? {
-        return resolveField(auctionId, field)
-    }
-
     private fun Any?.resolveNestedField(path: String): Any? {
         var current: Any? = this
 
@@ -142,7 +138,7 @@ internal object TrackingFieldResolver {
     }
 
 
-    private fun resolveField(auctionId: String, field: String): Any? {
+    fun resolveField(auctionId: String, field: String): Any? {
         // placeholder‐expander
         val placeholderRegex = Regex("""\$\{([^}]+)\}""")
         fun expandTemplate(template: String): String =

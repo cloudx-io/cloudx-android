@@ -1,5 +1,6 @@
 package io.cloudx.sdk.internal.ads.fullscreen.rewarded
 
+import io.cloudx.sdk.CloudXAdRevenueListener
 import io.cloudx.sdk.CloudXRewardedInterstitialAd
 import io.cloudx.sdk.CloudXRewardedInterstitialListener
 import io.cloudx.sdk.internal.AdNetwork
@@ -39,10 +40,17 @@ private class RewardedInterstitialManager(
             }
         }
     )
+
     override var listener: CloudXRewardedInterstitialListener? = null
         set(value) {
             field = value
             fullscreenAdManager.listener = value
+        }
+
+    override var revenueListener: CloudXAdRevenueListener? = null
+        set(value) {
+            field = value
+            fullscreenAdManager.revenueListener = value
         }
 
     override val isAdReady: Boolean

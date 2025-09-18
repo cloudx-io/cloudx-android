@@ -46,7 +46,7 @@ internal fun BannerAdapterDelegate(
     placementId: String,
     adNetwork: AdNetwork,
     externalPlacementId: String?,
-    price: Double?,
+    price: Double,
     nurl: String?,
     createBanner: (listener: CloudXAdViewAdapterListener) -> CloudXAdViewAdapter
 ): BannerAdapterDelegate =
@@ -68,7 +68,7 @@ private class BannerAdapterDelegateImpl(
     override val placementId: String,
     override val bidderName: String,
     override val externalPlacementId: String?,
-    override val revenue: Double?,
+    override val revenue: Double,
     private val nurl: String?,
     createBanner: (listener: CloudXAdViewAdapterListener) -> CloudXAdViewAdapter,
 ) : BannerAdapterDelegate {

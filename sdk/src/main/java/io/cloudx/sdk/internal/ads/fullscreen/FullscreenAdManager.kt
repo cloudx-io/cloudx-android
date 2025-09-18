@@ -2,6 +2,7 @@ package io.cloudx.sdk.internal.ads.fullscreen
 
 import io.cloudx.sdk.CloudXAd
 import io.cloudx.sdk.CloudXAdListener
+import io.cloudx.sdk.CloudXAdRevenueListener
 import io.cloudx.sdk.CloudXFullscreenAd
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.ads.AdLoader
@@ -39,6 +40,8 @@ internal class FullscreenAdManager<
 
     // Listener management
     override var listener: CloudXAdListener? = null
+
+    override var revenueListener: CloudXAdRevenueListener? = null
 
     // Ad loading methods
     override fun load() {

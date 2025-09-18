@@ -5,5 +5,5 @@ interface CloudXAd {
     val placementId: String
     val bidderName: String
     val externalPlacementId: String?
-    val revenue: Double?
+    val revenue: Double
 }

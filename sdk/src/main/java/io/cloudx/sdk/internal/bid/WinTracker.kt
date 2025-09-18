@@ -15,10 +15,10 @@ internal object WinTracker {
         placementName: String,
         placementId: String,
         nurl: String?,
-        revenue: Double?
+        revenue: Double
     ) {
         nurl?.let { url ->
-            val completeUrl = url.replace("\${AUCTION_PRICE}", revenue?.toString() ?: "")
+            val completeUrl = url.replace("\${AUCTION_PRICE}", revenue.toString())
             CXLogger.d(TAG, placementName, placementId, "Tracking win: $completeUrl")
 
             try {

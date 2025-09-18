@@ -1,5 +1,6 @@
 package io.cloudx.sdk.internal.ads.fullscreen.rewarded
 
+import io.cloudx.sdk.CloudXAdRevenueListener
 import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.CloudXRewardedInterstitialAd
 import io.cloudx.sdk.CloudXRewardedInterstitialListener
@@ -29,6 +30,7 @@ internal class CXRewardedInterstitialAd(
                 AdFactory.CreateAdParams(placementName)
             )
             rewardedInterstitial?.listener = listener
+            rewardedInterstitial?.revenueListener = revenueListener
             rewardedInterstitial?.load()
         }
     }
@@ -37,6 +39,12 @@ internal class CXRewardedInterstitialAd(
         set(value) {
             field = value
             rewardedInterstitial?.listener = value
+        }
+
+    override var revenueListener: CloudXAdRevenueListener? = null
+        set(value) {
+            field = value
+            rewardedInterstitial?.revenueListener = value
         }
 
     override val isAdReady: Boolean

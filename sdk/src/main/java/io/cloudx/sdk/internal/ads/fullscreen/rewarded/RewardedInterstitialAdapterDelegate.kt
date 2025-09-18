@@ -47,7 +47,7 @@ internal fun RewardedInterstitialAdapterDelegate(
     placementId: String,
     adNetwork: AdNetwork,
     externalPlacementId: String?,
-    price: Double?,
+    price: Double,
     nurl: String?,
     createRewardedInterstitial: (listener: CloudXRewardedInterstitialAdapterListener) -> CloudXRewardedInterstitialAdapter
 ): RewardedInterstitialAdapterDelegate =
@@ -69,7 +69,7 @@ private class RewardedInterstitialAdapterDelegateImpl(
     override val placementId: String,
     override val bidderName: String,
     override val externalPlacementId: String?,
-    override val revenue: Double?,
+    override val revenue: Double,
     private val nurl: String?,
     createRewardedInterstitial: (listener: CloudXRewardedInterstitialAdapterListener) -> CloudXRewardedInterstitialAdapter,
 ) : RewardedInterstitialAdapterDelegate {

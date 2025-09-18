@@ -24,7 +24,6 @@ internal object AuctionBidManager {
     ) {
         var status: BidStatus = BidStatus.PENDING
         var lossReason: LossReason? = null
-        var actualWinPrice: Double? = null
     }
 
     enum class BidStatus {
@@ -57,15 +56,13 @@ internal object AuctionBidManager {
     /**
      * Mark a specific bid as the winner and all others as lost
      */
-    fun setBidWinner(auctionId: String, winningBidId: String, actualWinPrice: Double? = null): Boolean {
+    fun setBidWinner(auctionId: String, winningBidId: String): Boolean {
         val bids = auctionBids[auctionId] ?: return false
 
         var winnerFound = false
         bids.forEach { entry ->
             if (entry.bid.id == winningBidId) {
                 entry.status = BidStatus.WON
-                entry.actualWinPrice = actualWinPrice
-                    ?: entry.bid.price?.toDouble()
                 winnerFound = true
                 CXLogger.d(tag, "Bid ${entry.bid.id} won auction $auctionId")
             } else {
@@ -110,19 +107,12 @@ internal object AuctionBidManager {
             ?.bid
     }
 
-    fun getWinningBidPrice(auctionId: String): Double? {
-        return auctionBids[auctionId]
-            ?.firstOrNull { it.status == BidStatus.WON }
-            ?.let { it.actualWinPrice ?: it.bid.price?.toDouble() }
-    }
-
     /**
      * Get all bids for an auction
      */
     fun getAllBids(auctionId: String): List<Bid> {
         return auctionBids[auctionId]?.map { it.bid } ?: emptyList()
     }
-
 
     /**
      * Clear auction data (call after processing win/loss)
@@ -131,6 +121,22 @@ internal object AuctionBidManager {
         auctionBids.remove(auctionId)
         auctionStatus.remove(auctionId)
         CXLogger.d(tag, "Cleared auction data for $auctionId")
+    }
+
+    /**
+     * Get a specific bid by auction ID and bid ID
+     */
+    fun getBid(auctionId: String, bidId: String): Bid? {
+        return auctionBids[auctionId]?.find { it.bid.id == bidId }?.bid
+    }
+
+    /**
+     * Get the loss reason for the most recent failed bid
+     */
+    fun getCurrentLossReason(auctionId: String): LossReason? {
+        return auctionBids[auctionId]
+            ?.lastOrNull { it.status == BidStatus.FAILED }
+            ?.lossReason
     }
 
     /**

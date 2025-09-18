@@ -43,25 +43,16 @@ internal class WinLossTrackerImpl(
         AuctionBidManager.addBid(auctionId, bid)
     }
 
-    override fun setWinner(auctionId: String, winningBidId: String, actualWinPrice: Double?) {
+    override fun setWinner(auctionId: String, winningBidId: String) {
         // Set the winner status
-        AuctionBidManager.setBidWinner(auctionId, winningBidId, actualWinPrice)
+        AuctionBidManager.setBidWinner(auctionId, winningBidId)
 
         // Automatically send win notification and clean up
         scope.launch {
             val winningBid = AuctionBidManager.getWinningBid(auctionId)
             if (winningBid != null) {
-                val winPrice = actualWinPrice ?: winningBid.price?.toDouble() ?: 0.0
-                val baseData = mapOf(
-                    "bidId" to winningBid.id,
-                    "networkName" to winningBid.adNetwork.networkName,
-                    "bidPrice" to (winningBid.price?.toDouble() ?: 0.0),
-                    "rank" to winningBid.rank,
-                    "rawBid" to winningBid.rawJson
-                )
-
                 // Send win notification
-                sendWin(auctionId, winPrice, baseData)
+                sendWin(auctionId)
 
                 // Clean up auction data
                 AuctionBidManager.clearAuction(auctionId)
@@ -82,18 +73,13 @@ internal class WinLossTrackerImpl(
         AuctionBidManager.clearAuction(auctionId)
     }
 
-
     override fun sendWin(
         auctionId: String,
-        winPrice: Double,
-        additionalData: Map<String, Any>
     ) {
         scope.launch {
-            winLossFieldResolver.setWinData(auctionId, winPrice, additionalData)
-            val payload = winLossFieldResolver.buildWinLossPayload(auctionId)
+            val payload = winLossFieldResolver.buildWinLossPayload(auctionId, isWin = true)
             if (payload != null) {
                 trackWinLoss(payload)
-                winLossFieldResolver.clearAuction(auctionId)
             } else {
                 CXLogger.w(tag, "No payload mapping configured for win/loss notifications")
             }
@@ -102,15 +88,11 @@ internal class WinLossTrackerImpl(
 
     override fun sendLoss(
         auctionId: String,
-        lossReason: LossReason,
-        additionalData: Map<String, Any>
     ) {
         scope.launch {
-            winLossFieldResolver.setLossData(auctionId, lossReason, additionalData)
-            val payload = winLossFieldResolver.buildWinLossPayload(auctionId)
+            val payload = winLossFieldResolver.buildWinLossPayload(auctionId, isWin = false)
             if (payload != null) {
                 trackWinLoss(payload)
-                winLossFieldResolver.clearAuction(auctionId)
             } else {
                 CXLogger.w(tag, "No payload mapping configured for win/loss notifications")
             }
@@ -118,14 +100,10 @@ internal class WinLossTrackerImpl(
     }
 
     private suspend fun trackWinLoss(payload: Map<String, Any>) {
-        println("hop: win/loss with payload: $payload")
         val eventId = saveToDb(payload)
-        CXLogger.d(tag, "Saved win/loss event to database with ID: $eventId")
-
         val endpoint = endpointUrl
 
         if (endpoint.isNullOrBlank()) {
-            CXLogger.e(tag, "No endpoint for win/loss notification, event will be retried later")
             return
         }
 

@@ -1,62 +1,29 @@
 package io.cloudx.sdk.internal.imp_tracker.win_loss
 
+import io.cloudx.sdk.internal.bid.Bid
 import io.cloudx.sdk.internal.bid.LossReason
 import io.cloudx.sdk.internal.config.Config
 import io.cloudx.sdk.internal.imp_tracker.TrackingFieldResolver
-import org.json.JSONObject
 
 internal class WinLossFieldResolver {
 
     private var winLossPayloadMapping: Map<String, String>? = null
-    private val winLossDataMap = mutableMapOf<String, WinLossData>()
 
     companion object {
         private const val PLACEHOLDER_AUCTION_PRICE = "\${AUCTION_PRICE}"
         private const val PLACEHOLDER_AUCTION_LOSS = "\${AUCTION_LOSS}"
     }
 
-    data class WinLossData(
-        val isWin: Boolean,
-        val lossReason: LossReason? = null,
-        val winPrice: Double? = null,
-        val additionalData: Map<String, Any> = emptyMap()
-    )
-
     fun setConfig(config: Config) {
         winLossPayloadMapping = config.winLossNotificationPayloadConfig
     }
 
-    fun setWinData(
-        auctionId: String,
-        winPrice: Double,
-        additionalData: Map<String, Any> = emptyMap()
-    ) {
-        winLossDataMap[auctionId] = WinLossData(
-            isWin = true,
-            winPrice = winPrice,
-            additionalData = additionalData
-        )
-    }
-
-    fun setLossData(
-        auctionId: String,
-        lossReason: LossReason,
-        additionalData: Map<String, Any> = emptyMap()
-    ) {
-        winLossDataMap[auctionId] = WinLossData(
-            isWin = false,
-            lossReason = lossReason,
-            additionalData = additionalData
-        )
-    }
-
-    fun buildWinLossPayload(auctionId: String): Map<String, Any>? {
+    fun buildWinLossPayload(auctionId: String, isWin: Boolean): Map<String, Any>? {
         val payloadMapping = winLossPayloadMapping ?: return null
-        val winLossData = winLossDataMap[auctionId] ?: return null
         val result = mutableMapOf<String, Any>()
 
         payloadMapping.forEach { (payloadKey, fieldPath) ->
-            val resolvedValue = resolveWinLossField(auctionId, fieldPath, winLossData)
+            val resolvedValue = resolveWinLossField(auctionId, fieldPath, isWin)
             if (resolvedValue != null) {
                 result[payloadKey] = resolvedValue
             }
@@ -67,23 +34,23 @@ internal class WinLossFieldResolver {
     private fun resolveWinLossField(
         auctionId: String,
         fieldPath: String,
-        winLossData: WinLossData
+        isWin: Boolean
     ): Any? {
         return when (fieldPath) {
-            "sdk.win" -> if (winLossData.isWin) "win" else null
-            "sdk.loss" -> if (!winLossData.isWin) "loss" else null
-            "sdk.lossReason" -> winLossData.lossReason?.code
-            "sdk.[win|loss]" -> if (winLossData.isWin) "win" else "loss"
+            "sdk.win" -> if (isWin) "win" else null
+            "sdk.loss" -> if (!isWin) "loss" else null
+            "sdk.lossReason" -> getLossReason(auctionId)?.code
+            "sdk.[win|loss]" -> if (isWin) "win" else "loss"
             "sdk.sdk" -> "sdk"
             "sdk.[bid.nurl|bid.lurl]" -> {
-                val currentBidData = winLossData.additionalData["rawBid"] as? JSONObject
-                val url = if (winLossData.isWin) {
-                    currentBidData?.optString("nurl") ?: currentBidData?.optString("burl")
+                val currentBid = getCurrentBid(auctionId, isWin)
+                val url = if (isWin) {
+                    currentBid?.rawJson?.optString("nurl") ?: currentBid?.rawJson?.optString("burl")
                 } else {
-                    currentBidData?.optString("lurl")
+                    currentBid?.rawJson?.optString("lurl")
                 }
 
-                url?.let { replaceUrlTemplates(it, winLossData) }
+                url?.let { replaceUrlTemplates(it, isWin, currentBid, auctionId) }
             }
             "sdk.loopIndex" -> {
                 val loopIndex = TrackingFieldResolver.resolveField(auctionId, fieldPath) as? String
@@ -96,12 +63,19 @@ internal class WinLossFieldResolver {
         }
     }
 
-    fun clear() {
-        winLossDataMap.clear()
+    private fun getLossReason(auctionId: String): LossReason? {
+        // Get the loss reason from AuctionBidManager for the currently processing bid
+        return AuctionBidManager.getCurrentLossReason(auctionId)
     }
 
-    fun clearAuction(auctionId: String) {
-        winLossDataMap.remove(auctionId)
+    private fun getCurrentBid(auctionId: String, isWin: Boolean): Bid? {
+        return if (isWin) {
+            AuctionBidManager.getWinningBid(auctionId)
+        } else {
+            // For loss, we get the last failing bid
+            // Note: This is a simplification - ideally we'd pass the specific bidId
+            AuctionBidManager.getAllBids(auctionId).lastOrNull()
+        }
     }
 
     /**
@@ -111,20 +85,22 @@ internal class WinLossFieldResolver {
      * - ${AUCTION_PRICE} -> actual winning bid price or losing bid price
      * - ${AUCTION_LOSS} -> loss reason code (1, 4)
      */
-    private fun replaceUrlTemplates(url: String, winLossData: WinLossData): String {
+    private fun replaceUrlTemplates(url: String, isWin: Boolean, currentBid: Bid?, auctionId: String): String {
         var processedUrl = url
 
         if (processedUrl.contains(PLACEHOLDER_AUCTION_PRICE)) {
-            val price = if (winLossData.isWin) {
-                winLossData.winPrice
+            val price = if (isWin) {
+                // For win notifications, use winning bid price
+                AuctionBidManager.getWinningBid(auctionId)?.price?.toDouble() ?: 0.0
             } else {
-                (winLossData.additionalData["bidPrice"] as? Number)?.toDouble() ?: 0.0
+                // For loss notifications, use the losing bid's price
+                currentBid?.price?.toDouble() ?: 0.0
             }
             processedUrl = processedUrl.replace(PLACEHOLDER_AUCTION_PRICE, price.toString())
         }
 
-        if (processedUrl.contains(PLACEHOLDER_AUCTION_LOSS) && !winLossData.isWin) {
-            val lossReasonCode = winLossData.lossReason?.code ?: 1
+        if (processedUrl.contains(PLACEHOLDER_AUCTION_LOSS) && !isWin) {
+            val lossReasonCode = AuctionBidManager.getCurrentLossReason(auctionId)?.code ?: 1
             processedUrl = processedUrl.replace(PLACEHOLDER_AUCTION_LOSS, lossReasonCode.toString())
         }
 

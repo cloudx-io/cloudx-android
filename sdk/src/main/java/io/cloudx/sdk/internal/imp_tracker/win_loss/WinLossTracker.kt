@@ -17,38 +17,27 @@ internal interface WinLossTracker {
     fun setConfig(config: Config)
 
     fun sendWin(
-        auctionId: String,
-        winPrice: Double,
-        additionalData: Map<String, Any> = emptyMap()
+        auctionId: String
     )
 
     fun sendLoss(
-        auctionId: String,
-        lossReason: LossReason,
-        additionalData: Map<String, Any> = emptyMap()
+        auctionId: String
     )
 
-    /**
-     * Add a bid to an auction for tracking
-     */
     fun addBid(
         auctionId: String,
         bid: Bid
     )
 
-    /**
-     * Set the winning bid for an auction
-     */
-    fun setWinner(auctionId: String, winningBidId: String, actualWinPrice: Double? = null)
+    fun setBidLoadResult(
+        auctionId: String,
+        bidId: String,
+        success: Boolean,
+        lossReason: LossReason? = null
+    )
 
-    /**
-     * Mark bid load result (success/failure)
-     */
-    fun setBidLoadResult(auctionId: String, bidId: String, success: Boolean, lossReason: LossReason? = null)
+    fun setWinner(auctionId: String, winningBidId: String)
 
-    /**
-     * Clear auction data (for cleanup when no winner)
-     */
     fun clearAuction(auctionId: String)
 }
 

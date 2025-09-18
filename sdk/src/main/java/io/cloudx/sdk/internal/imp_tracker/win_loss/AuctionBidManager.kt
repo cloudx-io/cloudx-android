@@ -18,11 +18,10 @@ internal class AuctionBidManager {
     }
 
     enum class BidStatus {
-        PENDING,     // Bid received, awaiting auction result
-        LOADED,      // Winning bid successfully loaded ad
-        WON,         // Bid won the auction
-        LOST,        // Bid lost the auction
-        FAILED       // Bid failed (technical error, load failure, etc.)
+        PENDING,     // Bid received, awaiting load result
+        LOADED,      // Ad successfully loaded, awaiting impression
+        WON,         // Impression received (final win state)
+        LOST         // Lost auction or failed to load (check lossReason)
     }
     
     fun addBid(auctionId: String, bid: Bid) {
@@ -49,7 +48,7 @@ internal class AuctionBidManager {
             if (success) {
                 bid.status = BidStatus.LOADED
             } else {
-                bid.status = BidStatus.FAILED
+                bid.status = BidStatus.LOST
                 bid.lossReason = lossReason ?: LossReason.TechnicalError
             }
         }

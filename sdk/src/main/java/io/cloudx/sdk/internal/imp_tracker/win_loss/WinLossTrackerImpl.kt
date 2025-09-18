@@ -70,13 +70,14 @@ internal class WinLossTrackerImpl(
         scope.launch {
             val bid = auctionBidManager.getBid(auctionId, bidId)
             val lossReason = auctionBidManager.getBidLossReason(auctionId, bidId)
+            val loadedBidPrice = auctionBidManager.getLoadedBidPrice(auctionId)
 
             if (bid == null) {
                 return@launch
             }
 
             val payload = winLossFieldResolver.buildWinLossPayload(
-                auctionId, bid, lossReason, isWin = false
+                auctionId, bid, lossReason, isWin = false, loadedBidPrice
             )
             if (payload != null) {
                 trackWinLoss(payload)
@@ -90,9 +91,10 @@ internal class WinLossTrackerImpl(
     ) {
         scope.launch {
             val bid = auctionBidManager.getBid(auctionId, bidId) ?: return@launch
+            val loadedBidPrice = auctionBidManager.getLoadedBidPrice(auctionId)
 
             val payload = winLossFieldResolver.buildWinLossPayload(
-                auctionId, bid, lossReason = null, isWin = true
+                auctionId, bid, lossReason = null, isWin = true, loadedBidPrice
             )
             if (payload != null) {
                 trackWinLoss(payload)

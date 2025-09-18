@@ -62,6 +62,10 @@ internal class AuctionBidManager {
         return auctionBids[auctionId]?.find { it.bid.id == bidId }?.bid
     }
 
+    fun getLoadedBidPrice(auctionId: String): Float {
+        return auctionBids[auctionId]?.find { it.status == BidStatus.LOADED }?.bid?.price ?: -1f
+    }
+
     fun getBidLossReason(auctionId: String, bidId: String): LossReason? {
         return auctionBids[auctionId]
             ?.find { it.bid.id == bidId }

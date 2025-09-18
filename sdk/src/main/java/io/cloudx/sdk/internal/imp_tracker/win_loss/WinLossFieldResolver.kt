@@ -21,13 +21,14 @@ internal class WinLossFieldResolver {
         auctionId: String,
         bid: Bid?,
         lossReason: LossReason?,
-        isWin: Boolean
+        isWin: Boolean,
+        loadedBidPrice: Float
     ): Map<String, Any>? {
         val payloadMapping = winLossPayloadMapping ?: return null
         val result = mutableMapOf<String, Any>()
 
         payloadMapping.forEach { (payloadKey, fieldPath) ->
-            val resolvedValue = resolveWinLossField(auctionId, bid, lossReason, fieldPath, isWin)
+            val resolvedValue = resolveWinLossField(auctionId, bid, lossReason, fieldPath, isWin, loadedBidPrice)
             if (resolvedValue != null) {
                 result[payloadKey] = resolvedValue
             }
@@ -40,7 +41,8 @@ internal class WinLossFieldResolver {
         bid: Bid?,
         lossReason: LossReason?,
         fieldPath: String,
-        isWin: Boolean
+        isWin: Boolean,
+        loadedBidPrice: Float
     ): Any? {
         return when (fieldPath) {
             "sdk.win" -> if (isWin) "win" else null
@@ -55,7 +57,7 @@ internal class WinLossFieldResolver {
                     bid?.rawJson?.optString("lurl")
                 }
 
-                url?.let { replaceUrlTemplates(it, isWin, bid, lossReason) }
+                url?.let { replaceUrlTemplates(it, isWin, lossReason, loadedBidPrice) }
             }
 
             "sdk.loopIndex" -> {
@@ -79,15 +81,13 @@ internal class WinLossFieldResolver {
     private fun replaceUrlTemplates(
         url: String,
         isWin: Boolean,
-        currentBid: Bid?,
         lossReason: LossReason?,
+        loadedBidPrice: Float
     ): String {
         var processedUrl = url
 
         if (processedUrl.contains(PLACEHOLDER_AUCTION_PRICE)) {
-            // Use the passed bid data for both win and loss cases
-            val price = currentBid?.price?.toDouble() ?: 0.0
-            processedUrl = processedUrl.replace(PLACEHOLDER_AUCTION_PRICE, price.toString())
+            processedUrl = processedUrl.replace(PLACEHOLDER_AUCTION_PRICE, loadedBidPrice.toString())
         }
 
         if (processedUrl.contains(PLACEHOLDER_AUCTION_LOSS) && !isWin) {

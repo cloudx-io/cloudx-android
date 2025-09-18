@@ -136,8 +136,6 @@ internal object TrackingFieldResolver {
 
         return current
     }
-
-
     
     fun resolveField(auctionId: String, field: String): Any? {
         // placeholder‐expander

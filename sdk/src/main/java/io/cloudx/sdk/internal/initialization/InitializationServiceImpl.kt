@@ -50,8 +50,8 @@ internal class InitializationServiceImpl(
     private val provideDeviceInfo: DeviceInfoProvider,
     private val geoApi: GeoApi,
     private val crashReportingService: CrashReportingService,
-    private val appInfoProvider: AppInfoProvider,
-    ) : InitializationService {
+    private val appInfoProvider: AppInfoProvider
+) : InitializationService {
 
     private val TAG = "InitializationService"
 

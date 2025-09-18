@@ -10,16 +10,17 @@ import io.cloudx.cd.nativead.PreparedNativeAssets
 import io.cloudx.cd.nativead.parseNativeOrtbResponse
 import io.cloudx.cd.nativead.prepareNativeAssets
 import io.cloudx.cd.staticrenderer.ExternalLinkHandlerImpl
+import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapter
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterListener
-import io.cloudx.sdk.internal.adapter.CloudXAdapterError
 import io.cloudx.sdk.internal.ads.native.NativeAdSpecs
 import io.cloudx.sdk.internal.ads.native.viewtemplates.CloudXNativeAdViewTemplate
 import io.cloudx.sdk.internal.ads.native.viewtemplates.cloudXNativeAdTemplate
 import io.cloudx.sdk.internal.context.ContextProvider
 import io.cloudx.sdk.internal.util.Result
+import io.cloudx.sdk.toCloudXError
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -52,13 +53,13 @@ internal class NativeAd(
         scope.launch {
             when (val parsingResult = parseNativeOrtbResponse(adm)) {
                 is Result.Failure -> {
-                    listener.onError(CloudXAdapterError(description = parsingResult.value))
+                    listener.onError(CloudXErrorCode.UNEXPECTED_ERROR.toCloudXError(message = parsingResult.value))
                 }
 
                 is Result.Success -> when (val assetsResult =
                     prepareNativeAssets(parsingResult.value.assets)) {
                     is Result.Failure -> {
-                        listener.onError(CloudXAdapterError(description = assetsResult.value))
+                        listener.onError(CloudXErrorCode.UNEXPECTED_ERROR.toCloudXError(message = assetsResult.value))
                     }
 
                     is Result.Success -> if (
@@ -74,7 +75,11 @@ internal class NativeAd(
                         listener.onShow()
                         listener.onImpression()
                     } else {
-                        listener.onError(CloudXAdapterError(description = "can't bind required assets: some were missing or had wrong ids"))
+                        listener.onError(
+                            CloudXErrorCode.UNEXPECTED_ERROR.toCloudXError(
+                                message = "can't bind required assets: some were missing or had wrong ids"
+                            )
+                        )
                     }
                 }
             }

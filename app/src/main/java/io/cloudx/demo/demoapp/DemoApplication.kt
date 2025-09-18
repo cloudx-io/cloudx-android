@@ -3,7 +3,7 @@ package io.cloudx.demo.demoapp
 import android.app.Application
 import io.cloudx.adapter.meta.enableMetaAudienceNetworkTestMode
 import io.cloudx.sdk.CloudX
-import io.cloudx.sdk.CloudXAdError
+import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.CloudXInitializationListener
 import io.cloudx.sdk.internal.CXLogger
 
@@ -39,10 +39,10 @@ class DemoApplication : Application() {
                     CXLogger.i(TAG, "✅ CloudX SDK initialized successfully")
                 }
 
-                override fun onInitializationFailed(error: CloudXAdError) {
+                override fun onInitializationFailed(cloudXError: CloudXError) {
                     CXLogger.i(
                         TAG,
-                        "❌ CloudX SDK initialization failed: ${error.description}"
+                        "❌ CloudX SDK initialization failed: ${cloudXError.effectiveMessage}"
                     )
                 }
             }

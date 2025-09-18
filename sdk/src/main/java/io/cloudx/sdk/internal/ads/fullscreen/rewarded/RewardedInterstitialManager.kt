@@ -3,7 +3,6 @@ package io.cloudx.sdk.internal.ads.fullscreen.rewarded
 import io.cloudx.sdk.CloudXRewardedInterstitialAd
 import io.cloudx.sdk.CloudXRewardedInterstitialListener
 import io.cloudx.sdk.internal.AdNetwork
-import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.adapter.CloudXAdapterBidRequestExtrasProvider
 import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapterFactory
 import io.cloudx.sdk.internal.ads.AdLoader
@@ -18,11 +17,15 @@ import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
 import io.cloudx.sdk.internal.imp_tracker.win_loss.WinLossTracker
 
 private class RewardedInterstitialManager(
+    private val placementName: String,
+    private val placementId: String,
     private val adLoader: AdLoader<RewardedInterstitialAdapterDelegate>,
 ) : CloudXRewardedInterstitialAd {
     val fullscreenAdManager = FullscreenAdManager(
+        tag = "RewardedInterstitialManager",
+        placementName = placementName,
+        placementId = placementId,
         adLoader = adLoader,
-        placementType = AdType.Rewarded,
         tryHandleCurrentEvent = { cloudXAd ->
             when (this) {
                 RewardedInterstitialAdapterDelegateEvent.Show -> FullscreenAdEvent.Show
@@ -43,8 +46,8 @@ private class RewardedInterstitialManager(
             fullscreenAdManager.listener = value
         }
 
-    override val isAdLoaded: Boolean
-        get() = fullscreenAdManager.isAdLoaded
+    override val isAdReady: Boolean
+        get() = fullscreenAdManager.isAdReady
 
     override fun load() = fullscreenAdManager.load()
     override fun show() = fullscreenAdManager.show()
@@ -97,6 +100,8 @@ internal fun RewardedInterstitialManager(
     )
 
     return RewardedInterstitialManager(
+        placementName = placementName,
+        placementId = placementId,
         adLoader = adLoader,
     )
 }

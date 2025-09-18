@@ -1,10 +1,11 @@
 package io.cloudx.sdk.internal.ads.fullscreen.rewarded
 
+import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.internal.AdNetwork
-import io.cloudx.sdk.internal.adapter.CloudXAdapterError
 import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapter
 import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapterListener
 import io.cloudx.sdk.internal.ads.fullscreen.FullscreenAdAdapterDelegate
+import io.cloudx.sdk.internal.bid.WinTracker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -26,7 +27,7 @@ sealed class RewardedInterstitialAdapterDelegateEvent {
     object Reward : RewardedInterstitialAdapterDelegateEvent()
     object Hide : RewardedInterstitialAdapterDelegateEvent()
     object Click : RewardedInterstitialAdapterDelegateEvent()
-    data class Error(val error: CloudXAdapterError) : RewardedInterstitialAdapterDelegateEvent()
+    data class Error(val error: CloudXError) : RewardedInterstitialAdapterDelegateEvent()
 }
 
 /**
@@ -73,10 +74,10 @@ private class RewardedInterstitialAdapterDelegateImpl(
     // State management
     private val scope = CoroutineScope(Dispatchers.Main)
     private val _event = MutableSharedFlow<RewardedInterstitialAdapterDelegateEvent>()
-    private val _lastErrorEvent = MutableStateFlow<CloudXAdapterError?>(null)
+    private val _lastErrorEvent = MutableStateFlow<CloudXError?>(null)
 
     override val event: SharedFlow<RewardedInterstitialAdapterDelegateEvent> = _event
-    override val lastErrorEvent: StateFlow<CloudXAdapterError?> = _lastErrorEvent
+    override val lastErrorEvent: StateFlow<CloudXError?> = _lastErrorEvent
 
     // Rewarded interstitial adapter with listener
     private val rewardedInterstitial = createRewardedInterstitial(createAdapterListener())
@@ -135,7 +136,7 @@ private class RewardedInterstitialAdapterDelegateImpl(
                 scope.launch { _event.emit(RewardedInterstitialAdapterDelegateEvent.Click) }
             }
 
-            override fun onError(error: CloudXAdapterError) {
+            override fun onError(error: CloudXError) {
                 scope.launch {
                     _event.emit(RewardedInterstitialAdapterDelegateEvent.Error(error))
                     _lastErrorEvent.value = error

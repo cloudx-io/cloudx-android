@@ -1,11 +1,11 @@
 package io.cloudx.sdk.internal.ads
 
 import com.xor.XorEncryption
+import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.GlobalScopes
-import io.cloudx.sdk.internal.adapter.CloudXAdapterError
 import io.cloudx.sdk.internal.ads.banner.BannerAdapterDelegate
 import io.cloudx.sdk.internal.ads.banner.DecoratedBannerAdapterDelegate
 import io.cloudx.sdk.internal.ads.fullscreen.interstitial.DecoratedInterstitialAdapterDelegate
@@ -20,7 +20,7 @@ import kotlinx.coroutines.launch
 
 private typealias Func = (() -> Unit)
 private typealias ClickFunc = (() -> Unit)
-private typealias ErrorFunc = ((error: CloudXAdapterError) -> Unit)
+private typealias ErrorFunc = ((error: CloudXError) -> Unit)
 
 class AdEventDecoration(
     val onLoad: Func? = null,
@@ -218,7 +218,7 @@ internal fun adapterLoggingDecoration(
         onError = {
             CXLogger.e(
                 tag,
-                "ERROR placement: $placementName, id: $placementId, price: $price, error: ${it.description}"
+                "ERROR placement: $placementName, id: $placementId, price: $price, error: ${it.effectiveMessage}"
             )
         },
         onImpression = {

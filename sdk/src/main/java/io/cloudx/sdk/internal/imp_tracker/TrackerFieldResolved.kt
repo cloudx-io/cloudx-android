@@ -138,7 +138,7 @@ internal object TrackingFieldResolver {
     }
 
 
-    fun resolveField(auctionId: String, field: String): Any? {
+    private fun resolveField(auctionId: String, field: String): Any? {
         // placeholder‐expander
         val placeholderRegex = Regex("""\$\{([^}]+)\}""")
         fun expandTemplate(template: String): String =

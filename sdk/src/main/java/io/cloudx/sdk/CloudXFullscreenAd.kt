@@ -9,7 +9,7 @@ interface CloudXFullscreenAd<T: CloudXAdListener> : Destroyable {
     /**
      * Tells about current ad load status.
      */
-    val isAdLoaded: Boolean
+    val isAdReady: Boolean
 
     /**
      * Loads ad; if ad is loaded, successful listener's [onAdLoadSuccess()][CloudXAdListener.onAdLoaded] will be invoked; [onAdLoadFailed()][CloudXAdListener.onAdLoadFailed] otherwise.

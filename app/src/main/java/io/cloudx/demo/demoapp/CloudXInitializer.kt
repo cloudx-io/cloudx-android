@@ -3,7 +3,7 @@ package io.cloudx.demo.demoapp
 import android.content.Context
 import androidx.preference.PreferenceManager
 import io.cloudx.sdk.CloudX
-import io.cloudx.sdk.CloudXAdError
+import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.CloudXInitializationListener
 import io.cloudx.sdk.CloudXInitializationParams
 import io.cloudx.sdk.CloudXInitializationServer
@@ -58,9 +58,9 @@ object CloudXInitializer {
                     listener?.onInitialized()
                 }
 
-                override fun onInitializationFailed(error: CloudXAdError) {
+                override fun onInitializationFailed(cloudXError: CloudXError) {
                     _initState.value = InitializationState.FailedToInitialize
-                    listener?.onInitializationFailed(error)
+                    listener?.onInitializationFailed(cloudXError)
                 }
             }
         )

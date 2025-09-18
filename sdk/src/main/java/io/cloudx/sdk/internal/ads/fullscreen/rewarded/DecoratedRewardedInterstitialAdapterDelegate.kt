@@ -1,13 +1,13 @@
 package io.cloudx.sdk.internal.ads.fullscreen.rewarded
 
-import io.cloudx.sdk.internal.adapter.CloudXAdapterError
+import io.cloudx.sdk.CloudXError
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 private typealias RewardedInterstitialFunc = (() -> Unit)?
-private typealias ErrorRewardedInterstitialFunc = ((error: CloudXAdapterError) -> Unit)?
+private typealias ErrorRewardedInterstitialFunc = ((error: CloudXError) -> Unit)?
 private typealias ClickRewardedInterstitialFunc = (() -> Unit)?
 
 internal class DecoratedRewardedInterstitialAdapterDelegate(

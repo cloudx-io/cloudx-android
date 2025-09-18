@@ -3,7 +3,7 @@ package io.cloudx.sdk
 /**
  * Generic CloudX Error class
  */
-internal data class CloudXError(
+data class CloudXError(
     val code: CloudXErrorCode,
     val message: String? = null,
     val cause: Throwable? = null
@@ -15,3 +15,14 @@ internal data class CloudXError(
     val effectiveMessage: String
         get() = message ?: code.description
 }
+
+fun CloudXErrorCode.toCloudXError(
+    message: String? = null,
+    cause: Throwable? = null
+) = CloudXError(this, message, cause)
+
+fun Throwable.toCloudXError() = CloudXError(
+    code = CloudXErrorCode.UNEXPECTED_ERROR,
+    message = "Unexpected error: $message",
+    cause = this
+)

@@ -26,12 +26,12 @@ interface CloudXAdListener {
     fun onAdClicked(cloudXAd: CloudXAd)
 
     /**
-     * Ad was not loaded. An error happened. You can check details using the [cloudXAdError] object
+     * Ad was not loaded. An error happened. You can check details using the [cloudXError] object
      */
-    fun onAdLoadFailed(cloudXAdError: CloudXAdError)
+    fun onAdLoadFailed(cloudXError: CloudXError)
 
     /**
-     * Ad was not shown. An error happened. You can check details using the [cloudXAdError] object
+     * Ad was not shown. An error happened. You can check details using the [cloudXError] object
      */
-    fun onAdDisplayFailed(cloudXAdError: CloudXAdError)
+    fun onAdDisplayFailed(cloudXError: CloudXError)
 }

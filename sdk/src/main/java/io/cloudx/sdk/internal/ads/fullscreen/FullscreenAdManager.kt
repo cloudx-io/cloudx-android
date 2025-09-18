@@ -1,14 +1,12 @@
 package io.cloudx.sdk.internal.ads.fullscreen
 
 import io.cloudx.sdk.CloudXAd
-import io.cloudx.sdk.CloudXAdError
 import io.cloudx.sdk.CloudXAdListener
 import io.cloudx.sdk.CloudXFullscreenAd
-import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.ads.AdLoader
-import io.cloudx.sdk.internal.util.Result
-import io.cloudx.sdk.internal.util.utcNowEpochMillis
+import io.cloudx.sdk.toCloudXError
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -18,12 +16,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-// TODO. Yeah, more generics, classes, interfaces...
 internal class FullscreenAdManager<
         Delegate : FullscreenAdAdapterDelegate<DelegateEvent>,
         DelegateEvent>(
+    private val tag: String,
+    private val placementName: String,
+    private val placementId: String,
     private val adLoader: AdLoader<Delegate>,
-    private val placementType: AdType,
     // Listens to the current ad events and returns FullscreenAdEvent if similar.
     private val tryHandleCurrentEvent: DelegateEvent.(cloudXAd: CloudXAd) -> FullscreenAdEvent?,
 ) : CloudXFullscreenAd<CloudXAdListener> {
@@ -37,69 +36,81 @@ internal class FullscreenAdManager<
 
     // Showing state
     private var lastShowJob: Job? = null
-    private var lastShowJobStartedTimeMillis: Long = -1
 
     // Listener management
     override var listener: CloudXAdListener? = null
 
     // Ad loading methods
     override fun load() {
-        if (lastLoadJob?.isActive == true || lastLoadedAd != null) return
-        lastLoadJob = scope.launch {
-            val ad = adLoader.load()
-            when (ad) {
-                is Result.Failure -> {
-                    listener?.onAdLoadFailed(CloudXAdError("Failed to load ad"))
-                }
+        if (lastLoadJob?.isActive == true) {
+            CXLogger.w(tag, placementName, placementId, "Ad already loading")
+            return
+        }
 
-                is Result.Success -> {
-                    lastLoadedAd = ad.value
-                    listener?.onAdLoaded(ad.value)
-                }
+        if (lastLoadedAd != null) {
+            CXLogger.w(tag, placementName, placementId, "Ad already loaded")
+            return
+        }
+
+        CXLogger.i(tag, placementName, placementId, "Starting ad load")
+        lastLoadJob = scope.launch {
+            try {
+                adLoader.load().fold(
+                    onSuccess = { loadedAd ->
+                        CXLogger.i(tag, placementName, placementId, "Ad loaded successfully")
+                        lastLoadedAd = loadedAd
+                        listener?.onAdLoaded(loadedAd)
+                    },
+                    onFailure = { error ->
+                        CXLogger.e(
+                            tag,
+                            placementName,
+                            placementId,
+                            "Ad load failed: ${error.message}",
+                            error.cause
+                        )
+                        listener?.onAdLoadFailed(error)
+                    }
+                )
+            } catch (cancellation: CancellationException) {
+                CXLogger.d(tag, placementName, placementId, "Ad load cancelled")
+                listener?.onAdLoadFailed(cancellation.toCloudXError())
+                throw cancellation
+            } catch (exception: Exception) {
+                CXLogger.e(
+                    tag,
+                    placementName,
+                    placementId,
+                    "Unexpected error during ad load",
+                    exception
+                )
+                listener?.onAdLoadFailed(exception.toCloudXError())
             }
         }
     }
 
-    override val isAdLoaded get() = lastLoadedAd != null
+    override val isAdReady get() = lastLoadedAd != null && lastShowJob?.isActive != true
 
     // Ad showing methods
     override fun show() {
-        CXLogger.i(
-            "CloudX${if (placementType == AdType.Interstitial) "Interstitial" else "Rewarded"}",
-            "show() was called"
-        )
+        val ad = lastLoadedAd
+        if (ad == null) {
+            CXLogger.w(tag, placementName, placementId, "Ad not loaded")
+            return
+        }
 
         lastShowJob?.let { job ->
-            // If no adHidden even has been received within the allotted time, then we force an adHidden event and allow the display of a new ad
             if (job.isActive) {
-                val timeToWaitForHideEventMillis = 90 * 1000
-                if (utcNowEpochMillis() <= (lastShowJobStartedTimeMillis + timeToWaitForHideEventMillis)) {
-                    listener?.onAdDisplayFailed(CloudXAdError(description = "Ad is already displaying"))
-                    return
-                } else {
-                    job.cancel("No adHidden or adError event received. Cancelling job")
-                    lastLoadedAd?.let {
-                        listener?.onAdHidden(it)
-                    }
-                    lastLoadedAd = null
-                }
+                CXLogger.w(tag, placementName, placementId, "Ad already displaying")
+                return
             }
         }
 
         lastShowJob = scope.launch {
-            lastShowJobStartedTimeMillis = utcNowEpochMillis()
-
-            val ad = lastLoadedAd
-            if (ad == null) {
-                listener?.onAdDisplayFailed(CloudXAdError(description = "No ads loaded yet"))
-                return@launch
-            }
-
             try {
                 show(ad)
             } finally {
-                ad.destroy()
-                lastLoadedAd = null
+                destroyLastLoadedAd()
             }
         }
     }
@@ -172,13 +183,20 @@ internal class FullscreenAdManager<
                 }
             }
             launch {
-                ad.lastErrorEvent.first { it != null }
+                val error = ad.lastErrorEvent.first { it != null }
+                error?.let { listener?.onAdDisplayFailed(error) }
                 onLastError()
             }
         }
 
     // Cleanup methods
+    private fun destroyLastLoadedAd() {
+        lastLoadedAd?.destroy()
+        lastLoadedAd = null
+    }
+
     override fun destroy() {
+        destroyLastLoadedAd()
         scope.cancel()
     }
 }

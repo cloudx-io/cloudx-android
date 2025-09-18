@@ -3,10 +3,12 @@ package io.cloudx.adapter.cloudx
 import android.content.Context
 import io.cloudx.cd.staticrenderer.StaticFullscreenAd
 import io.cloudx.cd.staticrenderer.FullscreenAd
+import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.internal.adapter.AlwaysReadyToLoadAd
 import io.cloudx.sdk.internal.adapter.CloudXAdLoadOperationAvailability
 import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapter
 import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapterListener
+import io.cloudx.sdk.toCloudXError
 
 internal class StaticBidRewardedInterstitial(
     context: Context,
@@ -24,7 +26,7 @@ internal class StaticBidRewardedInterstitial(
             }
 
             override fun onLoadError() {
-                listener.onError()
+                listener.onError(CloudXErrorCode.UNEXPECTED_ERROR.toCloudXError())
             }
 
             override fun onShow() {
@@ -32,7 +34,7 @@ internal class StaticBidRewardedInterstitial(
             }
 
             override fun onShowError() {
-                listener.onError()
+                listener.onError(CloudXErrorCode.UNEXPECTED_ERROR.toCloudXError())
             }
 
             override fun onImpression() {

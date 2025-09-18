@@ -6,16 +6,17 @@ import com.facebook.ads.Ad
 import com.facebook.ads.AdError
 import com.facebook.ads.RewardedInterstitialAd
 import com.facebook.ads.RewardedInterstitialAdListener
+import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.adapter.AlwaysReadyToLoadAd
 import io.cloudx.sdk.internal.adapter.CloudXAdLoadOperationAvailability
-import io.cloudx.sdk.internal.adapter.CloudXAdapterError
 import io.cloudx.sdk.internal.adapter.CloudXAdapterMetaData
 import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapter
 import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapterFactory
 import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapterListener
 import io.cloudx.sdk.internal.context.ContextProvider
 import io.cloudx.sdk.internal.util.Result
+import io.cloudx.sdk.toCloudXError
 
 @Keep
 internal object RewardedInterstitialFactory :
@@ -52,8 +53,9 @@ internal class MetaRewardedInterstitialAdapter(
     override fun load() {
         val placementId = serverExtras.getPlacementId()
         if (placementId == null) {
-            CXLogger.e(TAG, "Placement ID is null")
-            listener?.onError(CloudXAdapterError(description = "Placement ID is null"))
+            val message = "Placement ID is null"
+            CXLogger.e(TAG, message)
+            listener?.onError(CloudXErrorCode.UNEXPECTED_ERROR.toCloudXError(message = message))
             return
         }
 
@@ -63,7 +65,7 @@ internal class MetaRewardedInterstitialAdapter(
         ad.loadAd(
             ad.buildLoadAdConfig().withAdListener(object : RewardedInterstitialAdListener {
                 override fun onError(ad: Ad?, adError: AdError?) {
-                    listener?.onError(CloudXAdapterError(description = adError?.errorMessage ?: ""))
+                    listener?.onError(CloudXErrorCode.UNEXPECTED_ERROR.toCloudXError(message = adError?.errorMessage))
                 }
 
                 override fun onAdLoaded(ad: Ad?) {
@@ -94,13 +96,13 @@ internal class MetaRewardedInterstitialAdapter(
     override fun show() {
         val ad = this.ad
         if (ad == null || !ad.isAdLoaded) {
-            listener?.onError(CloudXAdapterError(description = "can't show: ad is not loaded"))
+            listener?.onError(CloudXErrorCode.UNEXPECTED_ERROR.toCloudXError(message = "can't show: ad is not loaded"))
             return
         }
 
         // Check if ad is already expired or invalidated, and do not show ad if that is the case. You will not get paid to show an invalidated ad.
         if (ad.isAdInvalidated) {
-            listener?.onError(CloudXAdapterError(description = "can't show: ad is invalidated"))
+            listener?.onError(CloudXErrorCode.UNEXPECTED_ERROR.toCloudXError("can't show: ad is invalidated"))
             return
         }
 

@@ -6,16 +6,17 @@ import com.facebook.ads.Ad
 import com.facebook.ads.AdError
 import com.facebook.ads.InterstitialAd
 import com.facebook.ads.InterstitialAdListener
+import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.adapter.AlwaysReadyToLoadAd
 import io.cloudx.sdk.internal.adapter.CloudXAdLoadOperationAvailability
-import io.cloudx.sdk.internal.adapter.CloudXAdapterError
 import io.cloudx.sdk.internal.adapter.CloudXAdapterMetaData
 import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapter
 import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapterFactory
 import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapterListener
 import io.cloudx.sdk.internal.context.ContextProvider
 import io.cloudx.sdk.internal.util.Result
+import io.cloudx.sdk.toCloudXError
 
 @Keep
 internal object InterstitialFactory :
@@ -52,8 +53,9 @@ internal class MetaInterstitialAdapter(
     override fun load() {
         val placementId = serverExtras.getPlacementId()
         if (placementId == null) {
-            CXLogger.e(TAG, "Placement ID is null")
-            listener?.onError(CloudXAdapterError(description = "Placement ID is null"))
+            val message = "Placement ID is null"
+            CXLogger.e(TAG, message)
+            listener?.onError(CloudXErrorCode.UNEXPECTED_ERROR.toCloudXError(message = message))
             return
         }
 
@@ -89,14 +91,22 @@ internal class MetaInterstitialAdapter(
                 TAG,
                 "Interstitial ad not ready to show for placement: $placementId (ad not loaded)"
             )
-            listener?.onError(CloudXAdapterError(description = "Interstitial ad is not loaded"))
+            listener?.onError(
+                CloudXErrorCode.UNEXPECTED_ERROR.toCloudXError(
+                    message = "Interstitial ad is not loaded"
+                )
+            )
             return
         }
 
         // Check if ad is already expired or invalidated, and do not show ad if that is the case. You will not get paid to show an invalidated ad.
         if (ad.isAdInvalidated) {
             CXLogger.w(TAG, "Interstitial ad invalidated for placement: $placementId")
-            listener?.onError(CloudXAdapterError(description = "Interstitial ad is invalidated"))
+            listener?.onError(
+                CloudXErrorCode.UNEXPECTED_ERROR.toCloudXError(
+                    message = "Interstitial ad is invalidated"
+                )
+            )
             return
         }
 
@@ -123,11 +133,7 @@ internal class MetaInterstitialAdapter(
                     TAG,
                     "Interstitial ad failed to load for placement $placementId with error: ${adError?.errorMessage} (${adError?.errorCode})"
                 )
-                listener?.onError(
-                    CloudXAdapterError(
-                        description = adError?.errorMessage ?: "Unknown error"
-                    )
-                )
+                listener?.onError(CloudXErrorCode.UNEXPECTED_ERROR.toCloudXError(message = adError?.errorMessage))
             }
 
             override fun onAdLoaded(ad: Ad?) {

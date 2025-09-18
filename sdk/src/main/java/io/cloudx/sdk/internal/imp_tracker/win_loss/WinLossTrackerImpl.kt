@@ -13,10 +13,10 @@ import java.util.UUID
 
 internal class WinLossTrackerImpl(
     private val scope: CoroutineScope,
+    private val auctionBidManager: AuctionBidManager,
     private val winLossFieldResolver: WinLossFieldResolver,
     private val db: CloudXDb,
-    private val trackerApi: WinLossTrackerApi,
-    private val auctionBidManager: AuctionBidManager
+    private val trackerApi: WinLossTrackerApi
 ) : WinLossTracker {
 
     private lateinit var appKey: String

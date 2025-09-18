@@ -165,9 +165,8 @@ internal fun bidAdDecoration(
                 eventTracker.send(impressionId, campaignId, "1", EventType.IMPRESSION)
             }
 
-            // THIS IS THE REAL WINNER DETERMINATION - when impression fires
-            // Mark this bid as the actual winner (automatically sends win notification and cleans up)
             winLossTracker.setWinner(auctionId, bidId)
+            winLossTracker.sendWin(auctionId, bidId)
         }
     },
     onClick = {

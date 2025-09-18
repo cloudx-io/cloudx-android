@@ -1,7 +1,6 @@
 package io.cloudx.sdk.internal.imp_tracker.win_loss
 
 import io.cloudx.sdk.internal.bid.Bid
-import io.cloudx.sdk.internal.bid.LossReason
 import io.cloudx.sdk.internal.config.Config
 import io.cloudx.sdk.internal.db.CloudXDb
 import io.cloudx.sdk.internal.db.win_loss.CachedWinLossEvents
@@ -62,14 +61,6 @@ internal class WinLossTrackerImpl(
 
     override fun setWinner(auctionId: String, winningBidId: String) {
         auctionBidManager.setBidWinner(auctionId, winningBidId)
-
-        scope.launch {
-            val winningBid = auctionBidManager.getWinningBid(auctionId)
-            if (winningBid != null) {
-                sendWin(auctionId, winningBidId)
-                auctionBidManager.clearAuction(auctionId)
-            }
-        }
     }
 
     override fun sendWin(
@@ -85,6 +76,7 @@ internal class WinLossTrackerImpl(
             if (payload != null) {
                 trackWinLoss(payload)
             }
+            auctionBidManager.clearAuction(auctionId)
         }
     }
 

@@ -3,8 +3,8 @@ package io.cloudx.sdk.internal.ads
 import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.internal.CXLogger
-import io.cloudx.sdk.internal.bid.LossReason
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
+import io.cloudx.sdk.internal.imp_tracker.win_loss.LossReason
 import io.cloudx.sdk.internal.util.Result
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.TimeoutCancellationException

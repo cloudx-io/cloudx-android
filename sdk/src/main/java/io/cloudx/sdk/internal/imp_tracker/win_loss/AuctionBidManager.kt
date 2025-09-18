@@ -1,7 +1,6 @@
 package io.cloudx.sdk.internal.imp_tracker.win_loss
 
 import io.cloudx.sdk.internal.bid.Bid
-import io.cloudx.sdk.internal.bid.LossReason
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -20,9 +19,9 @@ internal class AuctionBidManager {
 
     enum class BidStatus {
         PENDING,     // Bid received, awaiting auction result
+        LOADED,      // Winning bid successfully loaded ad
         WON,         // Bid won the auction
         LOST,        // Bid lost the auction
-        LOADED,      // Winning bid successfully loaded ad
         FAILED       // Bid failed (technical error, load failure, etc.)
     }
     
@@ -33,13 +32,8 @@ internal class AuctionBidManager {
     fun setBidWinner(auctionId: String, winningBidId: String) {
         val bids = auctionBids[auctionId] ?: return
 
-        bids.forEach { entry ->
-            if (entry.bid.id == winningBidId) {
-                entry.status = BidStatus.WON
-            } else {
-                entry.status = BidStatus.LOST
-                entry.lossReason = LossReason.LostToHigherBid
-            }
+        bids.find { it.bid.id == winningBidId }?.let { winner ->
+            winner.status = BidStatus.WON
         }
     }
 
@@ -61,12 +55,6 @@ internal class AuctionBidManager {
         }
     }
 
-    fun getWinningBid(auctionId: String): Bid? {
-        return auctionBids[auctionId]
-            ?.firstOrNull { it.status == BidStatus.WON }
-            ?.bid
-    }
-
     fun clearAuction(auctionId: String) {
         auctionBids.remove(auctionId)
     }
@@ -79,9 +67,5 @@ internal class AuctionBidManager {
         return auctionBids[auctionId]
             ?.find { it.bid.id == bidId }
             ?.lossReason
-    }
-
-    fun clear() {
-        auctionBids.clear()
     }
 }

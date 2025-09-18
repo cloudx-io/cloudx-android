@@ -2,7 +2,6 @@ package io.cloudx.sdk.internal.imp_tracker.win_loss
 
 import io.cloudx.sdk.internal.GlobalScopes
 import io.cloudx.sdk.internal.bid.Bid
-import io.cloudx.sdk.internal.bid.LossReason
 import io.cloudx.sdk.internal.config.Config
 import io.cloudx.sdk.internal.db.Database
 

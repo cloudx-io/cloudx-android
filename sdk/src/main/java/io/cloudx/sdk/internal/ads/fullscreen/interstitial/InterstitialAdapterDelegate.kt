@@ -5,7 +5,6 @@ import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapter
 import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapterListener
 import io.cloudx.sdk.internal.ads.fullscreen.FullscreenAdAdapterDelegate
-import io.cloudx.sdk.internal.bid.WinTracker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async

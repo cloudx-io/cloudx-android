@@ -85,6 +85,10 @@ internal class WinLossFieldResolver {
 
                 url?.let { replaceUrlTemplates(it, winLossData) }
             }
+            "sdk.loopIndex" -> {
+                val loopIndex = TrackingFieldResolver.resolveField(auctionId, fieldPath) as? String
+                loopIndex?.toIntOrNull()
+            }
 
             else -> {
                 TrackingFieldResolver.resolveField(auctionId, fieldPath)

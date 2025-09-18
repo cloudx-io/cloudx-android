@@ -1,6 +1,5 @@
 package io.cloudx.sdk.internal.imp_tracker.win_loss
 
-import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.bid.Bid
 import io.cloudx.sdk.internal.bid.LossReason
 import io.cloudx.sdk.internal.config.Config
@@ -19,7 +18,6 @@ internal class WinLossTrackerImpl(
     private val trackerApi: WinLossTrackerApi,
     private val auctionBidManager: AuctionBidManager
 ) : WinLossTracker {
-    private val tag = "WinLossTracker"
 
     private lateinit var appKey: String
     private var endpointUrl: String? = null
@@ -44,17 +42,12 @@ internal class WinLossTrackerImpl(
     }
 
     override fun setWinner(auctionId: String, winningBidId: String) {
-        // Set the winner status
         auctionBidManager.setBidWinner(auctionId, winningBidId)
 
-        // Automatically send win notification and clean up
         scope.launch {
             val winningBid = auctionBidManager.getWinningBid(auctionId)
             if (winningBid != null) {
-                // Send win notification
                 sendWin(auctionId, winningBidId)
-
-                // Clean up auction data
                 auctionBidManager.clearAuction(auctionId)
             }
         }
@@ -78,19 +71,13 @@ internal class WinLossTrackerImpl(
         bidId: String
     ) {
         scope.launch {
-            val bid = auctionBidManager.getBid(auctionId, bidId)
-            if (bid == null) {
-                CXLogger.e(tag, "Cannot send win notification: bid $bidId not found in auction $auctionId")
-                return@launch
-            }
+            val bid = auctionBidManager.getBid(auctionId, bidId) ?: return@launch
 
             val payload = winLossFieldResolver.buildWinLossPayload(
                 auctionId, bid, lossReason = null, isWin = true
             )
             if (payload != null) {
                 trackWinLoss(payload)
-            } else {
-                CXLogger.w(tag, "No payload mapping configured for win/loss notifications")
             }
         }
     }
@@ -104,7 +91,6 @@ internal class WinLossTrackerImpl(
             val lossReason = auctionBidManager.getBidLossReason(auctionId, bidId)
 
             if (bid == null) {
-                CXLogger.e(tag, "Cannot send loss notification: bid $bidId not found in auction $auctionId")
                 return@launch
             }
 
@@ -113,8 +99,6 @@ internal class WinLossTrackerImpl(
             )
             if (payload != null) {
                 trackWinLoss(payload)
-            } else {
-                CXLogger.w(tag, "No payload mapping configured for win/loss notifications")
             }
         }
     }
@@ -130,10 +114,7 @@ internal class WinLossTrackerImpl(
         val result = trackerApi.send(appKey, endpoint, payload)
 
         if (result is Result.Success) {
-            CXLogger.d(tag, "Win/loss event sent successfully, removing from database")
             db.cachedWinLossEventDao().delete(eventId)
-        } else {
-            CXLogger.e(tag, "Win/loss event failed to send. Will retry later.")
         }
     }
 
@@ -141,10 +122,8 @@ internal class WinLossTrackerImpl(
         scope.launch {
             val cached = db.cachedWinLossEventDao().getAll()
             if (cached.isEmpty()) {
-                CXLogger.d(tag, "No pending win/loss events to send")
                 return@launch
             }
-            CXLogger.d(tag, "Found ${cached.size} pending win/loss events to retry")
             sendCached(cached)
         }
     }
@@ -153,7 +132,6 @@ internal class WinLossTrackerImpl(
         val endpoint = endpointUrl
 
         if (endpoint.isNullOrBlank()) {
-            CXLogger.e(tag, "No endpoint configured for win/loss notifications")
             return
         }
 
@@ -164,9 +142,6 @@ internal class WinLossTrackerImpl(
                     trackerApi.send(appKey, entry.endpointUrl.ifBlank { endpoint }, payload)
                 if (result is Result.Success) {
                     db.cachedWinLossEventDao().delete(entry.id)
-                    CXLogger.d(tag, "Cached win/loss event sent successfully: ${entry.id}")
-                } else {
-                    CXLogger.e(tag, "Failed to send cached win/loss event: ${entry.id}")
                 }
             }
         }
@@ -197,7 +172,6 @@ internal class WinLossTrackerImpl(
             }
             result
         } catch (e: Exception) {
-            CXLogger.e(tag, "Failed to parse cached payload: ${e.message}")
             null
         }
     }

@@ -16,9 +16,6 @@ internal class AuctionBidManager {
     // Store all bids for each auction
     private val auctionBids = ConcurrentHashMap<String, MutableList<BidEntry>>()
 
-    // Track auction state
-    private val auctionStatus = ConcurrentHashMap<String, AuctionStatus>()
-
     private class BidEntry(
         val bid: Bid
     ) {
@@ -34,10 +31,6 @@ internal class AuctionBidManager {
         FAILED       // Bid failed (technical error, load failure, etc.)
     }
 
-    enum class AuctionStatus {
-        ACTIVE,      // Auction in progress, collecting bids
-        COMPLETED    // Auction completed, winner determined
-    }
 
     /**
      * Add a bid to an auction
@@ -47,7 +40,6 @@ internal class AuctionBidManager {
         bid: Bid
     ) {
         auctionBids.getOrPut(auctionId) { mutableListOf() }.add(BidEntry(bid))
-        auctionStatus[auctionId] = AuctionStatus.ACTIVE
 
         val bidPrice = bid.price?.toDouble() ?: 0.0
         CXLogger.d(
@@ -73,10 +65,6 @@ internal class AuctionBidManager {
                 entry.lossReason = LossReason.LostToHigherBid
                 CXLogger.d(tag, "Bid ${entry.bid.id} lost to higher bid in auction $auctionId")
             }
-        }
-
-        if (winnerFound) {
-            auctionStatus[auctionId] = AuctionStatus.COMPLETED
         }
 
         return winnerFound
@@ -123,7 +111,6 @@ internal class AuctionBidManager {
      */
     fun clearAuction(auctionId: String) {
         auctionBids.remove(auctionId)
-        auctionStatus.remove(auctionId)
         CXLogger.d(tag, "Cleared auction data for $auctionId")
     }
 
@@ -148,7 +135,6 @@ internal class AuctionBidManager {
      */
     fun clear() {
         auctionBids.clear()
-        auctionStatus.clear()
         CXLogger.d(tag, "Cleared all auction data")
     }
 }

@@ -2,9 +2,9 @@ package io.cloudx.sdk.internal.ads
 
 import android.os.Bundle
 import com.xor.XorEncryption
+import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.Destroyable
 import io.cloudx.sdk.internal.AdNetwork
-import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.PlacementLoopIndexTracker
 import io.cloudx.sdk.internal.bid.BidApi
@@ -15,6 +15,7 @@ import io.cloudx.sdk.internal.config.ResolvedEndpoints
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.EventType
 import io.cloudx.sdk.internal.imp_tracker.TrackingFieldResolver
+import io.cloudx.sdk.internal.imp_tracker.TrackingFieldResolver.SDK_PARAM_RESPONSE_IN_MILLIS
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsType
 import io.cloudx.sdk.internal.state.SdkKeyValueState
@@ -148,6 +149,11 @@ private class BidAdSourceImpl<T : Destroyable>(
         TrackingFieldResolver.setLoopIndex(
             auctionId,
             PlacementLoopIndexTracker.getCount(bidRequestParams.placementName)
+        )
+        TrackingFieldResolver.setSdkParam(
+            auctionId,
+            SDK_PARAM_RESPONSE_IN_MILLIS,
+            bidRequestLatencyMillis.toString()
         )
 
         val payload = TrackingFieldResolver.buildPayload(auctionId)

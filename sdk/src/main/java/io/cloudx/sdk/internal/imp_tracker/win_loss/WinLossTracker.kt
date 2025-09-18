@@ -50,6 +50,7 @@ private val LazySingleInstance by lazy {
         GlobalScopes.IO,
         WinLossFieldResolver(),
         Database(),
-        WinLossTrackerApi()
+        WinLossTrackerApi(),
+        AuctionBidManager()
     )
 }

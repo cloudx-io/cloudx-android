@@ -17,6 +17,7 @@ internal class WinLossTrackerImpl(
     private val winLossFieldResolver: WinLossFieldResolver,
     private val db: CloudXDb,
     private val trackerApi: WinLossTrackerApi,
+    private val auctionBidManager: AuctionBidManager
 ) : WinLossTracker {
     private val tag = "WinLossTracker"
 
@@ -39,22 +40,22 @@ internal class WinLossTrackerImpl(
         auctionId: String,
         bid: Bid
     ) {
-        AuctionBidManager.addBid(auctionId, bid)
+        auctionBidManager.addBid(auctionId, bid)
     }
 
     override fun setWinner(auctionId: String, winningBidId: String) {
         // Set the winner status
-        AuctionBidManager.setBidWinner(auctionId, winningBidId)
+        auctionBidManager.setBidWinner(auctionId, winningBidId)
 
         // Automatically send win notification and clean up
         scope.launch {
-            val winningBid = AuctionBidManager.getWinningBid(auctionId)
+            val winningBid = auctionBidManager.getWinningBid(auctionId)
             if (winningBid != null) {
                 // Send win notification
                 sendWin(auctionId, winningBidId)
 
                 // Clean up auction data
-                AuctionBidManager.clearAuction(auctionId)
+                auctionBidManager.clearAuction(auctionId)
             }
         }
     }
@@ -65,11 +66,11 @@ internal class WinLossTrackerImpl(
         success: Boolean,
         lossReason: LossReason?
     ) {
-        AuctionBidManager.setBidLoadResult(auctionId, bidId, success, lossReason)
+        auctionBidManager.setBidLoadResult(auctionId, bidId, success, lossReason)
     }
 
     override fun clearAuction(auctionId: String) {
-        AuctionBidManager.clearAuction(auctionId)
+        auctionBidManager.clearAuction(auctionId)
     }
 
     override fun sendWin(
@@ -77,7 +78,15 @@ internal class WinLossTrackerImpl(
         bidId: String
     ) {
         scope.launch {
-            val payload = winLossFieldResolver.buildWinLossPayload(auctionId, bidId, isWin = true)
+            val bid = auctionBidManager.getBid(auctionId, bidId)
+            if (bid == null) {
+                CXLogger.e(tag, "Cannot send win notification: bid $bidId not found in auction $auctionId")
+                return@launch
+            }
+
+            val payload = winLossFieldResolver.buildWinLossPayload(
+                auctionId, bid, lossReason = null, isWin = true
+            )
             if (payload != null) {
                 trackWinLoss(payload)
             } else {
@@ -91,7 +100,17 @@ internal class WinLossTrackerImpl(
         bidId: String
     ) {
         scope.launch {
-            val payload = winLossFieldResolver.buildWinLossPayload(auctionId, bidId, isWin = false)
+            val bid = auctionBidManager.getBid(auctionId, bidId)
+            val lossReason = auctionBidManager.getBidLossReason(auctionId, bidId)
+
+            if (bid == null) {
+                CXLogger.e(tag, "Cannot send loss notification: bid $bidId not found in auction $auctionId")
+                return@launch
+            }
+
+            val payload = winLossFieldResolver.buildWinLossPayload(
+                auctionId, bid, lossReason, isWin = false
+            )
             if (payload != null) {
                 trackWinLoss(payload)
             } else {

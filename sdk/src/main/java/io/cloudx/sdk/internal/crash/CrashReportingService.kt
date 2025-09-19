@@ -107,7 +107,7 @@ internal class CrashReportingService(
             val secret = XorEncryption.generateXorSecret(accountId)
             val campaignId = XorEncryption.generateCampaignIdBase64(accountId)
             val impressionId = XorEncryption.encrypt(payload, secret)
-            eventTracker.send(impressionId, campaignId, "1", EventType.SDK_ERROR)
+            eventTracker.send(impressionId, campaignId, "1", EventType.SDK_CRASH)
         }
     }
 

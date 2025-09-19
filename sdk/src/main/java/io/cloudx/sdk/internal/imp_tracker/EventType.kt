@@ -9,6 +9,7 @@ enum class EventType(
     IMPRESSION("sdkimpenc", "imp"),
     BID_REQUEST("bidreqenc", "bidreq"),
     SDK_ERROR("sdkerrorenc", "error"),
+    SDK_CRASH("sdkcrashenc", "crash"),
     SDK_METRICS("sdkmetricenc", "sdkmetricenc");
 
     companion object {

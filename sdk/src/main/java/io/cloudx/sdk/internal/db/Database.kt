@@ -4,12 +4,12 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import io.cloudx.sdk.internal.ApplicationContext
-import io.cloudx.sdk.internal.db.imp_tracking.CachedTrackingEvents
 import io.cloudx.sdk.internal.db.imp_tracking.CachedTrackingEventDao
+import io.cloudx.sdk.internal.db.imp_tracking.CachedTrackingEvents
 import io.cloudx.sdk.internal.db.metrics.MetricsEvent
 import io.cloudx.sdk.internal.db.metrics.MetricsEventDao
-import io.cloudx.sdk.internal.db.win_loss.CachedWinLossEvents
 import io.cloudx.sdk.internal.db.win_loss.CachedWinLossEventDao
+import io.cloudx.sdk.internal.db.win_loss.CachedWinLossEvents
 
 @Database(
     entities = [
@@ -17,7 +17,7 @@ import io.cloudx.sdk.internal.db.win_loss.CachedWinLossEventDao
         MetricsEvent::class,
         CachedWinLossEvents::class
     ],
-    version = 9,
+    version = 10,
     // Not yet.
     exportSchema = false
 )

@@ -5,6 +5,7 @@ import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.imp_tracker.win_loss.LossReason
+import io.cloudx.sdk.internal.imp_tracker.win_loss.WinLossTracker
 import io.cloudx.sdk.internal.util.Result
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.TimeoutCancellationException
@@ -18,7 +19,7 @@ internal class AdLoader<T : CXAdapterDelegate>(
     private val bidAdSource: BidAdSource<T>,
     private val bidAdLoadTimeoutMillis: Long,
     private val connectionStatusService: ConnectionStatusService,
-    private val winLossTracker: io.cloudx.sdk.internal.imp_tracker.win_loss.WinLossTracker
+    private val winLossTracker: WinLossTracker
 ) {
     private val TAG = "AdLoader"
 

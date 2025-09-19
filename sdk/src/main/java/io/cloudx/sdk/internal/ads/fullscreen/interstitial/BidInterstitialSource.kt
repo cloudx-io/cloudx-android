@@ -46,17 +46,16 @@ internal fun BidInterstitialSource(
         cdpApi,
         eventTracker,
         metricsTracker
-    ) {
-
-        val placementName = it.placementName
-        val placementId = it.placementId
-        val adNetwork = it.adNetwork
-        val price = it.price
-        val bid = it.bid
+    ) { createBidAdParams ->
+        val placementName = createBidAdParams.placementName
+        val placementId = createBidAdParams.placementId
+        val adNetwork = createBidAdParams.adNetwork
+        val price = createBidAdParams.price
+        val bid = createBidAdParams.bid
         val bidId = bid.id
         val adm = bid.adm
         val params = bid.adapterExtras
-        val auctionId = it.auctionId
+        val auctionId = createBidAdParams.auctionId
 
         InterstitialAdapterDelegate(
             placementName = placementName,

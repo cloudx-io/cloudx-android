@@ -128,17 +128,17 @@ internal fun InterstitialAdapterDelegate.decorate(adEventDecoration: AdEventDeco
 internal fun RewardedInterstitialAdapterDelegate.decorate(adEventDecoration: AdEventDecoration): RewardedInterstitialAdapterDelegate =
     with(adEventDecoration) {
         DecoratedRewardedInterstitialAdapterDelegate(
-            onLoad,
-            onShow,
-            onImpression,
-            onReward,
-            onHide,
-            onClick,
-            onError,
-            onDestroy,
-            onStartLoad,
-            onTimeout,
-            this@decorate
+            onLoad = onLoad,
+            onShow = onShow,
+            onImpression = onImpression,
+            onReward = onReward,
+            onHide = onHide,
+            onClick = onClick,
+            onError = onError,
+            onDestroy = onDestroy,
+            onStartLoad = onStartLoad,
+            onTimeout = onTimeout,
+            rewardedInterstitial = this@decorate
         )
     }
 

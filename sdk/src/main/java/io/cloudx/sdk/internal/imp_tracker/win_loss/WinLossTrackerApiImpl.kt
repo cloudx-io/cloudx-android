@@ -13,6 +13,7 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import org.json.JSONObject
+import kotlin.coroutines.cancellation.CancellationException
 
 internal class WinLossTrackerApiImpl(
     private val timeoutMillis: Long,
@@ -55,7 +56,8 @@ internal class WinLossTrackerApiImpl(
                 CXLogger.e(tag, "Win/loss notification failed with HTTP status: $code")
                 Result.Failure(CloudXError(CloudXErrorCode.SERVER_ERROR))
             }
-
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             println("hop: model - Win/Loss API call exception: ${e.message}")
             CXLogger.e(tag, "Win/loss notification failed with exception: ${e.message}")

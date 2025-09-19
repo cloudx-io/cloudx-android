@@ -104,7 +104,7 @@ internal class InitializationServiceImpl(
 
             winLossTracker.setAppKey(appKey)
             winLossTracker.setEndpoint(cfg.winLossNotificationUrl)
-            winLossTracker.setConfig(cfg)
+            winLossTracker.setPayloadMapping(cfg.winLossNotificationPayloadConfig)
             winLossTracker.trySendingPendingWinLossEvents()
 
             ResolvedEndpoints.resolveFrom(cfg)

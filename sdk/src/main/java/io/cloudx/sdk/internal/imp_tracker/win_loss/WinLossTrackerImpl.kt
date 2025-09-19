@@ -1,7 +1,6 @@
 package io.cloudx.sdk.internal.imp_tracker.win_loss
 
 import io.cloudx.sdk.internal.bid.Bid
-import io.cloudx.sdk.internal.config.Config
 import io.cloudx.sdk.internal.db.CloudXDb
 import io.cloudx.sdk.internal.db.win_loss.CachedWinLossEvents
 import io.cloudx.sdk.internal.util.Result
@@ -29,8 +28,8 @@ internal class WinLossTrackerImpl(
         this.endpointUrl = endpointUrl
     }
 
-    override fun setConfig(config: Config) {
-        winLossFieldResolver.setConfig(config)
+    override fun setPayloadMapping(payloadMapping: Map<String, String>) {
+        winLossFieldResolver.setPayloadMapping(payloadMapping)
     }
 
     override fun trySendingPendingWinLossEvents() {

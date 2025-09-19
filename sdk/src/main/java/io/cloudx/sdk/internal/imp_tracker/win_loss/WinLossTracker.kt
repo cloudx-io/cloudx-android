@@ -2,7 +2,6 @@ package io.cloudx.sdk.internal.imp_tracker.win_loss
 
 import io.cloudx.sdk.internal.GlobalScopes
 import io.cloudx.sdk.internal.bid.Bid
-import io.cloudx.sdk.internal.config.Config
 import io.cloudx.sdk.internal.db.Database
 
 internal interface WinLossTracker {
@@ -11,7 +10,7 @@ internal interface WinLossTracker {
 
     fun setEndpoint(endpointUrl: String?)
 
-    fun setConfig(config: Config)
+    fun setPayloadMapping(payloadMapping: Map<String, String>)
 
     fun trySendingPendingWinLossEvents()
 

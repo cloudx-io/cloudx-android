@@ -1,7 +1,6 @@
 package io.cloudx.sdk.internal.imp_tracker.win_loss
 
 import io.cloudx.sdk.internal.bid.Bid
-import io.cloudx.sdk.internal.config.Config
 import io.cloudx.sdk.internal.imp_tracker.TrackingFieldResolver
 
 internal class WinLossFieldResolver {
@@ -13,8 +12,8 @@ internal class WinLossFieldResolver {
         private const val PLACEHOLDER_AUCTION_LOSS = "\${AUCTION_LOSS}"
     }
 
-    fun setConfig(config: Config) {
-        winLossPayloadMapping = config.winLossNotificationPayloadConfig
+    fun setPayloadMapping(payloadMapping: Map<String, String>) {
+        winLossPayloadMapping = payloadMapping
     }
 
     fun buildWinLossPayload(

@@ -11,7 +11,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
-import java.util.UUID
 
 internal suspend fun jsonToConfig(json: String): Result<Config, CloudXError> =
     withContext(Dispatchers.IO) {
@@ -31,7 +30,7 @@ internal suspend fun jsonToConfig(json: String): Result<Config, CloudXError> =
                     bidders = root.getJSONArray("bidders").toBidders(),
                     placements = root.getJSONArray("placements").toPlacements(),
                     geoDataEndpointUrl = root.optString("geoDataEndpointURL", null),
-                    sessionId = root.getString("sessionID") + UUID.randomUUID().toString(),
+                    sessionId = root.getString("sessionID"),
                     organizationId = root.optString("organizationID", null),
                     accountId = root.optString("accountID", null),
                     appKeyOverride = root.optString("appKeyOverride", null),

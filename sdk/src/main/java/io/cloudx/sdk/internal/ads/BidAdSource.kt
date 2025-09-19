@@ -222,7 +222,7 @@ private fun <T : Destroyable> BidResponse.toBidAdSourceResponse(
                             bid = bid,
                             adNetwork = adNetwork,
                             price = price,
-                            auctionId = bid.auctionId
+                            auctionId = auctionId
                         )
                     )
                 }

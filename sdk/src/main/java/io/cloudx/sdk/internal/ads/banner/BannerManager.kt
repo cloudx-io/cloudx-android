@@ -79,7 +79,6 @@ private class BannerManagerImpl(
     private fun restartBannerRefresh() {
         bannerRefreshJob?.cancel()
         bannerRefreshJob = scope.launch {
-            throw Exception()
             while (true) {
                 ensureActive()
 

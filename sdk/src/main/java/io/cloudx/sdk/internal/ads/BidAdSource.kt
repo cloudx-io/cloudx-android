@@ -185,13 +185,6 @@ private class BidAdSourceImpl<T : Destroyable>(
                         "Bid Success — received ${resp.bidItemsByRank.size} bid(s): [$bidDetails]"
                     )
 
-                    // Add all bids to WinLossTracker for auction processing
-                    resp.bidItemsByRank.forEach { bidItem ->
-                        winLossTracker.addBid(
-                            auctionId = auctionId,
-                            bid = bidItem.bid
-                        )
-                    }
                 }
 
                 Result.Success(resp)

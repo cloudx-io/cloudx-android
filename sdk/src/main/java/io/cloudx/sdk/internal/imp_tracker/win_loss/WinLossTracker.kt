@@ -14,31 +14,17 @@ internal interface WinLossTracker {
 
     fun trySendingPendingWinLossEvents()
 
-    fun addBid(
-        auctionId: String,
-        bid: Bid
-    )
-
-    fun setBidLoadResult(
-        auctionId: String,
-        bidId: String,
-        success: Boolean,
-        lossReason: LossReason? = null
-    )
-
-    fun setWinner(auctionId: String, winningBidId: String)
-
     fun sendLoss(
         auctionId: String,
-        bidId: String
+        bid: Bid,
+        lossReason: LossReason? = null,
+        winnerBidPrice: Float = -1f
     )
 
     fun sendWin(
         auctionId: String,
-        bidId: String
+        bid: Bid
     )
-
-    fun clearAuction(auctionId: String)
 }
 
 internal fun WinLossTracker(): WinLossTracker = LazySingleInstance
@@ -46,7 +32,6 @@ internal fun WinLossTracker(): WinLossTracker = LazySingleInstance
 private val LazySingleInstance by lazy {
     WinLossTrackerImpl(
         GlobalScopes.IO,
-        AuctionBidManager(),
         WinLossFieldResolver(),
         Database(),
         WinLossTrackerApi()

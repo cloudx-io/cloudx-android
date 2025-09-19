@@ -50,9 +50,10 @@ internal class AdLoader<T : CXAdapterDelegate>(
     private suspend fun loadWinner(
         bids: BidAdSourceResponse<T>
     ): T? = coroutineScope {
+
         var loadedAd: T? = null
         var loadedAdIndex = -1
-        val lossReasons = mutableMapOf<String, LossReason>()
+        var winnerBidPrice = -1f
 
         for ((index, bidItem) in bids.bidItemsByRank.withIndex()) {
             ensureActive()
@@ -64,30 +65,21 @@ internal class AdLoader<T : CXAdapterDelegate>(
 
                 loadedAd = ad
                 loadedAdIndex = index
-                winLossTracker.setBidLoadResult(bids.auctionId, bidItem.bid.id, true)
+                winnerBidPrice = bidItem.bid.price ?: -1f
                 break
             } else {
                 CXLogger.w(TAG, placementName, placementId, "Failed: ${bidItem.adNetworkOriginal.networkName} (rank=${bidItem.bid.rank})")
 
-                lossReasons[bidItem.bid.id] = LossReason.TechnicalError
-                winLossTracker.setBidLoadResult(bids.auctionId, bidItem.bid.id, false, LossReason.TechnicalError)
-                winLossTracker.sendLoss(bids.auctionId, bidItem.bid.id)
+                winLossTracker.sendLoss(bids.auctionId, bidItem.bid, LossReason.TechnicalError, winnerBidPrice)
             }
         }
 
         if (loadedAdIndex != -1) {
             bids.bidItemsByRank.forEachIndexed { index, bidItem ->
-                if (index != loadedAdIndex && !lossReasons.containsKey(bidItem.bid.id)) {
-                    lossReasons[bidItem.bid.id] = LossReason.LostToHigherBid
-                    winLossTracker.setBidLoadResult(bids.auctionId, bidItem.bid.id, false, LossReason.LostToHigherBid)
-                    winLossTracker.sendLoss(bids.auctionId, bidItem.bid.id)
+                if (index != loadedAdIndex) {
+                    winLossTracker.sendLoss(bids.auctionId, bidItem.bid, LossReason.LostToHigherBid, winnerBidPrice)
                 }
             }
-        }
-
-        if (loadedAd == null) {
-            CXLogger.d(TAG, "No loaded ad found for auction ${bids.auctionId}, clearing auction data")
-            winLossTracker.clearAuction(bids.auctionId)
         }
 
         loadedAd

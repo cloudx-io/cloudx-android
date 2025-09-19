@@ -28,6 +28,8 @@ internal class MockConfigAPIWithPredefinedConfig : ConfigApi {
             organizationId = "",
             accountId = "",
             geoDataEndpointUrl = "nopoint",
+            winLossNotificationUrl = "",
+            winLossNotificationPayloadConfig = emptyMap(),
             geoHeaders = emptyList(),
             trackers = emptyList(),
             appKeyOverride = "",

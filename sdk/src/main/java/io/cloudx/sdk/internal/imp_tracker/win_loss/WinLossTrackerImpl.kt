@@ -11,7 +11,6 @@ import java.util.UUID
 
 internal class WinLossTrackerImpl(
     private val scope: CoroutineScope,
-    private val auctionBidManager: AuctionBidManager,
     private val winLossFieldResolver: WinLossFieldResolver,
     private val db: CloudXDb,
     private val trackerApi: WinLossTrackerApi
@@ -42,41 +41,15 @@ internal class WinLossTrackerImpl(
         }
     }
 
-    override fun addBid(
-        auctionId: String,
-        bid: Bid
-    ) {
-        auctionBidManager.addBid(auctionId, bid)
-    }
-
-    override fun setBidLoadResult(
-        auctionId: String,
-        bidId: String,
-        success: Boolean,
-        lossReason: LossReason?
-    ) {
-        auctionBidManager.setBidLoadResult(auctionId, bidId, success, lossReason)
-    }
-
-    override fun setWinner(auctionId: String, winningBidId: String) {
-        auctionBidManager.setBidWinner(auctionId, winningBidId)
-    }
-
     override fun sendLoss(
         auctionId: String,
-        bidId: String
+        bid: Bid,
+        lossReason: LossReason?,
+        winnerBidPrice: Float
     ) {
         scope.launch {
-            val bid = auctionBidManager.getBid(auctionId, bidId)
-            val lossReason = auctionBidManager.getBidLossReason(auctionId, bidId)
-            val loadedBidPrice = auctionBidManager.getLoadedBidPrice(auctionId)
-
-            if (bid == null) {
-                return@launch
-            }
-
             val payload = winLossFieldResolver.buildWinLossPayload(
-                auctionId, bid, lossReason, isWin = false, loadedBidPrice
+                auctionId, bid, lossReason, isWin = false, winnerBidPrice
             )
             if (payload != null) {
                 trackWinLoss(payload)
@@ -86,10 +59,9 @@ internal class WinLossTrackerImpl(
 
     override fun sendWin(
         auctionId: String,
-        bidId: String
+        bid: Bid
     ) {
         scope.launch {
-            val bid = auctionBidManager.getBid(auctionId, bidId) ?: return@launch
             val winnerBidPrice = bid.price ?: -1f
 
             val payload = winLossFieldResolver.buildWinLossPayload(
@@ -98,12 +70,7 @@ internal class WinLossTrackerImpl(
             if (payload != null) {
                 trackWinLoss(payload)
             }
-            auctionBidManager.clearAuction(auctionId)
         }
-    }
-
-    override fun clearAuction(auctionId: String) {
-        auctionBidManager.clearAuction(auctionId)
     }
 
     private suspend fun trackWinLoss(payload: Map<String, Any>) {

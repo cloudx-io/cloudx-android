@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.SharedPreferences
 import io.cloudx.sdk.RoboMockkTest
+import io.cloudx.sdk.internal.appinfo.AppInfoProvider
 import io.cloudx.sdk.internal.crash.CrashReportingService
 import io.cloudx.sdk.internal.deviceinfo.DeviceInfoProvider
 import io.cloudx.sdk.internal.geo.GeoApi
@@ -52,16 +53,18 @@ class InitializationServiceImplTest : RoboMockkTest() {
         }
 
         val svc = InitializationServiceImpl(
+            context = activity.applicationContext, // or just appCtx
             configApi = MockConfigAPIWithPredefinedConfig(),
             provideConfigRequest = MockConfigRequestProviderWithArbitraryValues(),
             adapterResolver = MockAdapterFactoryResolver(),
             privacyService = PrivacyService(),
             _metricsTracker = MetricsTracker(),
-            provideDeviceInfo = DeviceInfoProvider(),
             eventTracker = EventTracker(),
+            winLossTracker = io.cloudx.sdk.internal.imp_tracker.win_loss.WinLossTracker(),
+            provideDeviceInfo = DeviceInfoProvider(),
             geoApi = GeoApi(),
-            context = activity.applicationContext, // or just appCtx
-            crashReportingService = CrashReportingService()
+            crashReportingService = CrashReportingService(),
+            appInfoProvider = AppInfoProvider()
         )
 
         val result = svc.initialize("random_app_key")

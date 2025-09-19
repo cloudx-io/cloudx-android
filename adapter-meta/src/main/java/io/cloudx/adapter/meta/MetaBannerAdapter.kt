@@ -66,7 +66,7 @@ internal class MetaBannerAdapter(
         if (placementId == null) {
             val message = "Placement ID is null"
             CXLogger.e(TAG, message)
-            listener?.onError(CloudXErrorCode.UNEXPECTED_ERROR.toCloudXError(message = message))
+            listener?.onError(CloudXErrorCode.ADAPTER_INVALID_SERVER_EXTRAS.toCloudXError(message = message))
             return
         }
 
@@ -111,7 +111,7 @@ internal class MetaBannerAdapter(
                 TAG,
                 "Banner ad failed to load for placement $placementId with error: ${adError?.errorMessage} (${adError?.errorCode})"
             )
-            listener?.onError(CloudXErrorCode.UNEXPECTED_ERROR.toCloudXError(message = adError?.errorMessage))
+            listener?.onError(adError.toCloudXError())
         }
 
         override fun onAdLoaded(ad: Ad?) {

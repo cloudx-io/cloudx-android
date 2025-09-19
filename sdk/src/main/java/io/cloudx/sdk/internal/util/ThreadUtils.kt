@@ -1,16 +1,12 @@
 package io.cloudx.sdk.internal.util
 
-import android.os.Handler
-import android.os.Looper
 import io.cloudx.sdk.Destroyable
 import io.cloudx.sdk.internal.CXLogger
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -31,149 +27,26 @@ import kotlin.coroutines.CoroutineContext
  */
 internal object ThreadUtils : Destroyable {
 
-    private val mainHandler = Handler(Looper.getMainLooper())
-
-    // Background executor for I/O operations
-    private val ioExecutor = Executors.newFixedThreadPool(
-        8, // Limited thread count for mobile
-        CloudXThreadFactory("CloudX-IO")
-    )
-
-    // Background executor for CPU-intensive operations
-    private val cpuExecutor = Executors.newFixedThreadPool(
-        Runtime.getRuntime().availableProcessors().coerceAtMost(4),
-        CloudXThreadFactory("CloudX-CPU")
-    )
-
     // Single-threaded executor for database operations
     private val databaseExecutor = Executors.newSingleThreadExecutor(
         CloudXThreadFactory("CloudX-DB")
     )
 
-    // Coroutine dispatchers
+    // Coroutine dispatchers - simplified to use standard Kotlin dispatchers
     val MainDispatcher: CoroutineDispatcher = Dispatchers.Main
-    val IODispatcher: CoroutineDispatcher = ioExecutor.asCoroutineDispatcher()
-    val CPUDispatcher: CoroutineDispatcher = cpuExecutor.asCoroutineDispatcher()
+    val IODispatcher: CoroutineDispatcher = Dispatchers.IO
+    val CPUDispatcher: CoroutineDispatcher = Dispatchers.Default
+
+    // Keep custom single-threaded dispatcher for database to ensure serial execution
     val DatabaseDispatcher: CoroutineDispatcher = databaseExecutor.asCoroutineDispatcher()
 
     // Application-wide coroutine scope for SDK operations
-    // Note: This scope lives for the entire SDK lifecycle
-    val ApplicationScope = CoroutineScope(SupervisorJob() + IODispatcher)
+    // Note: This scope defines lifecycle, not threading - operations should explicitly choose dispatcher
+    val ApplicationScope = CoroutineScope(SupervisorJob())
 
-    /**
-     * Check if the current thread is the main UI thread.
-     *
-     * @return true if running on the main thread
-     */
-    fun isMainThread(): Boolean {
-        return Looper.myLooper() == Looper.getMainLooper()
-    }
-
-    /**
-     * Execute a runnable on the main UI thread.
-     *
-     * If already on the main thread, executes immediately.
-     * Otherwise, posts to the main thread handler.
-     *
-     * @param runnable the code to execute
-     */
-    fun runOnMainThread(runnable: Runnable) {
-        if (isMainThread()) {
-            runnable.run()
-        } else {
-            mainHandler.post(runnable)
-        }
-    }
-
-    /**
-     * Execute a runnable on the main UI thread with a delay.
-     *
-     * @param runnable the code to execute
-     * @param delayMs delay in milliseconds
-     */
-    fun runOnMainThreadDelayed(runnable: Runnable, delayMs: Long) {
-        mainHandler.postDelayed(runnable, delayMs)
-    }
-
-    /**
-     * Remove a pending runnable from the main thread queue.
-     *
-     * @param runnable the runnable to remove
-     */
-    fun removeFromMainThread(runnable: Runnable) {
-        mainHandler.removeCallbacks(runnable)
-    }
-
-    /**
-     * Execute a runnable on the I/O thread pool.
-     *
-     * Use for network operations, file I/O, etc.
-     *
-     * @param runnable the code to execute
-     */
-    fun runOnIOThread(runnable: Runnable) {
-        ioExecutor.execute(runnable)
-    }
-
-    /**
-     * Execute a runnable on the CPU thread pool.
-     *
-     * Use for CPU-intensive operations like image processing.
-     *
-     * @param runnable the code to execute
-     */
-    fun runOnCPUThread(runnable: Runnable) {
-        cpuExecutor.execute(runnable)
-    }
-
-    /**
-     * Execute a runnable on the database thread.
-     *
-     * Use for all database operations to ensure serial execution.
-     *
-     * @param runnable the code to execute
-     */
-    fun runOnDatabaseThread(runnable: Runnable) {
-        databaseExecutor.execute(runnable)
-    }
-
-    /**
-     * Assert that the current thread is the main UI thread.
-     *
-     * @throws IllegalStateException if not on the main thread
-     */
-    fun assertMainThread() {
-        check(isMainThread()) { "Must be called from the main thread" }
-    }
-
-    /**
-     * Assert that the current thread is NOT the main UI thread.
-     *
-     * @throws IllegalStateException if on the main thread
-     */
-    fun assertBackgroundThread() {
-        check(!isMainThread()) { "Must be called from a background thread" }
-    }
-
-    /**
-     * Create a coroutine scope that automatically handles exceptions.
-     *
-     * @param context the coroutine context to use
-     * @param exceptionHandler optional exception handler
-     * @return coroutine scope
-     */
-    fun createScope(
-        context: CoroutineContext = IODispatcher,
-        exceptionHandler: CoroutineExceptionHandler? = null
-    ): CoroutineScope {
-        val job = SupervisorJob()
-        val finalContext = if (exceptionHandler != null) {
-            context + job + exceptionHandler
-        } else {
-            context + job
-        }
-        return CoroutineScope(finalContext)
-    }
+    // UI-focused coroutine scope for main thread operations
+    // Note: Use this for UI-related work, ad display, listener callbacks
+    val UIScope = CoroutineScope(SupervisorJob() + MainDispatcher)
 
     /**
      * Execute a suspend function with timeout and error handling.
@@ -211,12 +84,11 @@ internal object ThreadUtils : Destroyable {
      */
     override fun destroy() {
         try {
-            ioExecutor.shutdown()
-            cpuExecutor.shutdown()
             databaseExecutor.shutdown()
 
             // Cancel all coroutine scopes
             ApplicationScope.cancel()
+            UIScope.cancel()
         } catch (e: Exception) {
             CXLogger.w("ThreadUtils", "Error during thread pool shutdown")
         }
@@ -275,6 +147,16 @@ internal fun CoroutineScope.launchDatabase(
     block: suspend CoroutineScope.() -> Unit
 ): Job {
     return launch(ThreadUtils.DatabaseDispatcher, block = block)
+}
+
+
+/**
+ * Execute code on the main thread with proper coroutine integration.
+ *
+ * If already on main thread, executes immediately to avoid unnecessary dispatch.
+ */
+suspend fun <T> ensureMainContext(block: suspend CoroutineScope.() -> T): T {
+    return withContext(Dispatchers.Main.immediate, block)
 }
 
 /**

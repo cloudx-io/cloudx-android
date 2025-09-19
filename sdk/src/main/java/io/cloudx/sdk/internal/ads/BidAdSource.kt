@@ -37,10 +37,6 @@ internal open class BidAdSourceResponse<T : Destroyable>(
     val auctionId: String
 ) {
 
-    /**
-     * Holds the full bid payload to allow downstream consumers (tracking, logging, adapters)
-     * to inspect any fields they require without maintaining bespoke mirrors here.
-     */
     class Item<T>(
         val bid: Bid,
         val adNetwork: AdNetwork,
@@ -60,14 +56,14 @@ internal fun <T : Destroyable> BidAdSource(
     createBidAd: suspend (CreateBidAdParams) -> T,
 ): BidAdSource<T> =
     BidAdSourceImpl(
-        provideBidRequest,
-        bidRequestParams,
-        requestBid,
-        cdpApi,
-        eventTracker,
-        metricsTracker,
-        winLossTracker,
-        createBidAd
+        provideBidRequest = provideBidRequest,
+        bidRequestParams = bidRequestParams,
+        requestBid = requestBid,
+        cdpApi = cdpApi,
+        eventTracking = eventTracker,
+        metricsTracker = metricsTracker,
+        winLossTracker = winLossTracker,
+        createBidAd = createBidAd
     )
 
 internal class CreateBidAdParams(

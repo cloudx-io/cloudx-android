@@ -32,10 +32,10 @@ internal object RewardedInterstitialFactory :
         listener: CloudXRewardedInterstitialAdapterListener,
     ): Result<CloudXRewardedInterstitialAdapter, String> = Result.Success(
         MetaRewardedInterstitialAdapter(
-            contextProvider,
-            serverExtras,
+            contextProvider = contextProvider,
+            serverExtras = serverExtras,
             adm = adm,
-            listener
+            listener = listener
         )
     )
 }
@@ -55,7 +55,7 @@ internal class MetaRewardedInterstitialAdapter(
         if (placementId == null) {
             val message = "Placement ID is null"
             CXLogger.e(TAG, message)
-            listener?.onError(CloudXErrorCode.UNEXPECTED_ERROR.toCloudXError(message = message))
+            listener?.onError(CloudXErrorCode.ADAPTER_INVALID_SERVER_EXTRAS.toCloudXError(message = message))
             return
         }
 
@@ -65,7 +65,7 @@ internal class MetaRewardedInterstitialAdapter(
         ad.loadAd(
             ad.buildLoadAdConfig().withAdListener(object : RewardedInterstitialAdListener {
                 override fun onError(ad: Ad?, adError: AdError?) {
-                    listener?.onError(CloudXErrorCode.UNEXPECTED_ERROR.toCloudXError(message = adError?.errorMessage))
+                    listener?.onError(adError.toCloudXError())
                 }
 
                 override fun onAdLoaded(ad: Ad?) {
@@ -94,15 +94,29 @@ internal class MetaRewardedInterstitialAdapter(
     }
 
     override fun show() {
+        val placementId = serverExtras.getPlacementId()
         val ad = this.ad
         if (ad == null || !ad.isAdLoaded) {
-            listener?.onError(CloudXErrorCode.UNEXPECTED_ERROR.toCloudXError(message = "can't show: ad is not loaded"))
+            CXLogger.w(
+                TAG,
+                "Rewarded Interstitial ad not ready to show for placement: $placementId (ad not loaded)"
+            )
+            listener?.onError(
+                CloudXErrorCode.ADAPTER_INVALID_LOAD_STATE.toCloudXError(
+                    message = "Rewarded Interstitial ad is not loaded"
+                )
+            )
             return
         }
 
-        // Check if ad is already expired or invalidated, and do not show ad if that is the case. You will not get paid to show an invalidated ad.
+        // Check if the ad is already expired or invalidated, and do not show ad if that is the case
         if (ad.isAdInvalidated) {
-            listener?.onError(CloudXErrorCode.UNEXPECTED_ERROR.toCloudXError("can't show: ad is invalidated"))
+            CXLogger.w(TAG, "Rewarded Interstitial ad invalidated for placement: $placementId")
+            listener?.onError(
+                CloudXErrorCode.ADAPTER_INVALID_LOAD_STATE.toCloudXError(
+                    message = "Rewarded Interstitial ad is invalidated"
+                )
+            )
             return
         }
 

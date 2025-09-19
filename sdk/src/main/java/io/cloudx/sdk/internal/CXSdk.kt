@@ -105,7 +105,7 @@ internal object CXSdk {
         initializationService?.let {
             _initState.value = InitializationState.Initialized(it)
         }
-        ThreadUtils.runOnMainThread {
+        ThreadUtils.UIScope.launch {
             listener?.onInitialized()
         }
     }
@@ -117,7 +117,7 @@ internal object CXSdk {
         val str = "CloudX SDK initialization failed: ${error.message}"
         CXLogger.e(TAG, str, error.cause)
         _initState.value = InitializationState.Uninitialized
-        ThreadUtils.runOnMainThread {
+        ThreadUtils.UIScope.launch {
             listener?.onInitializationFailed(error)
         }
     }

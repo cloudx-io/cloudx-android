@@ -44,6 +44,16 @@ enum class CloudXErrorCode(
     INVALID_BANNER_VIEW(503, "Banner view is nil or invalid."),
     INVALID_NATIVE_VIEW(504, "Native view is nil or invalid."),
 
-    // --- General (600–699)
-    UNEXPECTED_ERROR(600, "An unexpected error occurred.")
+    // --- Adapter (600–699)
+    ADAPTER_UNEXPECTED_ERROR(600, "Ad network adapter encountered an unexpected error."),
+    ADAPTER_INVALID_SERVER_EXTRAS(601, "Ad network adapter received invalid server parameters."),
+    ADAPTER_NO_CONNECTION(602, "Ad network adapter failed to establish connection with ad server."),
+    ADAPTER_NO_FILL(603, "Ad network adapter could not fill the ad request - no inventory available."),
+    ADAPTER_SERVER_ERROR(604, "Ad network server returned an error response."),
+    ADAPTER_TIMEOUT(605, "Ad network adapter request timed out."),
+    ADAPTER_INVALID_LOAD_STATE(606, "Ad network adapter is in an invalid state for loading ads."),
+    ADAPTER_INVALID_CONFIGURATION(607, "Ad network adapter has invalid or missing configuration."),
+
+    // --- General (700–799)
+    UNEXPECTED_ERROR(700, "An unexpected error occurred.")
 }

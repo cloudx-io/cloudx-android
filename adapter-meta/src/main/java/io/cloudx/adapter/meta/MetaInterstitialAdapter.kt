@@ -19,8 +19,7 @@ import io.cloudx.sdk.internal.util.Result
 import io.cloudx.sdk.toCloudXError
 
 @Keep
-internal object InterstitialFactory :
-    CloudXInterstitialAdapterFactory,
+internal object InterstitialFactory : CloudXInterstitialAdapterFactory,
     CloudXAdapterMetaData by CloudXAdapterMetaData(AudienceNetworkAdsVersion) {
 
     override fun create(
@@ -55,7 +54,7 @@ internal class MetaInterstitialAdapter(
         if (placementId == null) {
             val message = "Placement ID is null"
             CXLogger.e(TAG, message)
-            listener?.onError(CloudXErrorCode.UNEXPECTED_ERROR.toCloudXError(message = message))
+            listener?.onError(CloudXErrorCode.ADAPTER_INVALID_SERVER_EXTRAS.toCloudXError(message = message))
             return
         }
 
@@ -92,18 +91,18 @@ internal class MetaInterstitialAdapter(
                 "Interstitial ad not ready to show for placement: $placementId (ad not loaded)"
             )
             listener?.onError(
-                CloudXErrorCode.UNEXPECTED_ERROR.toCloudXError(
+                CloudXErrorCode.ADAPTER_INVALID_LOAD_STATE.toCloudXError(
                     message = "Interstitial ad is not loaded"
                 )
             )
             return
         }
 
-        // Check if ad is already expired or invalidated, and do not show ad if that is the case. You will not get paid to show an invalidated ad.
+        // Check if the ad is already expired or invalidated, and do not show ad if that is the case
         if (ad.isAdInvalidated) {
             CXLogger.w(TAG, "Interstitial ad invalidated for placement: $placementId")
             listener?.onError(
-                CloudXErrorCode.UNEXPECTED_ERROR.toCloudXError(
+                CloudXErrorCode.ADAPTER_INVALID_LOAD_STATE.toCloudXError(
                     message = "Interstitial ad is invalidated"
                 )
             )
@@ -133,7 +132,7 @@ internal class MetaInterstitialAdapter(
                     TAG,
                     "Interstitial ad failed to load for placement $placementId with error: ${adError?.errorMessage} (${adError?.errorCode})"
                 )
-                listener?.onError(CloudXErrorCode.UNEXPECTED_ERROR.toCloudXError(message = adError?.errorMessage))
+                listener?.onError(adError.toCloudXError())
             }
 
             override fun onAdLoaded(ad: Ad?) {

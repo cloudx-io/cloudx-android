@@ -5,13 +5,12 @@ import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.HEADER_CLOUDX_STATUS
 import io.cloudx.sdk.internal.STATUS_ADS_DISABLED
-import io.cloudx.sdk.internal.imp_tracker.TrackingFieldResolver
 import io.cloudx.sdk.internal.httpclient.httpCatching
 import io.cloudx.sdk.internal.httpclient.postJsonWithRetry
+import io.cloudx.sdk.internal.imp_tracker.TrackingFieldResolver
 import io.cloudx.sdk.internal.util.Result
+import io.cloudx.sdk.internal.util.withIOContext
 import io.ktor.client.HttpClient
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import org.json.JSONObject
 
 internal class BidApiImpl(
@@ -46,16 +45,16 @@ internal class BidApiImpl(
             }
         }
     ) {
-        val body = withContext(Dispatchers.IO) {
-            bidRequest.toString().also { CXLogger.d(tag, "Serialized body (${it.length} chars)") }
+        withIOContext {
+            val body = bidRequest.toString().also { CXLogger.d(tag, "Serialized body (${it.length} chars)") }
+            httpClient.postJsonWithRetry(
+                url = endpointUrl,
+                appKey = appKey,
+                jsonBody = body,
+                timeoutMillis = timeoutMillis,
+                retryMax = 1,
+                tag = tag
+            )
         }
-        httpClient.postJsonWithRetry(
-            url = endpointUrl,
-            appKey = appKey,
-            jsonBody = body,
-            timeoutMillis = timeoutMillis,
-            retryMax = 1,
-            tag = tag
-        )
     }
 }

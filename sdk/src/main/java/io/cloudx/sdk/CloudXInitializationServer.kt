@@ -3,6 +3,7 @@ package io.cloudx.sdk
 sealed class CloudXInitializationServer(val url: String) {
     object Production : CloudXInitializationServer("https://pro.cloudx.io/sdk")
     object Development : CloudXInitializationServer("https://pro-dev.cloudx.io/sdk")
+    object Staging : CloudXInitializationServer("https://pro-stage.cloudx.io/sdk")
     class Custom(url: String) : CloudXInitializationServer(url)
 
     companion object {
@@ -11,6 +12,9 @@ sealed class CloudXInitializationServer(val url: String) {
 
         @JvmStatic
         fun development(): CloudXInitializationServer = Development
+
+        @JvmStatic
+        fun staging(): CloudXInitializationServer = Staging
 
         @JvmStatic
         fun custom(url: String): CloudXInitializationServer = Custom(url)

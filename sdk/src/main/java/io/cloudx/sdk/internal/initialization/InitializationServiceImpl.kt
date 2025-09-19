@@ -25,6 +25,7 @@ import io.cloudx.sdk.internal.imp_tracker.EventType
 import io.cloudx.sdk.internal.imp_tracker.TrackingFieldResolver
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsType
+import io.cloudx.sdk.internal.imp_tracker.win_loss.WinLossTracker
 import io.cloudx.sdk.internal.privacy.PrivacyService
 import io.cloudx.sdk.internal.state.SdkKeyValueState
 import io.cloudx.sdk.internal.util.Result
@@ -45,6 +46,7 @@ internal class InitializationServiceImpl(
     private val privacyService: PrivacyService,
     private val _metricsTracker: MetricsTracker,
     private val eventTracker: EventTracker,
+    private val winLossTracker: WinLossTracker,
     private val provideDeviceInfo: DeviceInfoProvider,
     private val geoApi: GeoApi,
     private val crashReportingService: CrashReportingService,
@@ -99,6 +101,11 @@ internal class InitializationServiceImpl(
 
             eventTracker.setEndpoint(cfg.trackingEndpointUrl)
             eventTracker.trySendingPendingTrackingEvents()
+
+            winLossTracker.setAppKey(appKey)
+            winLossTracker.setEndpoint(cfg.winLossNotificationUrl)
+            winLossTracker.setPayloadMapping(cfg.winLossNotificationPayloadConfig)
+            winLossTracker.trySendingPendingWinLossEvents()
 
             ResolvedEndpoints.resolveFrom(cfg)
             SdkKeyValueState.setKeyValuePaths(cfg.keyValuePaths)
@@ -188,6 +195,7 @@ internal class InitializationServiceImpl(
             factories,
             metricsTracker,
             eventTracker,
+            winLossTracker,
             ConnectionStatusService(),
         )
     }
@@ -225,7 +233,7 @@ internal class InitializationServiceImpl(
             sdkVersion,
             deviceType,
             ResolvedEndpoints.testGroupName,
-            appInfoProvider().appVersion
+            appInfoProvider().packageName
         )
         TrackingFieldResolver.setConfig(cfg)
 

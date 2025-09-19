@@ -5,7 +5,6 @@ import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapter
 import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapterListener
 import io.cloudx.sdk.internal.ads.fullscreen.FullscreenAdAdapterDelegate
-import io.cloudx.sdk.internal.bid.WinTracker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -48,7 +47,6 @@ internal fun RewardedInterstitialAdapterDelegate(
     adNetwork: AdNetwork,
     externalPlacementId: String?,
     price: Double,
-    nurl: String?,
     createRewardedInterstitial: (listener: CloudXRewardedInterstitialAdapterListener) -> CloudXRewardedInterstitialAdapter
 ): RewardedInterstitialAdapterDelegate =
     RewardedInterstitialAdapterDelegateImpl(
@@ -57,7 +55,6 @@ internal fun RewardedInterstitialAdapterDelegate(
         bidderName = adNetwork.networkName,
         externalPlacementId = externalPlacementId,
         revenue = price,
-        nurl = nurl,
         createRewardedInterstitial = createRewardedInterstitial
     )
 
@@ -70,7 +67,6 @@ private class RewardedInterstitialAdapterDelegateImpl(
     override val bidderName: String,
     override val externalPlacementId: String?,
     override val revenue: Double,
-    private val nurl: String?,
     createRewardedInterstitial: (listener: CloudXRewardedInterstitialAdapterListener) -> CloudXRewardedInterstitialAdapter,
 ) : RewardedInterstitialAdapterDelegate {
 
@@ -124,10 +120,7 @@ private class RewardedInterstitialAdapterDelegateImpl(
             }
 
             override fun onImpression() {
-                scope.launch { 
-                    _event.emit(RewardedInterstitialAdapterDelegateEvent.Impression)
-                    handleWinTracking()
-                }
+                scope.launch { _event.emit(RewardedInterstitialAdapterDelegateEvent.Impression) }
             }
 
             override fun onEligibleForReward() {
@@ -151,9 +144,4 @@ private class RewardedInterstitialAdapterDelegateImpl(
         }
     }
 
-    private fun handleWinTracking() {
-        scope.launch(Dispatchers.IO) {
-            WinTracker.trackWin(placementName, placementId, nurl, revenue)
-        }
-    }
 }

@@ -3,9 +3,9 @@ package io.cloudx.sdk.internal.ads
 import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.internal.CXLogger
-import io.cloudx.sdk.internal.bid.LossReason
-import io.cloudx.sdk.internal.bid.LossTracker
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
+import io.cloudx.sdk.internal.imp_tracker.win_loss.LossReason
+import io.cloudx.sdk.internal.imp_tracker.win_loss.WinLossTracker
 import io.cloudx.sdk.internal.util.Result
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.TimeoutCancellationException
@@ -18,7 +18,8 @@ internal class AdLoader<T : CXAdapterDelegate>(
     private val placementId: String,
     private val bidAdSource: BidAdSource<T>,
     private val bidAdLoadTimeoutMillis: Long,
-    private val connectionStatusService: ConnectionStatusService
+    private val connectionStatusService: ConnectionStatusService,
+    private val winLossTracker: WinLossTracker
 ) {
     private val TAG = "AdLoader"
 
@@ -50,9 +51,10 @@ internal class AdLoader<T : CXAdapterDelegate>(
     private suspend fun loadWinner(
         bids: BidAdSourceResponse<T>
     ): T? = coroutineScope {
-        var winner: T? = null
-        var winnerIndex = -1
-        val lossReasons = mutableMapOf<String, LossReason>()
+
+        var loadedAd: T? = null
+        var loadedAdIndex = -1
+        var winnerBidPrice = -1f
 
         for ((index, bidItem) in bids.bidItemsByRank.withIndex()) {
             ensureActive()
@@ -60,38 +62,28 @@ internal class AdLoader<T : CXAdapterDelegate>(
             val ad = loadAd(bidAdLoadTimeoutMillis, bidItem.createBidAd)
 
             if (ad != null) {
-                CXLogger.i(
-                    TAG, placementName, placementId,
-                    "Loaded: ${bidItem.adNetworkOriginal.networkName} (rank=${bidItem.rank})"
-                )
-                winner = ad
-                winnerIndex = index
+                CXLogger.i(TAG, placementName, placementId, "Loaded: ${bidItem.adNetworkOriginal.networkName} (rank=${bidItem.bid.rank})")
+
+                loadedAd = ad
+                loadedAdIndex = index
+                winnerBidPrice = bidItem.bid.price ?: -1f
                 break
             } else {
-                CXLogger.w(
-                    TAG, placementName, placementId,
-                    "Failed: ${bidItem.adNetworkOriginal.networkName} (rank=${bidItem.rank})"
-                )
-                lossReasons[bidItem.id] = LossReason.TechnicalError
+                CXLogger.w(TAG, placementName, placementId, "Failed: ${bidItem.adNetworkOriginal.networkName} (rank=${bidItem.bid.rank})")
+
+                winLossTracker.sendLoss(bids.auctionId, bidItem.bid, LossReason.TechnicalError, winnerBidPrice)
             }
         }
 
-        // fire LURLs for non-winners
-        if (winnerIndex != -1) {
-            bids.bidItemsByRank.forEachIndexed { idx, item ->
-                if (idx != winnerIndex && !lossReasons.containsKey(item.id)) {
-                    lossReasons[item.id] = LossReason.LostToHigherBid
-                }
-            }
-            bids.bidItemsByRank.forEachIndexed { idx, item ->
-                if (idx != winnerIndex) {
-                    val reason = lossReasons[item.id] ?: LossReason.LostToHigherBid
-                    item.lurl?.takeIf { it.isNotBlank() }?.let { LossTracker.trackLoss(it, reason) }
+        if (loadedAdIndex != -1) {
+            bids.bidItemsByRank.forEachIndexed { index, bidItem ->
+                if (index > loadedAdIndex) {
+                    winLossTracker.sendLoss(bids.auctionId, bidItem.bid, LossReason.LostToHigherBid, winnerBidPrice)
                 }
             }
         }
 
-        winner
+        loadedAd
     }
 
     private suspend fun loadAd(

@@ -1,4 +1,4 @@
-package io.cloudx.sdk.internal.bid
+package io.cloudx.sdk.internal.imp_tracker.win_loss
 
 /**
  * Represents the reason why a bid was lost in an auction.

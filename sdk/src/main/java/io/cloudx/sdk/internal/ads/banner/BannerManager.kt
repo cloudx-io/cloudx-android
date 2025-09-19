@@ -19,6 +19,7 @@ import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsType
 import io.cloudx.sdk.internal.util.Result
+import io.cloudx.sdk.internal.imp_tracker.win_loss.WinLossTracker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -246,6 +247,7 @@ internal fun BannerManager(
     cdpApi: CdpApi,
     eventTracker: EventTracker,
     metricsTracker: MetricsTracker,
+    winLossTracker: WinLossTracker,
     connectionStatusService: ConnectionStatusService,
     accountId: String,
     appKey: String
@@ -268,6 +270,7 @@ internal fun BannerManager(
             generateBidRequest = bidRequestProvider,
             eventTracker = eventTracker,
             metricsTracker = metricsTracker,
+            winLossTracker = winLossTracker,
             miscParams = miscParams,
             bidRequestTimeoutMillis = 0,
             accountId = accountId,
@@ -280,7 +283,8 @@ internal fun BannerManager(
         bidAdLoadTimeoutMillis = bidAdLoadTimeoutMillis,
         placementName = placementName,
         placementId = placementId,
-        connectionStatusService = connectionStatusService
+        connectionStatusService = connectionStatusService,
+        winLossTracker = winLossTracker
     )
 
     return BannerManagerImpl(

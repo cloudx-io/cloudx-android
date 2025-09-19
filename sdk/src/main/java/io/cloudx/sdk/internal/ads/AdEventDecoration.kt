@@ -12,10 +12,12 @@ import io.cloudx.sdk.internal.ads.fullscreen.interstitial.DecoratedInterstitialA
 import io.cloudx.sdk.internal.ads.fullscreen.interstitial.InterstitialAdapterDelegate
 import io.cloudx.sdk.internal.ads.fullscreen.rewarded.DecoratedRewardedInterstitialAdapterDelegate
 import io.cloudx.sdk.internal.ads.fullscreen.rewarded.RewardedInterstitialAdapterDelegate
+import io.cloudx.sdk.internal.bid.Bid
 import io.cloudx.sdk.internal.imp_tracker.ClickCounterTracker
 import io.cloudx.sdk.internal.imp_tracker.EventTracker
 import io.cloudx.sdk.internal.imp_tracker.EventType
 import io.cloudx.sdk.internal.imp_tracker.TrackingFieldResolver
+import io.cloudx.sdk.internal.imp_tracker.win_loss.WinLossTracker
 import kotlinx.coroutines.launch
 
 private typealias Func = (() -> Unit)
@@ -143,15 +145,17 @@ internal fun RewardedInterstitialAdapterDelegate.decorate(adEventDecoration: AdE
 fun baseAdDecoration() = AdEventDecoration()
 
 internal fun bidAdDecoration(
-    bidId: String,
+    bid: Bid,
     auctionId: String,
     eventTracker: EventTracker,
+    winLossTracker: WinLossTracker,
 ) = AdEventDecoration(
     onLoad = {},
     onImpression = {
         val scope = GlobalScopes.IO
         scope.launch {
-            TrackingFieldResolver.saveLoadedBid(auctionId, bidId)
+            // Save the loaded bid for existing impression tracking
+            TrackingFieldResolver.saveLoadedBid(auctionId, bid.id)
             var payload = TrackingFieldResolver.buildPayload(auctionId)
             payload = payload?.replace(auctionId, auctionId)
             val accountId = TrackingFieldResolver.getAccountId()
@@ -162,12 +166,14 @@ internal fun bidAdDecoration(
                 val impressionId = XorEncryption.encrypt(payload, secret)
                 eventTracker.send(impressionId, campaignId, "1", EventType.IMPRESSION)
             }
+
+            winLossTracker.sendWin(auctionId, bid)
         }
     },
     onClick = {
         val scope = GlobalScopes.IO
         scope.launch {
-            TrackingFieldResolver.saveLoadedBid(auctionId, bidId)
+            TrackingFieldResolver.saveLoadedBid(auctionId, bid.id)
             val clickCount = ClickCounterTracker.incrementAndGet(auctionId)
 
             val payload = TrackingFieldResolver.buildPayload(auctionId)?.replace(

@@ -130,7 +130,6 @@ internal class WinLossTrackerImpl(
         db.cachedWinLossEventDao().insert(
             CachedWinLossEvents(
                 id = eventId,
-                endpointUrl = endpointUrl ?: "",
                 payload = payloadJson
             )
         )
@@ -149,7 +148,7 @@ internal class WinLossTrackerImpl(
             val payload = parsePayload(entry.payload)
             if (payload != null) {
                 val result =
-                    trackerApi.send(key, entry.endpointUrl.ifBlank { endpoint }, payload)
+                    trackerApi.send(key, endpoint, payload)
                 if (result is Result.Success) {
                     db.cachedWinLossEventDao().delete(entry.id)
                 }

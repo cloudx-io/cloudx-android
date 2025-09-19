@@ -18,7 +18,7 @@ internal class WinLossTrackerImpl(
     private val trackerApi: WinLossTrackerApi
 ) : WinLossTracker {
 
-    private lateinit var appKey: String
+    private var appKey: String? = null
     private var endpointUrl: String? = null
 
     override fun setAppKey(appKey: String) {
@@ -110,12 +110,13 @@ internal class WinLossTrackerImpl(
     private suspend fun trackWinLoss(payload: Map<String, Any>) {
         val eventId = saveToDb(payload)
         val endpoint = endpointUrl
+        val key = appKey
 
-        if (endpoint.isNullOrBlank()) {
+        if (endpoint.isNullOrBlank() || key.isNullOrBlank()) {
             return
         }
 
-        val result = trackerApi.send(appKey, endpoint, payload)
+        val result = trackerApi.send(key, endpoint, payload)
 
         if (result is Result.Success) {
             db.cachedWinLossEventDao().delete(eventId)
@@ -138,8 +139,9 @@ internal class WinLossTrackerImpl(
 
     private suspend fun sendCached(entries: List<CachedWinLossEvents>) {
         val endpoint = endpointUrl
+        val key = appKey
 
-        if (endpoint.isNullOrBlank()) {
+        if (endpoint.isNullOrBlank() || key.isNullOrBlank()) {
             return
         }
 
@@ -147,7 +149,7 @@ internal class WinLossTrackerImpl(
             val payload = parsePayload(entry.payload)
             if (payload != null) {
                 val result =
-                    trackerApi.send(appKey, entry.endpointUrl.ifBlank { endpoint }, payload)
+                    trackerApi.send(key, entry.endpointUrl.ifBlank { endpoint }, payload)
                 if (result is Result.Success) {
                     db.cachedWinLossEventDao().delete(entry.id)
                 }

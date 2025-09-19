@@ -5,8 +5,7 @@ import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapter
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterListener
 import io.cloudx.sdk.internal.ads.CXAdapterDelegate
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import io.cloudx.sdk.internal.util.ThreadUtils
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -70,7 +69,7 @@ private class BannerAdapterDelegateImpl(
 ) : BannerAdapterDelegate {
 
     // State management
-    private val scope = CoroutineScope(Dispatchers.Main)
+    private val scope = ThreadUtils.createMainScope("BannerAdapterDelegate")
     private val _event = MutableSharedFlow<BannerAdapterDelegateEvent>()
     private val _lastErrorEvent = MutableStateFlow<CloudXError?>(null)
 

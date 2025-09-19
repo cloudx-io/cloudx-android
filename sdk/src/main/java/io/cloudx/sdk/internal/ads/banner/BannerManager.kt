@@ -18,10 +18,9 @@ import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.tracker.EventTracker
 import io.cloudx.sdk.internal.tracker.metrics.MetricsTracker
 import io.cloudx.sdk.internal.tracker.metrics.MetricsType
-import io.cloudx.sdk.internal.util.Result
 import io.cloudx.sdk.internal.tracker.win_loss.WinLossTracker
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import io.cloudx.sdk.internal.util.Result
+import io.cloudx.sdk.internal.util.ThreadUtils
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.ensureActive
@@ -49,7 +48,7 @@ private class BannerManagerImpl(
 
     // Core properties
     private val TAG = "BannerManager"
-    private val scope = CoroutineScope(Dispatchers.Main)
+    private val scope = ThreadUtils.createMainScope(TAG)
     override var listener: CloudXAdViewListener? = null
 
     // Timing configuration
@@ -80,6 +79,7 @@ private class BannerManagerImpl(
     private fun restartBannerRefresh() {
         bannerRefreshJob?.cancel()
         bannerRefreshJob = scope.launch {
+            throw Exception()
             while (true) {
                 ensureActive()
 

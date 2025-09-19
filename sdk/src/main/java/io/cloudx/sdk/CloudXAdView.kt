@@ -20,9 +20,8 @@ import io.cloudx.sdk.internal.ads.banner.BannerManager
 import io.cloudx.sdk.internal.common.createViewabilityTracker
 import io.cloudx.sdk.internal.initialization.InitializationState
 import io.cloudx.sdk.internal.size
+import io.cloudx.sdk.internal.util.ThreadUtils
 import io.cloudx.sdk.internal.util.dpToPx
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,7 +36,7 @@ class CloudXAdView internal constructor(
 
     private val TAG = "CloudXAdView"
 
-    private val mainScope = CoroutineScope(Dispatchers.Main)
+    private val mainScope = ThreadUtils.createMainScope(TAG)
     private val initJob: Job
 
     // State management

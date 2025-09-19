@@ -1,8 +1,7 @@
 package io.cloudx.sdk.internal.ads.fullscreen.interstitial
 
 import io.cloudx.sdk.CloudXError
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import io.cloudx.sdk.internal.util.ThreadUtils
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
@@ -25,7 +24,7 @@ internal class DecoratedInterstitialAdapterDelegate(
     private val interstitial: InterstitialAdapterDelegate
 ) : InterstitialAdapterDelegate by interstitial {
 
-    private val scope = CoroutineScope(Dispatchers.Main).also {
+    private val scope = ThreadUtils.createMainScope("DecoratedInterstitialAdapterDelegate").also {
         it.launch {
             event.collect { event ->
                 when (event) {

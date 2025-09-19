@@ -3,12 +3,23 @@ package io.cloudx.cd.staticrenderer
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
-import android.webkit.*
+import android.webkit.RenderProcessGoneDetail
+import android.webkit.WebView
 import androidx.webkit.WebViewClientCompat
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.flow.combine
 import io.cloudx.sdk.internal.CXLogger
+import io.cloudx.sdk.internal.util.ThreadUtils
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 // TODO. Ugly. Duplication of VastWebView.
 //  Review settings during webview build/init.
@@ -36,7 +47,7 @@ internal class StaticWebView(
         visibility = GONE
     }
 
-    private val scope = CoroutineScope(Dispatchers.Main)
+    private val scope = ThreadUtils.createMainScope("StaticWebView")
 
     private val webViewClientImpl = WebViewClientImpl(scope, externalLinkHandler).also {
         webViewClient = it

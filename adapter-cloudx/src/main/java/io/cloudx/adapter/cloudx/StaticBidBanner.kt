@@ -8,9 +8,8 @@ import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapter
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterListener
 import io.cloudx.sdk.internal.context.ContextProvider
+import io.cloudx.sdk.internal.util.ThreadUtils
 import io.cloudx.sdk.toCloudXError
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
@@ -24,7 +23,7 @@ internal class StaticBidBanner(
     private val listener: CloudXAdViewAdapterListener
 ) : CloudXAdViewAdapter {
 
-    private val scope = CoroutineScope(Dispatchers.Main)
+    private val scope = ThreadUtils.createMainScope("StaticBidBanner")
 
     private val staticWebView: StaticWebView by lazy {
         StaticWebView(

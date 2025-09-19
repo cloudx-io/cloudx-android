@@ -1,8 +1,8 @@
 package io.cloudx.sdk.internal.tracker.win_loss
 
-import io.cloudx.sdk.internal.GlobalScopes
 import io.cloudx.sdk.internal.bid.Bid
 import io.cloudx.sdk.internal.db.Database
+import io.cloudx.sdk.internal.util.ThreadUtils
 
 internal interface WinLossTracker {
 
@@ -31,7 +31,7 @@ internal fun WinLossTracker(): WinLossTracker = LazySingleInstance
 
 private val LazySingleInstance by lazy {
     WinLossTrackerImpl(
-        GlobalScopes.IO,
+        ThreadUtils.GlobalIOScope,
         WinLossFieldResolver(),
         Database(),
         WinLossTrackerApi()

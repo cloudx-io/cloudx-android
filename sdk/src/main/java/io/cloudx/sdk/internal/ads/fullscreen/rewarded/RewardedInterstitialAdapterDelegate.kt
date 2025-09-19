@@ -5,8 +5,7 @@ import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapter
 import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapterListener
 import io.cloudx.sdk.internal.ads.fullscreen.FullscreenAdAdapterDelegate
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import io.cloudx.sdk.internal.util.ThreadUtils
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -71,7 +70,7 @@ private class RewardedInterstitialAdapterDelegateImpl(
 ) : RewardedInterstitialAdapterDelegate {
 
     // State management
-    private val scope = CoroutineScope(Dispatchers.Main)
+    private val scope = ThreadUtils.createMainScope("RewardedInterstitialAdapterDelegate")
     private val _event = MutableSharedFlow<RewardedInterstitialAdapterDelegateEvent>()
     private val _lastErrorEvent = MutableStateFlow<CloudXError?>(null)
 

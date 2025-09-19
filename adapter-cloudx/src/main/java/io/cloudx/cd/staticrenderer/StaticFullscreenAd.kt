@@ -1,8 +1,7 @@
 package io.cloudx.cd.staticrenderer
 
 import android.content.Context
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import io.cloudx.sdk.internal.util.ThreadUtils
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
@@ -26,7 +25,7 @@ private class StaticFullscreenAdImpl(
     override var listener: FullscreenAd.Listener?
 ) : FullscreenAd<FullscreenAd.Listener> {
 
-    private val scope = CoroutineScope(Dispatchers.Main)
+    private val scope = ThreadUtils.createMainScope("StaticFullscreenAd")
 
     private val staticWebView: StaticWebView by lazy {
         StaticWebView(context, ExternalLinkHandlerImpl(context))

@@ -20,8 +20,8 @@ import io.cloudx.sdk.internal.ads.native.viewtemplates.CloudXNativeAdViewTemplat
 import io.cloudx.sdk.internal.ads.native.viewtemplates.cloudXNativeAdTemplate
 import io.cloudx.sdk.internal.context.ContextProvider
 import io.cloudx.sdk.internal.util.Result
+import io.cloudx.sdk.internal.util.ThreadUtils
 import io.cloudx.sdk.toCloudXError
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
@@ -39,7 +39,7 @@ internal class NativeAd(
     private val listener: CloudXAdViewAdapterListener
 ) : CloudXAdViewAdapter {
 
-    private val scope = CoroutineScope(Dispatchers.Main)
+    private val scope = ThreadUtils.createMainScope("NativeAd")
 
     private var cloudXNativeAdViewTemplate: CloudXNativeAdViewTemplate? = null
     private val externalLinkHandler = ExternalLinkHandlerImpl(contextProvider.getContext())

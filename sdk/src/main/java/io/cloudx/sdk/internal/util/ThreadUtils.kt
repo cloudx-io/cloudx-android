@@ -1,16 +1,15 @@
 package io.cloudx.sdk.internal.util
 
-import io.cloudx.sdk.Destroyable
 import io.cloudx.sdk.internal.CXLogger
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
@@ -25,7 +24,9 @@ import kotlin.coroutines.CoroutineContext
  * Provides optimized thread pools and executors for different types of operations,
  * ensuring efficient resource usage and proper thread lifecycle management.
  */
-internal object ThreadUtils : Destroyable {
+object ThreadUtils {
+
+    private const val TAG = "ThreadUtils"
 
     // Single-threaded executor for database operations
     private val databaseExecutor = Executors.newSingleThreadExecutor(
@@ -40,13 +41,48 @@ internal object ThreadUtils : Destroyable {
     // Keep custom single-threaded dispatcher for database to ensure serial execution
     val DatabaseDispatcher: CoroutineDispatcher = databaseExecutor.asCoroutineDispatcher()
 
-    // Application-wide coroutine scope for SDK operations
-    // Note: This scope defines lifecycle, not threading - operations should explicitly choose dispatcher
-    val ApplicationScope = CoroutineScope(SupervisorJob())
-
     // UI-focused coroutine scope for main thread operations
     // Note: Use this for UI-related work, ad display, listener callbacks
-    val UIScope = CoroutineScope(SupervisorJob() + MainDispatcher)
+    val GlobalMainScope = createMainScope(TAG)
+
+    // Application-wide coroutine scope for SDK operations
+    // Note: This scope defines lifecycle, not threading - operations should explicitly choose dispatcher
+    val GlobalIOScope = createIOScope(TAG)
+
+    /**
+     * Create a component-scoped coroutine scope with proper error handling and lifecycle management.
+     *
+     * Use this for components that need to cancel operations when destroyed (e.g., BannerManager,
+     * AdapterDelegate, timers). Each component gets its own isolated scope with SupervisorJob
+     * to prevent one failure from affecting other operations within the component.
+     *
+     * @param tag Component name for logging (e.g., "BannerManager", "AdapterDelegate")
+     * @param dispatcher Coroutine dispatcher to use (defaults to Main for UI components)
+     * @return CoroutineScope with SupervisorJob and exception handling
+     */
+    fun createScope(
+        tag: String,
+        dispatcher: CoroutineDispatcher = MainDispatcher
+    ): CoroutineScope {
+        val componentExceptionHandler = CoroutineExceptionHandler { _, exception ->
+            CXLogger.e(tag, "Uncaught coroutine exception", exception)
+        }
+        return CoroutineScope(SupervisorJob() + dispatcher + componentExceptionHandler)
+    }
+
+    /**
+     * Convenience method to create a main-thread component scope (uses Main dispatcher).
+     * Use for UI-related components like ad managers, UI controllers, etc.
+     */
+    fun createMainScope(tag: String): CoroutineScope =
+        createScope(tag, MainDispatcher)
+
+    /**
+     * Convenience method to create a background component scope (uses IO dispatcher).
+     * Use for background components like trackers, network managers, etc.
+     */
+    fun createIOScope(tag: String): CoroutineScope =
+        createScope(tag, IODispatcher)
 
     /**
      * Execute a suspend function with timeout and error handling.
@@ -66,31 +102,14 @@ internal object ThreadUtils : Destroyable {
                 withContext(context, block)
             }
         } catch (e: TimeoutCancellationException) {
-            CXLogger.w("ThreadUtils", "Operation timed out after ${timeoutMs}ms")
+            CXLogger.w(TAG, "Operation timed out after ${timeoutMs}ms")
             null
         } catch (e: CancellationException) {
-            CXLogger.d("ThreadUtils", "Operation was cancelled")
+            CXLogger.d(TAG, "Operation was cancelled")
             throw e // Re-throw cancellation to maintain coroutine semantics
         } catch (e: Exception) {
-            CXLogger.e("ThreadUtils", "Operation failed with exception")
+            CXLogger.e(TAG, "Operation failed with exception")
             null
-        }
-    }
-
-    /**
-     * Shutdown all thread pools.
-     *
-     * This should only be called when the SDK is being completely shut down.
-     */
-    override fun destroy() {
-        try {
-            databaseExecutor.shutdown()
-
-            // Cancel all coroutine scopes
-            ApplicationScope.cancel()
-            UIScope.cancel()
-        } catch (e: Exception) {
-            CXLogger.w("ThreadUtils", "Error during thread pool shutdown")
         }
     }
 

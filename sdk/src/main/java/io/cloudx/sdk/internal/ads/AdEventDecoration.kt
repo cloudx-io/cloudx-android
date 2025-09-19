@@ -5,7 +5,6 @@ import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.CXLogger
-import io.cloudx.sdk.internal.GlobalScopes
 import io.cloudx.sdk.internal.ads.banner.BannerAdapterDelegate
 import io.cloudx.sdk.internal.ads.banner.DecoratedBannerAdapterDelegate
 import io.cloudx.sdk.internal.ads.fullscreen.interstitial.DecoratedInterstitialAdapterDelegate
@@ -18,6 +17,7 @@ import io.cloudx.sdk.internal.tracker.EventTracker
 import io.cloudx.sdk.internal.tracker.EventType
 import io.cloudx.sdk.internal.tracker.TrackingFieldResolver
 import io.cloudx.sdk.internal.tracker.win_loss.WinLossTracker
+import io.cloudx.sdk.internal.util.ThreadUtils
 import kotlinx.coroutines.launch
 
 private typealias Func = (() -> Unit)
@@ -152,8 +152,7 @@ internal fun bidAdDecoration(
 ) = AdEventDecoration(
     onLoad = {},
     onImpression = {
-        val scope = GlobalScopes.IO
-        scope.launch {
+        ThreadUtils.GlobalIOScope.launch {
             // Save the loaded bid for existing impression tracking
             TrackingFieldResolver.saveLoadedBid(auctionId, bid.id)
             var payload = TrackingFieldResolver.buildPayload(auctionId)
@@ -171,8 +170,7 @@ internal fun bidAdDecoration(
         }
     },
     onClick = {
-        val scope = GlobalScopes.IO
-        scope.launch {
+        ThreadUtils.GlobalIOScope.launch {
             TrackingFieldResolver.saveLoadedBid(auctionId, bid.id)
             val clickCount = ClickCounterTracker.incrementAndGet(auctionId)
 

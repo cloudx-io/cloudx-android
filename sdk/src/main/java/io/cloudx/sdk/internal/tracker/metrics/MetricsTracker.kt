@@ -1,9 +1,9 @@
 package io.cloudx.sdk.internal.tracker.metrics
 
-import io.cloudx.sdk.internal.GlobalScopes
 import io.cloudx.sdk.internal.config.Config
 import io.cloudx.sdk.internal.db.Database
 import io.cloudx.sdk.internal.tracker.bulk.EventTrackerBulkApi
+import io.cloudx.sdk.internal.util.ThreadUtils
 
 internal interface MetricsTracker {
 
@@ -25,7 +25,7 @@ internal fun MetricsTracker(): MetricsTracker = LazySingleInstance
 
 private val LazySingleInstance by lazy {
     MetricsTrackerImpl(
-        GlobalScopes.IO,
+        ThreadUtils.GlobalIOScope,
         EventTrackerBulkApi(),
         Database()
     )

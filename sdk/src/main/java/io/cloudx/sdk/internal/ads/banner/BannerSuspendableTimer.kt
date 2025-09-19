@@ -2,8 +2,7 @@ package io.cloudx.sdk.internal.ads.banner
 
 import io.cloudx.sdk.Destroyable
 import io.cloudx.sdk.internal.common.SuspendableTimer
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import io.cloudx.sdk.internal.util.ThreadUtils
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -15,9 +14,7 @@ internal class BannerSuspendableTimer(
     suspendWhenInvisible: Boolean
 ) : Destroyable {
 
-    // TODO. Consider reusing scopes from outside via lambda creator or something
-    //  in order to prevent multiple coroutine scopes. I'm not sure if it's even important for now.
-    private val scope = CoroutineScope(Dispatchers.Main)
+    private val scope = ThreadUtils.createMainScope("BannerSuspendableTimer")
     private val suspendableTimer = SuspendableTimer()
     private var canCountTime = false
 

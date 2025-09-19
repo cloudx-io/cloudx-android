@@ -1,9 +1,8 @@
 package io.cloudx.sdk.internal.common
 
 import io.cloudx.sdk.Destroyable
+import io.cloudx.sdk.internal.util.ThreadUtils
 import io.cloudx.sdk.internal.util.utcNowEpochMillis
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
@@ -15,9 +14,7 @@ import kotlinx.coroutines.launch
 // I don't want to use a native Java Timer for now: not sure about memory usage and things like that.
 internal class SuspendableTimer : Destroyable {
 
-    // TODO. Consider reusing scopes from outside via lambda creator or something
-    //  in order to prevent multiple coroutine scopes. I'm not sure if it's even important for now.
-    private val scope = CoroutineScope(Dispatchers.Main)
+    private val scope = ThreadUtils.createMainScope("SuspendableTimer")
     private val isTimeout = MutableStateFlow(false)
     private var timeoutJob: Job? = null
     private var remainingTimeMillis: Long? = null

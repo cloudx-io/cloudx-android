@@ -6,10 +6,10 @@ import io.cloudx.sdk.CloudXAdRevenueListener
 import io.cloudx.sdk.CloudXFullscreenAd
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.ads.AdLoader
+import io.cloudx.sdk.internal.util.ThreadUtils
 import io.cloudx.sdk.toCloudXError
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
@@ -29,7 +29,7 @@ internal class FullscreenAdManager<
 ) : CloudXFullscreenAd<CloudXAdListener> {
 
     // Core components
-    private val scope = CoroutineScope(Dispatchers.Main)
+    private val scope = ThreadUtils.createMainScope(tag)
 
     // Loading state
     private var lastLoadJob: Job? = null

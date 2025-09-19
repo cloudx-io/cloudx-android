@@ -1,7 +1,6 @@
 package io.cloudx.sdk.internal.connectionstatus
 
 import io.cloudx.sdk.internal.ApplicationContext
-import io.cloudx.sdk.internal.GlobalScopes
 import kotlinx.coroutines.flow.Flow
 
 /**

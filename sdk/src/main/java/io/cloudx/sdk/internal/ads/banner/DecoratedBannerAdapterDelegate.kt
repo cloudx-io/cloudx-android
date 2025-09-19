@@ -1,8 +1,7 @@
 package io.cloudx.sdk.internal.ads.banner
 
 import io.cloudx.sdk.CloudXError
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import io.cloudx.sdk.internal.util.ThreadUtils
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
@@ -21,7 +20,7 @@ internal class DecoratedBannerAdapterDelegate(
     private val banner: BannerAdapterDelegate
 ) : BannerAdapterDelegate by banner {
 
-    private val scope = CoroutineScope(Dispatchers.Main).also {
+    private val scope = ThreadUtils.createMainScope("DecoratedBannerAdapterDelegate").also {
         it.launch {
             event.collect { event ->
                 when (event) {

@@ -76,7 +76,7 @@ internal class AdLoader<T : CXAdapterDelegate>(
 
         if (loadedAdIndex != -1) {
             bids.bidItemsByRank.forEachIndexed { index, bidItem ->
-                if (index != loadedAdIndex) {
+                if (index > loadedAdIndex) {
                     winLossTracker.sendLoss(bids.auctionId, bidItem.bid, LossReason.LostToHigherBid, winnerBidPrice)
                 }
             }

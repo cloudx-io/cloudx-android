@@ -1,4 +1,4 @@
-package io.cloudx.sdk.internal.imp_tracker
+package io.cloudx.sdk.internal.tracker
 
 enum class EventType(
     val pathSegment: String,

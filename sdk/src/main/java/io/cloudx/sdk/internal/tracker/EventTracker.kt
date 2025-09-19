@@ -1,4 +1,4 @@
-package io.cloudx.sdk.internal.imp_tracker
+package io.cloudx.sdk.internal.tracker
 
 import io.cloudx.sdk.internal.GlobalScopes
 import io.cloudx.sdk.internal.db.Database

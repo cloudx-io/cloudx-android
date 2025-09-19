@@ -14,9 +14,9 @@ import io.cloudx.sdk.internal.bid.BidApi
 import io.cloudx.sdk.internal.bid.BidRequestProvider
 import io.cloudx.sdk.internal.cdp.CdpApi
 import io.cloudx.sdk.internal.context.ContextProvider
-import io.cloudx.sdk.internal.imp_tracker.EventTracker
-import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
-import io.cloudx.sdk.internal.imp_tracker.win_loss.WinLossTracker
+import io.cloudx.sdk.internal.tracker.EventTracker
+import io.cloudx.sdk.internal.tracker.metrics.MetricsTracker
+import io.cloudx.sdk.internal.tracker.win_loss.WinLossTracker
 import io.cloudx.sdk.internal.util.Result
 
 internal fun BidBannerSource(

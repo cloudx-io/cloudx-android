@@ -8,8 +8,8 @@ import io.cloudx.sdk.internal.appinfo.AppInfoProvider
 import io.cloudx.sdk.internal.crash.CrashReportingService
 import io.cloudx.sdk.internal.deviceinfo.DeviceInfoProvider
 import io.cloudx.sdk.internal.geo.GeoApi
-import io.cloudx.sdk.internal.imp_tracker.EventTracker
-import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
+import io.cloudx.sdk.internal.tracker.EventTracker
+import io.cloudx.sdk.internal.tracker.metrics.MetricsTracker
 import io.cloudx.sdk.internal.privacy.PrivacyService
 import io.cloudx.sdk.internal.util.Result
 import io.cloudx.sdk.mocks.MockAdapterFactoryResolver
@@ -60,7 +60,7 @@ class InitializationServiceImplTest : RoboMockkTest() {
             privacyService = PrivacyService(),
             _metricsTracker = MetricsTracker(),
             eventTracker = EventTracker(),
-            winLossTracker = io.cloudx.sdk.internal.imp_tracker.win_loss.WinLossTracker(),
+            winLossTracker = io.cloudx.sdk.internal.tracker.win_loss.WinLossTracker(),
             provideDeviceInfo = DeviceInfoProvider(),
             geoApi = GeoApi(),
             crashReportingService = CrashReportingService(),

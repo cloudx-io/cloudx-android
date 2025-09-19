@@ -1,4 +1,4 @@
-package io.cloudx.sdk.internal.imp_tracker.metrics
+package io.cloudx.sdk.internal.tracker.metrics
 
 sealed class MetricsType(val typeCode: String) {
     sealed class Network(typeCode: String) : MetricsType(typeCode) {

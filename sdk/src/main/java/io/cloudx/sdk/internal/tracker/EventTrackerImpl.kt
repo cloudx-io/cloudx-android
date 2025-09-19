@@ -1,10 +1,10 @@
-package io.cloudx.sdk.internal.imp_tracker
+package io.cloudx.sdk.internal.tracker
 
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.db.CloudXDb
 import io.cloudx.sdk.internal.db.imp_tracking.CachedTrackingEvents
-import io.cloudx.sdk.internal.imp_tracker.bulk.EventAM
-import io.cloudx.sdk.internal.imp_tracker.bulk.EventTrackerBulkApi
+import io.cloudx.sdk.internal.tracker.bulk.EventAM
+import io.cloudx.sdk.internal.tracker.bulk.EventTrackerBulkApi
 import io.cloudx.sdk.internal.util.Result
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch

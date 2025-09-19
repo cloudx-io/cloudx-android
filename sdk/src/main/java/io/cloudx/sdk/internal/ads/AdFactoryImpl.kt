@@ -13,9 +13,9 @@ import io.cloudx.sdk.internal.cdp.CdpApi
 import io.cloudx.sdk.internal.config.Config
 import io.cloudx.sdk.internal.config.ResolvedEndpoints
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
-import io.cloudx.sdk.internal.imp_tracker.EventTracker
-import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
-import io.cloudx.sdk.internal.imp_tracker.win_loss.WinLossTracker
+import io.cloudx.sdk.internal.tracker.EventTracker
+import io.cloudx.sdk.internal.tracker.metrics.MetricsTracker
+import io.cloudx.sdk.internal.tracker.win_loss.WinLossTracker
 import io.cloudx.sdk.internal.initialization.BidAdNetworkFactories
 import io.cloudx.sdk.internal.size
 

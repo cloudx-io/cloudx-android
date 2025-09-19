@@ -1,4 +1,4 @@
-package io.cloudx.sdk.internal.imp_tracker.bulk
+package io.cloudx.sdk.internal.tracker.bulk
 
 import org.json.JSONArray
 import org.json.JSONObject

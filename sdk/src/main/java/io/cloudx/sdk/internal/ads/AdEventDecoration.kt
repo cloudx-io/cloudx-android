@@ -13,11 +13,11 @@ import io.cloudx.sdk.internal.ads.fullscreen.interstitial.InterstitialAdapterDel
 import io.cloudx.sdk.internal.ads.fullscreen.rewarded.DecoratedRewardedInterstitialAdapterDelegate
 import io.cloudx.sdk.internal.ads.fullscreen.rewarded.RewardedInterstitialAdapterDelegate
 import io.cloudx.sdk.internal.bid.Bid
-import io.cloudx.sdk.internal.imp_tracker.ClickCounterTracker
-import io.cloudx.sdk.internal.imp_tracker.EventTracker
-import io.cloudx.sdk.internal.imp_tracker.EventType
-import io.cloudx.sdk.internal.imp_tracker.TrackingFieldResolver
-import io.cloudx.sdk.internal.imp_tracker.win_loss.WinLossTracker
+import io.cloudx.sdk.internal.tracker.ClickCounterTracker
+import io.cloudx.sdk.internal.tracker.EventTracker
+import io.cloudx.sdk.internal.tracker.EventType
+import io.cloudx.sdk.internal.tracker.TrackingFieldResolver
+import io.cloudx.sdk.internal.tracker.win_loss.WinLossTracker
 import kotlinx.coroutines.launch
 
 private typealias Func = (() -> Unit)

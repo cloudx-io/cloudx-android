@@ -5,7 +5,7 @@ import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.CloudXInitializationListener
 import io.cloudx.sdk.CloudXInitializationParams
 import io.cloudx.sdk.internal.config.ConfigApi
-import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsType
+import io.cloudx.sdk.internal.tracker.metrics.MetricsType
 import io.cloudx.sdk.internal.initialization.InitializationService
 import io.cloudx.sdk.internal.initialization.InitializationState
 import io.cloudx.sdk.internal.state.SdkKeyValueState

@@ -1,4 +1,4 @@
-package io.cloudx.sdk.internal.imp_tracker.bulk
+package io.cloudx.sdk.internal.tracker.bulk
 
 import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.CloudXErrorCode

@@ -1,4 +1,4 @@
-package io.cloudx.sdk.internal.imp_tracker.bulk
+package io.cloudx.sdk.internal.tracker
 
 import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.internal.util.Result
@@ -7,7 +7,7 @@ import io.ktor.client.HttpClient
 /**
  * Impression tracking API to notify backend when a winning ad was rendered.
  */
-internal fun interface EventTrackerBulkApi {
+internal fun interface EventTrackerApi {
 
     /**
      * Sends a tracking request with encoded impression ID and metadata.
@@ -18,14 +18,17 @@ internal fun interface EventTrackerBulkApi {
      */
     suspend fun send(
         endpointUrl: String,
-        items: List<EventAM>
+        encodedData: String,
+        campaignId: String,
+        eventValue: String,
+        eventName: String,
     ): Result<Unit, CloudXError>
 }
 
-internal fun EventTrackerBulkApi(
+internal fun EventTrackerApi(
     timeoutMillis: Long = 10_000,
     httpClient: HttpClient = io.cloudx.sdk.internal.httpclient.CloudXHttpClient(),
-): EventTrackerBulkApi = EventTrackerBulkApiImpl(
+): EventTrackerApi = EventTrackerApiImpl(
     timeoutMillis = timeoutMillis,
     httpClient = httpClient
 )

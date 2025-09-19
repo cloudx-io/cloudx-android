@@ -5,9 +5,9 @@ import androidx.core.content.edit
 import com.xor.XorEncryption
 import io.cloudx.sdk.internal.ApplicationContext
 import io.cloudx.sdk.internal.config.Config
-import io.cloudx.sdk.internal.imp_tracker.EventTracker
-import io.cloudx.sdk.internal.imp_tracker.EventType
-import io.cloudx.sdk.internal.imp_tracker.TrackingFieldResolver
+import io.cloudx.sdk.internal.tracker.EventTracker
+import io.cloudx.sdk.internal.tracker.EventType
+import io.cloudx.sdk.internal.tracker.TrackingFieldResolver
 import org.json.JSONObject
 import java.util.UUID
 

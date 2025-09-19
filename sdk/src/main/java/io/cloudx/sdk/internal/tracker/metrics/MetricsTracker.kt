@@ -1,9 +1,9 @@
-package io.cloudx.sdk.internal.imp_tracker.metrics
+package io.cloudx.sdk.internal.tracker.metrics
 
 import io.cloudx.sdk.internal.GlobalScopes
 import io.cloudx.sdk.internal.config.Config
 import io.cloudx.sdk.internal.db.Database
-import io.cloudx.sdk.internal.imp_tracker.bulk.EventTrackerBulkApi
+import io.cloudx.sdk.internal.tracker.bulk.EventTrackerBulkApi
 
 internal interface MetricsTracker {
 

@@ -1,4 +1,4 @@
-package io.cloudx.sdk.internal.imp_tracker.win_loss
+package io.cloudx.sdk.internal.tracker.win_loss
 
 import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.internal.httpclient.CloudXHttpClient

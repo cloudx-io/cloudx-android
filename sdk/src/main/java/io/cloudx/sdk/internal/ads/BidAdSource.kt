@@ -18,7 +18,6 @@ import io.cloudx.sdk.internal.imp_tracker.TrackingFieldResolver
 import io.cloudx.sdk.internal.imp_tracker.TrackingFieldResolver.SDK_PARAM_RESPONSE_IN_MILLIS
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsTracker
 import io.cloudx.sdk.internal.imp_tracker.metrics.MetricsType
-import io.cloudx.sdk.internal.imp_tracker.win_loss.WinLossTracker
 import io.cloudx.sdk.internal.state.SdkKeyValueState
 import io.cloudx.sdk.internal.util.Result
 import java.util.UUID
@@ -52,7 +51,6 @@ internal fun <T : Destroyable> BidAdSource(
     cdpApi: CdpApi,
     eventTracker: EventTracker,
     metricsTracker: MetricsTracker,
-    winLossTracker: WinLossTracker,
     createBidAd: suspend (CreateBidAdParams) -> T,
 ): BidAdSource<T> =
     BidAdSourceImpl(
@@ -62,7 +60,6 @@ internal fun <T : Destroyable> BidAdSource(
         cdpApi = cdpApi,
         eventTracking = eventTracker,
         metricsTracker = metricsTracker,
-        winLossTracker = winLossTracker,
         createBidAd = createBidAd
     )
 
@@ -82,7 +79,6 @@ private class BidAdSourceImpl<T : Destroyable>(
     private val cdpApi: CdpApi,
     private val eventTracking: EventTracker,
     private val metricsTracker: MetricsTracker,
-    private val winLossTracker: WinLossTracker,
     private val createBidAd: suspend (CreateBidAdParams) -> T,
 ) : BidAdSource<T> {
 

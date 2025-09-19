@@ -45,8 +45,7 @@ internal fun BidInterstitialSource(
         requestBid,
         cdpApi,
         eventTracker,
-        metricsTracker,
-        winLossTracker
+        metricsTracker
     ) {
 
         val placementName = it.placementName

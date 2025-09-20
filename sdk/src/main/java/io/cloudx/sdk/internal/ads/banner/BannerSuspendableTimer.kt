@@ -7,42 +7,65 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-// TODO. Refactor. Wrong place.
-//  Use if (suspendWhenInvisible) BannerSuspendableTimer() else NonSuspendableTimer()
 internal class BannerSuspendableTimer(
     bannerContainerVisibility: StateFlow<Boolean>,
-    suspendWhenInvisible: Boolean
 ) : Destroyable {
 
     private val scope = ThreadUtils.createMainScope("BannerSuspendableTimer")
     private val suspendableTimer = SuspendableTimer()
-    private var canCountTime = false
+
+    // State tracking
+    private var isVisible = false
+    private var isManuallyEnabled = true // Start enabled by default
 
     init {
-        if (suspendWhenInvisible) {
-            scope.launch {
-                bannerContainerVisibility.collect { canCountTime ->
-                    this@BannerSuspendableTimer.canCountTime = canCountTime
-                    suspendableTimer.resumeOrPause(canCountTime)
-                }
+        // Initialize visibility state tracking
+        scope.launch {
+            bannerContainerVisibility.collect { visible ->
+                isVisible = visible
+                updateTimerState()
             }
-        } else {
-            canCountTime = true
-            suspendableTimer.resumeOrPause(canCountTime)
         }
     }
 
     suspend fun awaitTimeout(millis: Long) {
         with(suspendableTimer) {
             reset(millis, autoStart = false)
-            resumeOrPause(canCountTime)
+            updateTimerState()
             awaitTimeout()
         }
+    }
+
+    /**
+     * Pause the banner refresh timer manually.
+     * This stops the timer without canceling the refresh cycle.
+     */
+    fun pause() {
+        isManuallyEnabled = false
+        updateTimerState()
+    }
+
+    /**
+     * Resume the banner refresh timer manually.
+     * This restarts the timer where it left off.
+     */
+    fun resume() {
+        isManuallyEnabled = true
+        updateTimerState()
     }
 
     override fun destroy() {
         scope.cancel()
         suspendableTimer.destroy()
+    }
+
+    /**
+     * Update timer state based on both visibility and manual enable/disable state.
+     * Timer only runs when both conditions are true.
+     */
+    private fun updateTimerState() {
+        val shouldRun = isVisible && isManuallyEnabled
+        suspendableTimer.resumeOrPause(shouldRun)
     }
 
     private fun SuspendableTimer.resumeOrPause(resume: Boolean) {

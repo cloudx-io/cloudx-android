@@ -30,6 +30,9 @@ abstract class BannerProgrammaticFragment : Fragment(R.layout.fragment_banner_pr
     private lateinit var llAds: LinearLayout
     private lateinit var loadShowButton: Button
     private lateinit var stopButton: Button
+    private lateinit var refreshControls: LinearLayout
+    private lateinit var startRefreshButton: Button
+    private lateinit var stopRefreshButton: Button
 
     private lateinit var placements: ArrayList<String?>
     private lateinit var logTag: String
@@ -57,6 +60,13 @@ abstract class BannerProgrammaticFragment : Fragment(R.layout.fragment_banner_pr
             stopButton = findViewById(R.id.btn_stop)
             stopButton.setOnClickListener { onStopClick() }
 
+            refreshControls = findViewById(R.id.refresh_controls)
+            startRefreshButton = findViewById(R.id.btn_start_refresh)
+            startRefreshButton.setOnClickListener { onStartRefreshClick() }
+
+            stopRefreshButton = findViewById(R.id.btn_stop_refresh)
+            stopRefreshButton.setOnClickListener { onStopRefreshClick() }
+
             llAds = view.findViewById(R.id.llAds)
         }
 
@@ -80,6 +90,7 @@ abstract class BannerProgrammaticFragment : Fragment(R.layout.fragment_banner_pr
                 val bannerAdViewExists = it.isNotEmpty()
                 loadShowButton.visibility = bannerAdViewExists.not().toVisibility()
                 stopButton.visibility = bannerAdViewExists.toVisibility()
+                refreshControls.visibility = bannerAdViewExists.toVisibility()
             }
         }
 
@@ -115,6 +126,20 @@ abstract class BannerProgrammaticFragment : Fragment(R.layout.fragment_banner_pr
 
     private fun onStopClick() {
         destroyBanners()
+    }
+
+    private fun onStartRefreshClick() {
+        bannerAdViews.value.forEach { adView ->
+            adView.startAutoRefresh()
+            CXLogger.i(logTag, "Auto-refresh started for banner")
+        }
+    }
+
+    private fun onStopRefreshClick() {
+        bannerAdViews.value.forEach { adView ->
+            adView.stopAutoRefresh()
+            CXLogger.i(logTag, "Auto-refresh stopped for banner")
+        }
     }
 
     private fun destroyBanners() {

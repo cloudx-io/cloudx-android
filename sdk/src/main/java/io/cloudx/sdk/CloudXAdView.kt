@@ -104,6 +104,30 @@ class CloudXAdView internal constructor(
         }
     }
 
+    /**
+     * Start auto-refresh for banner ads.
+     * Banners will automatically refresh at the configured interval.
+     */
+    fun startAutoRefresh() {
+        mainScope.launch {
+            // Wait for initialization to complete if needed
+            initJob.join()
+            bannerManager?.startAutoRefresh()
+        }
+    }
+
+    /**
+     * Stop auto-refresh for banner ads.
+     * The current banner will remain displayed but no new banners will be loaded.
+     */
+    fun stopAutoRefresh() {
+        mainScope.launch {
+            // Wait for initialization to complete if needed
+            initJob.join()
+            bannerManager?.stopAutoRefresh()
+        }
+    }
+
     override fun destroy() {
         mainScope.launch {
             bannerManager?.destroy()

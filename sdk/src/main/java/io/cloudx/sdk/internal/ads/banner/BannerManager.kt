@@ -34,6 +34,8 @@ import java.util.concurrent.TimeUnit
 
 internal interface BannerManager : Destroyable {
     var listener: CloudXAdViewListener?
+    fun startAutoRefresh()
+    fun stopAutoRefresh()
 }
 
 private class BannerManagerImpl(
@@ -42,7 +44,6 @@ private class BannerManagerImpl(
     private val adLoader: AdLoader<BannerAdapterDelegate>,
     bannerVisibility: StateFlow<Boolean>,
     private val refreshSeconds: Int,
-    suspendPreloadWhenInvisible: Boolean,
     private val metricsTracker: MetricsTracker,
 ) : BannerManager {
 
@@ -55,11 +56,7 @@ private class BannerManagerImpl(
     private val refreshDelayMillis = TimeUnit.SECONDS.toMillis(refreshSeconds.toLong())
 
     // Banner refresh management
-    private val bannerRefreshTimer =
-        BannerSuspendableTimer(
-            bannerVisibility,
-            suspendPreloadWhenInvisible
-        )
+    private val bannerRefreshTimer = BannerSuspendableTimer(bannerVisibility)
     private var bannerRefreshJob: Job? = null
 
     // Backup banner management
@@ -72,7 +69,19 @@ private class BannerManagerImpl(
     private var currentBannerEventHandlerJob: Job? = null
 
     init {
+        // Start auto-refresh by default
         restartBannerRefresh()
+    }
+
+    // Public auto-refresh control methods
+    override fun startAutoRefresh() {
+        CXLogger.i(TAG, placementName, placementId, "Starting auto-refresh")
+        bannerRefreshTimer.resume()
+    }
+
+    override fun stopAutoRefresh() {
+        CXLogger.i(TAG, placementName, placementId, "Stopping auto-refresh")
+        bannerRefreshTimer.pause()
     }
 
     // Banner refresh methods
@@ -292,7 +301,6 @@ internal fun BannerManager(
         adLoader = adLoader,
         bannerVisibility = bannerVisibility,
         refreshSeconds = refreshSeconds,
-        suspendPreloadWhenInvisible = true,
         metricsTracker = metricsTracker
     )
 }

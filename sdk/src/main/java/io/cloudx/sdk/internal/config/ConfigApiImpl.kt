@@ -24,25 +24,23 @@ internal class ConfigApiImpl(
     override suspend fun invoke(
         appKey: String,
         configRequest: ConfigRequest
-    ): Result<Config, CloudXError> = httpCatching(
-        tag = tag,
-        onOk = { json -> jsonToConfig(json) },
-        onNoContent = { response, _ ->
-            val xStatus = response.headers[HEADER_CLOUDX_STATUS]
-            when (xStatus) {
-                STATUS_SDK_DISABLED -> Result.Failure(CloudXError(CloudXErrorCode.SDK_DISABLED))
-                STATUS_ADS_DISABLED -> Result.Failure(CloudXError(CloudXErrorCode.ADS_DISABLED))
-                else -> Result.Failure(CloudXError(CloudXErrorCode.NO_FILL))
+    ): Result<Config, CloudXError> = withIOContext {
+        httpCatching(
+            tag = tag,
+            onOk = { _, json -> jsonToConfig(json) },
+            onNoContent = { response, _ ->
+                val xStatus = response.headers[HEADER_CLOUDX_STATUS]
+                when (xStatus) {
+                    STATUS_SDK_DISABLED -> Result.Failure(CloudXError(CloudXErrorCode.SDK_DISABLED))
+                    STATUS_ADS_DISABLED -> Result.Failure(CloudXError(CloudXErrorCode.ADS_DISABLED))
+                    else -> Result.Failure(CloudXError(CloudXErrorCode.NO_FILL))
+                }
             }
-        }
-    ) {
-        withIOContext {
-            val body = configRequest.toJson()
-                .also { CXLogger.d(tag, "Serialized body (${it.length} chars)") }
+        ) {
             httpClient.postJsonWithRetry(
                 url = initServer.url,
                 appKey = appKey,
-                jsonBody = body,
+                jsonBody = configRequest.toJson(),
                 timeoutMillis = timeoutMillis,
                 retryMax = 1,
                 tag = tag

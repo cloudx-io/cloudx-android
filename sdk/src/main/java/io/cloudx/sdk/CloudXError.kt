@@ -1,5 +1,7 @@
 package io.cloudx.sdk
 
+import io.cloudx.sdk.internal.util.toFailure
+
 /**
  * Generic CloudX Error class
  */
@@ -20,6 +22,12 @@ fun CloudXErrorCode.toCloudXError(
     message: String? = null,
     cause: Throwable? = null
 ) = CloudXError(this, message, cause)
+
+fun <T> CloudXErrorCode.toFailure(
+    message: String? = null,
+    cause: Throwable? = null
+) = toCloudXError(message, cause)
+    .toFailure<T, CloudXError>()
 
 fun Throwable.toCloudXError() = CloudXError(
     code = CloudXErrorCode.UNEXPECTED_ERROR,

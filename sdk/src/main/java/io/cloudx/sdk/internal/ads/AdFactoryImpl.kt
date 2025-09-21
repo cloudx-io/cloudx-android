@@ -13,11 +13,11 @@ import io.cloudx.sdk.internal.cdp.CdpApi
 import io.cloudx.sdk.internal.config.Config
 import io.cloudx.sdk.internal.config.ResolvedEndpoints
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
+import io.cloudx.sdk.internal.initialization.BidAdNetworkFactories
+import io.cloudx.sdk.internal.size
 import io.cloudx.sdk.internal.tracker.EventTracker
 import io.cloudx.sdk.internal.tracker.metrics.MetricsTracker
 import io.cloudx.sdk.internal.tracker.win_loss.WinLossTracker
-import io.cloudx.sdk.internal.initialization.BidAdNetworkFactories
-import io.cloudx.sdk.internal.size
 
 internal class AdFactoryImpl(
     private val appKey: String,
@@ -157,10 +157,7 @@ internal class AdFactoryImpl(
         timeoutMillis.toLong()
     )
 
-    private fun createCdpApi() = CdpApi(
-        endpointUrl = ResolvedEndpoints.cdpEndpoint,
-        10_000
-    )
+    private fun createCdpApi() = CdpApi(ResolvedEndpoints.cdpEndpoint)
 
     private fun logCantFindPlacement(placement: String) {
         CXLogger.w(TAG, "can't create $placement placement: missing in SDK Config")

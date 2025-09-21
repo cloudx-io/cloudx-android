@@ -12,8 +12,7 @@ internal interface CdpApi {
     suspend fun enrich(original: JSONObject): Result<JSONObject, CloudXError>
 }
 
-internal fun CdpApi(endpointUrl: String, timeoutMillis: Long): CdpApi = CdpApiImpl(
+internal fun CdpApi(endpointUrl: String): CdpApi = CdpApiImpl(
     endpointUrl = endpointUrl,
-    timeoutMillis = timeoutMillis,
     httpClient = CloudXHttpClient()
 )

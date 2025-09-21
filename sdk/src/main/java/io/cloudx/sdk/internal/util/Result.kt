@@ -89,3 +89,6 @@ sealed class Result<R, E> {
         }
     }
 }
+
+fun <R, E> R.toSuccess(): Result.Success<R, E> = Result.Success(this)
+fun <R, E> E.toFailure(): Result.Failure<R, E> = Result.Failure(this)

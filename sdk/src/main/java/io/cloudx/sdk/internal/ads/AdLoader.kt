@@ -62,23 +62,41 @@ internal class AdLoader<T : CXAdapterDelegate>(
             val ad = loadAd(bidAdLoadTimeoutMillis, bidItem.createBidAd)
 
             if (ad != null) {
-                CXLogger.i(TAG, placementName, placementId, "Loaded: ${bidItem.adNetworkOriginal.networkName} (rank=${bidItem.bid.rank})")
+                CXLogger.i(
+                    TAG,
+                    placementName,
+                    "Loaded: ${bidItem.adNetworkOriginal.networkName} (rank=${bidItem.bid.rank})"
+                )
 
                 loadedAd = ad
                 loadedAdIndex = index
                 winnerBidPrice = bidItem.bid.price ?: -1f
                 break
             } else {
-                CXLogger.w(TAG, placementName, placementId, "Failed: ${bidItem.adNetworkOriginal.networkName} (rank=${bidItem.bid.rank})")
+                CXLogger.w(
+                    TAG,
+                    placementName,
+                    "Failed: ${bidItem.adNetworkOriginal.networkName} (rank=${bidItem.bid.rank})"
+                )
 
-                winLossTracker.sendLoss(bids.auctionId, bidItem.bid, LossReason.TechnicalError, winnerBidPrice)
+                winLossTracker.sendLoss(
+                    bids.auctionId,
+                    bidItem.bid,
+                    LossReason.TechnicalError,
+                    winnerBidPrice
+                )
             }
         }
 
         if (loadedAdIndex != -1) {
             bids.bidItemsByRank.forEachIndexed { index, bidItem ->
                 if (index > loadedAdIndex) {
-                    winLossTracker.sendLoss(bids.auctionId, bidItem.bid, LossReason.LostToHigherBid, winnerBidPrice)
+                    winLossTracker.sendLoss(
+                        bids.auctionId,
+                        bidItem.bid,
+                        LossReason.LostToHigherBid,
+                        winnerBidPrice
+                    )
                 }
             }
         }
@@ -100,25 +118,20 @@ internal class AdLoader<T : CXAdapterDelegate>(
 
         var loaded = false
         return try {
-            CXLogger.d(
-                TAG,
-                placementName,
-                placementId,
-                "Loading ad (timeout=${timeoutMs}ms)"
-            )
+            CXLogger.d(TAG, placementName, "Loading ad (timeout=${timeoutMs}ms)")
             connectionStatusService.awaitConnection()
             loaded = withTimeout(timeoutMs) {
                 ad.load()
             }
             if (loaded) ad else null
         } catch (e: TimeoutCancellationException) {
-            CXLogger.w(TAG, placementName, placementId, "Load timeout ${timeoutMs}ms", e)
+            CXLogger.w(TAG, placementName, "Load timeout ${timeoutMs}ms", e)
             ad.timeout()
             null
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            CXLogger.e(TAG, placementName, placementId, "Load failed", e)
+            CXLogger.e(TAG, placementName, "Load failed", e)
             null
         } finally {
             if (!loaded) ad.destroy()

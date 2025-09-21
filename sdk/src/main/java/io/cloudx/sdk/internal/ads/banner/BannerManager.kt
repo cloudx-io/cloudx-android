@@ -75,12 +75,12 @@ private class BannerManagerImpl(
 
     // Public auto-refresh control methods
     override fun startAutoRefresh() {
-        CXLogger.i(TAG, placementName, placementId, "Starting auto-refresh")
+        CXLogger.i(TAG, placementName, "Starting auto-refresh")
         bannerRefreshTimer.resume()
     }
 
     override fun stopAutoRefresh() {
-        CXLogger.i(TAG, placementName, placementId, "Stopping auto-refresh")
+        CXLogger.i(TAG, placementName, "Stopping auto-refresh")
         bannerRefreshTimer.pause()
     }
 
@@ -108,7 +108,6 @@ private class BannerManagerImpl(
                 CXLogger.d(
                     TAG,
                     placementName,
-                    placementId,
                     "Banner refresh scheduled in ${refreshSeconds}s"
                 )
                 bannerRefreshTimer.awaitTimeout(refreshDelayMillis)
@@ -122,7 +121,7 @@ private class BannerManagerImpl(
             return
         }
 
-        CXLogger.d(TAG, placementName, placementId, "Loading backup banner")
+        CXLogger.d(TAG, placementName, "Loading backup banner")
         backupBannerLoadJob = scope.launch {
             /**
              * Each returned banner from this method should be already attached to the BannerContainer in CloudXAdView.
@@ -142,7 +141,7 @@ private class BannerManagerImpl(
     }
 
     private fun preserveBackupBanner(banner: BannerAdapterDelegate) {
-        CXLogger.d(TAG, placementName, placementId, "Backup banner loaded and ready")
+        CXLogger.d(TAG, placementName, "Backup banner loaded and ready")
 
         backupBannerErrorHandlerJob?.cancel()
         backupBannerErrorHandlerJob = scope.launch {
@@ -150,7 +149,6 @@ private class BannerManagerImpl(
             CXLogger.w(
                 TAG,
                 placementName,
-                placementId,
                 "Backup banner error detected: $error - destroying and reloading"
             )
             destroyBackupBanner()
@@ -163,7 +161,7 @@ private class BannerManagerImpl(
 
         with(backupBanner) {
             value?.onSuccess {
-                CXLogger.d(TAG, placementName, placementId, "Destroying backup banner")
+                CXLogger.d(TAG, placementName, "Destroying backup banner")
                 it.destroy()
             }
             value = null
@@ -183,7 +181,7 @@ private class BannerManagerImpl(
 
     // Current banner management methods
     private fun showNewBanner(banner: BannerAdapterDelegate) {
-        CXLogger.d(TAG, placementName, placementId, "Displaying new banner")
+        CXLogger.d(TAG, placementName, "Displaying new banner")
         listener?.onAdDisplayed(banner)
 
         currentBanner = banner
@@ -192,7 +190,7 @@ private class BannerManagerImpl(
         currentBannerEventHandlerJob = scope.launch {
             launch {
                 banner.event.filter { it == BannerAdapterDelegateEvent.Click }.collect {
-                    CXLogger.i(TAG, placementName, placementId, "Banner clicked by user")
+                    CXLogger.i(TAG, placementName, "Banner clicked by user")
                     listener?.onAdClicked(banner)
                 }
             }
@@ -201,7 +199,6 @@ private class BannerManagerImpl(
                 CXLogger.w(
                     TAG,
                     placementName,
-                    placementId,
                     "Banner error detected: $error - restarting refresh cycle"
                 )
                 error?.let { listener?.onAdDisplayFailed(it) }
@@ -213,7 +210,7 @@ private class BannerManagerImpl(
 
     private fun hideAndDestroyCurrentBanner() {
         currentBanner?.let {
-            CXLogger.d(TAG, placementName, placementId, "Hiding current banner")
+            CXLogger.d(TAG, placementName, "Hiding current banner")
             listener?.onAdHidden(it)
         }
         destroyCurrentBanner()
@@ -223,7 +220,7 @@ private class BannerManagerImpl(
         currentBannerEventHandlerJob?.cancel()
 
         currentBanner?.let {
-            CXLogger.d(TAG, placementName, placementId, "Destroying current banner")
+            CXLogger.d(TAG, placementName, "Destroying current banner")
             it.destroy()
         }
         currentBanner = null

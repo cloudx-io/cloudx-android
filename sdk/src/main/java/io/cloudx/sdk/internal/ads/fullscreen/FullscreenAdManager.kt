@@ -46,21 +46,21 @@ internal class FullscreenAdManager<
     // Ad loading methods
     override fun load() {
         if (lastLoadJob?.isActive == true) {
-            CXLogger.w(tag, placementName, placementId, "Ad already loading")
+            CXLogger.w(tag, placementName, "Ad already loading")
             return
         }
 
         if (lastLoadedAd != null) {
-            CXLogger.w(tag, placementName, placementId, "Ad already loaded")
+            CXLogger.w(tag, placementName, "Ad already loaded")
             return
         }
 
-        CXLogger.i(tag, placementName, placementId, "Starting ad load")
+        CXLogger.i(tag, placementName, "Starting ad load")
         lastLoadJob = scope.launch {
             try {
                 adLoader.load().fold(
                     onSuccess = { loadedAd ->
-                        CXLogger.i(tag, placementName, placementId, "Ad loaded successfully")
+                        CXLogger.i(tag, placementName, "Ad loaded successfully")
                         lastLoadedAd = loadedAd
                         listener?.onAdLoaded(loadedAd)
                     },
@@ -68,7 +68,6 @@ internal class FullscreenAdManager<
                         CXLogger.e(
                             tag,
                             placementName,
-                            placementId,
                             "Ad load failed: ${error.message}",
                             error.cause
                         )
@@ -76,14 +75,13 @@ internal class FullscreenAdManager<
                     }
                 )
             } catch (cancellation: CancellationException) {
-                CXLogger.d(tag, placementName, placementId, "Ad load cancelled")
+                CXLogger.d(tag, placementName, "Ad load cancelled")
                 listener?.onAdLoadFailed(cancellation.toCloudXError())
                 throw cancellation
             } catch (exception: Exception) {
                 CXLogger.e(
                     tag,
                     placementName,
-                    placementId,
                     "Unexpected error during ad load",
                     exception
                 )
@@ -98,13 +96,13 @@ internal class FullscreenAdManager<
     override fun show() {
         val ad = lastLoadedAd
         if (ad == null) {
-            CXLogger.w(tag, placementName, placementId, "Ad not loaded")
+            CXLogger.w(tag, placementName, "Ad not loaded")
             return
         }
 
         lastShowJob?.let { job ->
             if (job.isActive) {
-                CXLogger.w(tag, placementName, placementId, "Ad already displaying")
+                CXLogger.w(tag, placementName, "Ad already displaying")
                 return
             }
         }

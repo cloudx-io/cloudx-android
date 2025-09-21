@@ -78,60 +78,53 @@ object CXLogger {
     // Placement logging helpers - consistent formatting across codebase
     private fun formatPlacementMessage(
         placementName: String,
-        placementId: String,
         message: String
-    ): String =
-        "[$placementName:$placementId] $message"
+    ): String = "[$placementName] $message"
 
     // Placement-specific logging methods
     fun v(
         component: String = DEFAULT_COMPONENT,
         placementName: String,
-        placementId: String,
         message: String,
         throwable: Throwable? = null
     ) {
-        v(component, formatPlacementMessage(placementName, placementId, message), throwable)
+        v(component, formatPlacementMessage(placementName, message), throwable)
     }
 
     fun d(
         component: String = DEFAULT_COMPONENT,
         placementName: String,
-        placementId: String,
         message: String,
         throwable: Throwable? = null
     ) {
-        d(component, formatPlacementMessage(placementName, placementId, message), throwable)
+        d(component, formatPlacementMessage(placementName, message), throwable)
     }
 
     fun i(
         component: String = DEFAULT_COMPONENT,
         placementName: String,
-        placementId: String,
         message: String,
         throwable: Throwable? = null
     ) {
-        i(component, formatPlacementMessage(placementName, placementId, message), throwable)
+        i(component, formatPlacementMessage(placementName, message), throwable)
     }
 
     fun w(
         component: String = DEFAULT_COMPONENT,
         placementName: String,
-        placementId: String,
         message: String,
         throwable: Throwable? = null
     ) {
-        w(component, formatPlacementMessage(placementName, placementId, message), throwable)
+        w(component, formatPlacementMessage(placementName, message), throwable)
     }
 
     fun e(
         component: String = DEFAULT_COMPONENT,
         placementName: String,
-        placementId: String,
         message: String,
         throwable: Throwable? = null
     ) {
-        e(component, formatPlacementMessage(placementName, placementId, message), throwable)
+        e(component, formatPlacementMessage(placementName, message), throwable)
     }
 
     private fun logToAndroid(level: CloudXLogLevel, tag: String, message: String, throwable: Throwable?) {

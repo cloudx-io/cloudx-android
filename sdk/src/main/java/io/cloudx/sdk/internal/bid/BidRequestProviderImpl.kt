@@ -160,6 +160,7 @@ internal class BidRequestProviderImpl(
 
                 put("ext", JSONObject().apply {
                     put("cloudx", JSONObject().apply {
+                        put("sdkReleaseVersion", sdkVersion)
                         putBidRequestAdapterExtras(context, bidRequestExtrasProviders)
                     })
                 })

@@ -6,6 +6,7 @@ import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.util.Result
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.client.plugins.ServerResponseException
 import io.ktor.client.plugins.retry
@@ -23,8 +24,33 @@ import io.ktor.http.contentType
 import java.io.IOException
 import kotlin.coroutines.cancellation.CancellationException
 
-internal fun HttpRequestBuilder.requestTimeoutMillis(millis: Long) =
+internal fun HttpRequestBuilder.requestTimeoutMs(millis: Long) =
     timeout { requestTimeoutMillis = millis }
+
+
+internal fun HttpRequestRetry.Configuration.cloudXRetry(retryMax: Int) {
+    maxRetries = retryMax
+    retryOnExceptionOrServerErrors()
+    retryIf { _, resp -> resp.status == HttpStatusCode.TooManyRequests }
+}
+
+internal fun HttpRequestBuilder.cloudXConstantRetry(retryMax: Int) {
+    retry {
+        cloudXRetry(retryMax)
+        constantDelay(
+            millis = CLOUDX_DEFAULT_RETRY_MS,
+            randomizationMs = 1000L,
+            respectRetryAfterHeader = true
+        )
+    }
+}
+
+internal fun HttpRequestBuilder.cloudXExponentialRetry(retryMax: Int) {
+    retry {
+        cloudXRetry(retryMax)
+        exponentialDelay()
+    }
+}
 
 /** POST JSON with common headers, timeout and retry policy. */
 internal suspend fun HttpClient.postJsonWithRetry(
@@ -34,24 +60,14 @@ internal suspend fun HttpClient.postJsonWithRetry(
     timeoutMillis: Long,
     retryMax: Int,
     tag: String,
-    extraRetryPredicate: (HttpResponse) -> Boolean = { it.status == HttpStatusCode.TooManyRequests }
 ): HttpResponse {
     CXLogger.d(tag, "HTTP → POST $url\nBody: $jsonBody")
     return this.post(url) {
         headers { append("Authorization", "Bearer $appKey") }
         contentType(ContentType.Application.Json)
         setBody(jsonBody)
-        requestTimeoutMillis(timeoutMillis)
-        retry {
-            maxRetries = retryMax
-            retryOnExceptionOrServerErrors()
-            retryIf { _, resp -> extraRetryPredicate(resp) }
-            constantDelay(
-                millis = CLOUDX_DEFAULT_RETRY_MS,
-                randomizationMs = 1000L,
-                respectRetryAfterHeader = true
-            )
-        }
+        requestTimeoutMs(timeoutMillis)
+        cloudXConstantRetry(retryMax)
     }
 }
 
@@ -76,13 +92,13 @@ internal suspend inline fun <T> httpCatching(
 /** Map a response to Result using pluggable OK/NoContent handlers. */
 internal suspend inline fun <T> HttpResponse.mapToResult(
     tag: String,
-    crossinline onOk: suspend (body: String) -> Result<T, CloudXError>,
+    crossinline onOk: suspend (resp: HttpResponse, body: String) -> Result<T, CloudXError>,
     crossinline onNoContent: suspend (resp: HttpResponse, body: String) -> Result<T, CloudXError>
 ): Result<T, CloudXError> {
     val body = bodyAsText()
     CXLogger.d(tag, "HTTP ← ${status.value}\n$body")
     return when (status) {
-        HttpStatusCode.OK -> onOk(body)
+        HttpStatusCode.OK -> onOk(this, body)
         HttpStatusCode.NoContent -> onNoContent(this, body)
         HttpStatusCode.TooManyRequests -> Result.Failure(CloudXError(CloudXErrorCode.TOO_MANY_REQUESTS))
         else -> when (status.value) {
@@ -105,29 +121,19 @@ internal suspend fun HttpClient.getWithRetry(
     timeoutMillis: Long,
     retryMax: Int,
     tag: String,
-    extraRetryPredicate: (HttpResponse) -> Boolean = { it.status == HttpStatusCode.TooManyRequests }
 ): HttpResponse {
     CXLogger.d(tag, "HTTP → GET $url")
     return this.get(url) {
         headers { append("Authorization", "Bearer $appKey") }
-        requestTimeoutMillis(timeoutMillis)
-        retry {
-            maxRetries = retryMax
-            retryOnExceptionOrServerErrors()
-            retryIf { _, resp -> extraRetryPredicate(resp) }
-            constantDelay(
-                millis = CLOUDX_DEFAULT_RETRY_MS,
-                randomizationMs = 1000L,
-                respectRetryAfterHeader = true
-            )
-        }
+        requestTimeoutMs(timeoutMillis)
+        cloudXConstantRetry(retryMax)
     }
 }
 
 /** Convenience wrapper that combines httpCatching + postJsonWithRetry + mapToResult */
 internal suspend inline fun <T> httpCatching(
     tag: String,
-    crossinline onOk: suspend (body: String) -> Result<T, CloudXError>,
+    crossinline onOk: suspend (resp: HttpResponse, body: String) -> Result<T, CloudXError>,
     crossinline onNoContent: suspend (resp: HttpResponse, body: String) -> Result<T, CloudXError>,
     crossinline block: suspend () -> HttpResponse
 ): Result<T, CloudXError> = httpCatching {

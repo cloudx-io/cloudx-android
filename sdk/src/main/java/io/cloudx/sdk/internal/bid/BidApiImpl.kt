@@ -24,33 +24,32 @@ internal class BidApiImpl(
     override suspend fun invoke(
         appKey: String,
         bidRequest: JSONObject
-    ): Result<BidResponse, CloudXError> = httpCatching(
-        tag = tag,
-        onOk = { json -> 
-            val parseResult = jsonToBidResponse(json)
-            if (parseResult is Result.Success) {
-                TrackingFieldResolver.setResponseData(
-                    parseResult.value.auctionId,
-                    JSONObject(json)
-                )
+    ): Result<BidResponse, CloudXError> = withIOContext {
+        httpCatching(
+            tag = tag,
+            onOk = { _, json ->
+                val parseResult = jsonToBidResponse(json)
+                if (parseResult is Result.Success) {
+                    TrackingFieldResolver.setResponseData(
+                        parseResult.value.auctionId,
+                        JSONObject(json)
+                    )
+                }
+                parseResult
+            },
+            onNoContent = { response, _ ->
+                val xStatus = response.headers[HEADER_CLOUDX_STATUS]
+                if (xStatus == STATUS_ADS_DISABLED) {
+                    Result.Failure(CloudXError(CloudXErrorCode.ADS_DISABLED))
+                } else {
+                    Result.Failure(CloudXError(CloudXErrorCode.NO_FILL))
+                }
             }
-            parseResult
-        },
-        onNoContent = { response, _ ->
-            val xStatus = response.headers[HEADER_CLOUDX_STATUS]
-            if (xStatus == STATUS_ADS_DISABLED) {
-                Result.Failure(CloudXError(CloudXErrorCode.ADS_DISABLED))
-            } else {
-                Result.Failure(CloudXError(CloudXErrorCode.NO_FILL))
-            }
-        }
-    ) {
-        withIOContext {
-            val body = bidRequest.toString().also { CXLogger.d(tag, "Serialized body (${it.length} chars)") }
+        ) {
             httpClient.postJsonWithRetry(
                 url = endpointUrl,
                 appKey = appKey,
-                jsonBody = body,
+                jsonBody = bidRequest.toString(),
                 timeoutMillis = timeoutMillis,
                 retryMax = 1,
                 tag = tag

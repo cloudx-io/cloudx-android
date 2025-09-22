@@ -3,7 +3,6 @@ package io.cloudx.sdk.internal.deviceinfo
 import io.cloudx.sdk.internal.ApplicationContext
 
 internal fun interface DeviceInfoProvider {
-
     suspend operator fun invoke(): DeviceInfo
 }
 

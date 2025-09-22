@@ -13,12 +13,8 @@ internal interface GeoApi {
 }
 
 internal fun GeoApi(
-    timeoutMillis: Long = 10_000,
-    retryMax: Int = 3,
     httpClient: HttpClient = CloudXHttpClient()
 ): GeoApi = GeoApiImpl(
-    timeoutMillis = timeoutMillis,
-    retryMax = retryMax,
     httpClient = httpClient
 )
 

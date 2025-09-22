@@ -2,10 +2,10 @@ package io.cloudx.sdk.internal.ads
 
 import com.xor.XorEncryption
 import io.cloudx.sdk.CloudXError
-import io.cloudx.sdk.Destroyable
+import io.cloudx.sdk.CloudXDestroyable
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.CXLogger
-import io.cloudx.sdk.internal.PlacementLoopIndexTracker
+import io.cloudx.sdk.internal.tracker.PlacementLoopIndexTracker
 import io.cloudx.sdk.internal.bid.Bid
 import io.cloudx.sdk.internal.bid.BidApi
 import io.cloudx.sdk.internal.bid.BidRequestProvider
@@ -23,7 +23,7 @@ import io.cloudx.sdk.internal.util.Result
 import java.util.UUID
 import kotlin.system.measureTimeMillis
 
-internal interface BidAdSource<T : Destroyable> {
+internal interface BidAdSource<T : CloudXDestroyable> {
 
     /**
      * @return the bid or null if no bid
@@ -31,7 +31,7 @@ internal interface BidAdSource<T : Destroyable> {
     suspend fun requestBid(): Result<BidAdSourceResponse<T>, CloudXError>
 }
 
-internal open class BidAdSourceResponse<T : Destroyable>(
+internal open class BidAdSourceResponse<T : CloudXDestroyable>(
     val bidItemsByRank: List<Item<T>>,
     val auctionId: String
 ) {
@@ -44,7 +44,7 @@ internal open class BidAdSourceResponse<T : Destroyable>(
     )
 }
 
-internal fun <T : Destroyable> BidAdSource(
+internal fun <T : CloudXDestroyable> BidAdSource(
     provideBidRequest: BidRequestProvider,
     bidRequestParams: BidRequestProvider.Params,
     requestBid: BidApi,
@@ -72,7 +72,7 @@ internal class CreateBidAdParams(
     val auctionId: String
 )
 
-private class BidAdSourceImpl<T : Destroyable>(
+private class BidAdSourceImpl<T : CloudXDestroyable>(
     private val provideBidRequest: BidRequestProvider,
     private val bidRequestParams: BidRequestProvider.Params,
     private val requestBid: BidApi,
@@ -189,7 +189,7 @@ private class BidAdSourceImpl<T : Destroyable>(
     }
 }
 
-private fun <T : Destroyable> BidResponse.toBidAdSourceResponse(
+private fun <T : CloudXDestroyable> BidResponse.toBidAdSourceResponse(
     bidRequestParams: BidRequestProvider.Params,
     createBidAd: suspend (CreateBidAdParams) -> T,
     auctionId: String,

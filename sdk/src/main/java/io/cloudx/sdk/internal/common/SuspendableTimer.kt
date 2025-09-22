@@ -1,6 +1,6 @@
 package io.cloudx.sdk.internal.common
 
-import io.cloudx.sdk.Destroyable
+import io.cloudx.sdk.CloudXDestroyable
 import io.cloudx.sdk.internal.util.ThreadUtils
 import io.cloudx.sdk.internal.util.utcNowEpochMillis
 import kotlinx.coroutines.Job
@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 
 // Not the most precise timer but good enough for my purposes (banner).
 // I don't want to use a native Java Timer for now: not sure about memory usage and things like that.
-internal class SuspendableTimer : Destroyable {
+internal class SuspendableTimer : CloudXDestroyable {
 
     private val scope = ThreadUtils.createMainScope("SuspendableTimer")
     private val isTimeout = MutableStateFlow(false)

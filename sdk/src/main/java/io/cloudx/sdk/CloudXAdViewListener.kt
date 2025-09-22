@@ -1,6 +1,6 @@
 package io.cloudx.sdk
 
-interface CloudXAdViewListener : CloudXAdListener{
+interface CloudXAdViewListener : CloudXAdListener {
     /**
      * User manually expanded the ad banner.
      */

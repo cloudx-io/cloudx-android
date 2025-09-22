@@ -1,6 +1,7 @@
-package io.cloudx.sdk.internal
+package io.cloudx.sdk.internal.util
 
 import android.os.Bundle
+import io.cloudx.sdk.internal.CXLogger
 import org.json.JSONArray
 import org.json.JSONObject
 

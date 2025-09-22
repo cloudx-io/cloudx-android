@@ -7,7 +7,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.findViewTreeLifecycleOwner
-import io.cloudx.sdk.Destroyable
+import io.cloudx.sdk.CloudXDestroyable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -33,7 +33,7 @@ import kotlinx.coroutines.plus
  * - At least one pixel of the view is visible on screen (uses getGlobalVisibleRect)
  * - The external isViewShown state is true
  */
-internal interface ViewabilityTracker : Destroyable {
+internal interface ViewabilityTracker : CloudXDestroyable {
     /**
      * StateFlow that emits true when the view meets all viewability criteria
      */

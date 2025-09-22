@@ -2,7 +2,7 @@ package io.cloudx.sdk.internal.ads.banner
 
 import io.cloudx.sdk.CloudXAdViewListener
 import io.cloudx.sdk.CloudXError
-import io.cloudx.sdk.Destroyable
+import io.cloudx.sdk.CloudXDestroyable
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.CXLogger
@@ -32,7 +32,7 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
-internal interface BannerManager : Destroyable {
+internal interface BannerManager : CloudXDestroyable {
     var listener: CloudXAdViewListener?
     fun startAutoRefresh()
     fun stopAutoRefresh()

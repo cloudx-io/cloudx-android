@@ -3,7 +3,7 @@ package io.cloudx.sdk.internal.adapter
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
-import io.cloudx.sdk.Destroyable
+import io.cloudx.sdk.CloudXDestroyable
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.AdViewSize
 import io.cloudx.sdk.internal.context.ContextProvider
@@ -25,7 +25,7 @@ interface CloudXAdViewAdapterFactory : CloudXAdapterMetaData, CloudXAdViewSizeSu
     ): Result<CloudXAdViewAdapter, String>
 }
 
-interface CloudXAdViewAdapter : Destroyable {
+interface CloudXAdViewAdapter : CloudXDestroyable {
 
     fun load()
 }

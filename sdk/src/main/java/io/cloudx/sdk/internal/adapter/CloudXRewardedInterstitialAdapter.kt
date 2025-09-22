@@ -1,7 +1,7 @@
 package io.cloudx.sdk.internal.adapter
 
 import android.os.Bundle
-import io.cloudx.sdk.Destroyable
+import io.cloudx.sdk.CloudXDestroyable
 import io.cloudx.sdk.internal.context.ContextProvider
 import io.cloudx.sdk.internal.util.Result
 
@@ -18,7 +18,7 @@ interface CloudXRewardedInterstitialAdapterFactory : CloudXAdapterMetaData {
     ): Result<CloudXRewardedInterstitialAdapter, String>
 }
 
-interface CloudXRewardedInterstitialAdapter : CloudXAdLoadOperationAvailability, Destroyable {
+interface CloudXRewardedInterstitialAdapter : CloudXAdLoadOperationAvailability, CloudXDestroyable {
 
     fun load()
     fun show()

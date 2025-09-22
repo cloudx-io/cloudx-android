@@ -1,6 +1,6 @@
 package io.cloudx.cd.staticrenderer
 
-import io.cloudx.sdk.Destroyable
+import io.cloudx.sdk.CloudXDestroyable
 
 /**
  * Common public API for all fullscreen ad renderers (mraid, vast, static etc) <br>
@@ -19,7 +19,7 @@ import io.cloudx.sdk.Destroyable
  *
  * Current implementations of [FullscreenAd] interface do not support multiple [load] and [show] calls: results may be unpredictable <br>
  */
-interface FullscreenAd<T : FullscreenAd.Listener> : Destroyable {
+interface FullscreenAd<T : FullscreenAd.Listener> : CloudXDestroyable {
 
     fun load()
     fun show()

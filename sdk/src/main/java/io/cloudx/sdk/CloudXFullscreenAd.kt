@@ -3,7 +3,7 @@ package io.cloudx.sdk
 /**
  * Fullscreen ad interface
  */
-interface CloudXFullscreenAd<T: CloudXAdListener> : Destroyable {
+interface CloudXFullscreenAd<T: CloudXAdListener> : CloudXDestroyable {
     var listener: T?
 
     var revenueListener: CloudXAdRevenueListener?

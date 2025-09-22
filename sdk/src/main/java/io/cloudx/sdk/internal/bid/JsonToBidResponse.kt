@@ -6,7 +6,7 @@ import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.toAdNetwork
-import io.cloudx.sdk.internal.toBundle
+import io.cloudx.sdk.internal.util.toBundle
 import io.cloudx.sdk.internal.util.Result
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

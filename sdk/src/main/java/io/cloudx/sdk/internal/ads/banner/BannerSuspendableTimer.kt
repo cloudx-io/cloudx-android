@@ -1,6 +1,6 @@
 package io.cloudx.sdk.internal.ads.banner
 
-import io.cloudx.sdk.Destroyable
+import io.cloudx.sdk.CloudXDestroyable
 import io.cloudx.sdk.internal.common.SuspendableTimer
 import io.cloudx.sdk.internal.util.ThreadUtils
 import kotlinx.coroutines.cancel
@@ -9,7 +9,7 @@ import kotlinx.coroutines.launch
 
 internal class BannerSuspendableTimer(
     bannerContainerVisibility: StateFlow<Boolean>,
-) : Destroyable {
+) : CloudXDestroyable {
 
     private val scope = ThreadUtils.createMainScope("BannerSuspendableTimer")
     private val suspendableTimer = SuspendableTimer()

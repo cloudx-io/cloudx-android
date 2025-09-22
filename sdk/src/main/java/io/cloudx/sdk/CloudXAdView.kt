@@ -13,7 +13,7 @@ import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.ApplicationContext
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.CXSdk
-import io.cloudx.sdk.internal.PlacementLoopIndexTracker
+import io.cloudx.sdk.internal.tracker.PlacementLoopIndexTracker
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
 import io.cloudx.sdk.internal.ads.AdFactory
 import io.cloudx.sdk.internal.ads.banner.BannerManager
@@ -32,7 +32,7 @@ import kotlinx.coroutines.launch
 class CloudXAdView internal constructor(
     private val placementName: String,
     private val adType: AdType,
-) : FrameLayout(ApplicationContext()), Destroyable {
+) : FrameLayout(ApplicationContext()), CloudXDestroyable {
 
     private val TAG = "CloudXAdView"
 

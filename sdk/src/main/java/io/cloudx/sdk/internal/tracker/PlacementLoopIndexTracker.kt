@@ -1,4 +1,4 @@
-package io.cloudx.sdk.internal
+package io.cloudx.sdk.internal.tracker
 
 /**
  * Tracks loop index (i.e., how many times an ad has sent BidRequest)
@@ -31,4 +31,3 @@ object PlacementLoopIndexTracker {
         loopIndexMap.clear()
     }
 }
-

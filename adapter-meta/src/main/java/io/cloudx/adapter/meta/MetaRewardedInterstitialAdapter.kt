@@ -25,6 +25,7 @@ internal object RewardedInterstitialFactory :
 
     override fun create(
         contextProvider: ContextProvider,
+        placementName: String,
         placementId: String,
         bidId: String,
         adm: String,
@@ -33,6 +34,7 @@ internal object RewardedInterstitialFactory :
     ): Result<CloudXRewardedInterstitialAdapter, String> = Result.Success(
         MetaRewardedInterstitialAdapter(
             contextProvider = contextProvider,
+            placementName = placementName,
             serverExtras = serverExtras,
             adm = adm,
             listener = listener
@@ -42,6 +44,7 @@ internal object RewardedInterstitialFactory :
 
 internal class MetaRewardedInterstitialAdapter(
     private val contextProvider: ContextProvider,
+    private val placementName: String,
     private val serverExtras: Bundle,
     private val adm: String,
     private var listener: CloudXRewardedInterstitialAdapterListener?
@@ -51,15 +54,15 @@ internal class MetaRewardedInterstitialAdapter(
     private var ad: RewardedInterstitialAd? = null
 
     override fun load() {
-        val placementId = serverExtras.getPlacementId()
-        if (placementId == null) {
-            val message = "Placement ID is null"
-            CXLogger.e(TAG, message)
+        val metaPlacementId = serverExtras.getMetaPlacementId()
+        if (metaPlacementId == null) {
+            val message = "Meta placement ID is null"
+            CXLogger.e(TAG, placementName, message)
             listener?.onError(CloudXErrorCode.ADAPTER_INVALID_SERVER_EXTRAS.toCloudXError(message = message))
             return
         }
 
-        val ad = RewardedInterstitialAd(contextProvider.getContext(), placementId)
+        val ad = RewardedInterstitialAd(contextProvider.getContext(), metaPlacementId)
         this.ad = ad
 
         ad.loadAd(
@@ -94,12 +97,13 @@ internal class MetaRewardedInterstitialAdapter(
     }
 
     override fun show() {
-        val placementId = serverExtras.getPlacementId()
+        val metaPlacementId = serverExtras.getMetaPlacementId()
         val ad = this.ad
         if (ad == null || !ad.isAdLoaded) {
             CXLogger.w(
                 TAG,
-                "Rewarded Interstitial ad not ready to show for placement: $placementId (ad not loaded)"
+                placementName,
+                "Rewarded Interstitial ad not ready to show for placement: $metaPlacementId (ad not loaded)"
             )
             listener?.onError(
                 CloudXErrorCode.ADAPTER_INVALID_LOAD_STATE.toCloudXError(
@@ -111,7 +115,7 @@ internal class MetaRewardedInterstitialAdapter(
 
         // Check if the ad is already expired or invalidated, and do not show ad if that is the case
         if (ad.isAdInvalidated) {
-            CXLogger.w(TAG, "Rewarded Interstitial ad invalidated for placement: $placementId")
+            CXLogger.w(TAG, placementName, "Rewarded Interstitial ad invalidated for Meta placement: $metaPlacementId")
             listener?.onError(
                 CloudXErrorCode.ADAPTER_INVALID_LOAD_STATE.toCloudXError(
                     message = "Rewarded Interstitial ad is invalidated"

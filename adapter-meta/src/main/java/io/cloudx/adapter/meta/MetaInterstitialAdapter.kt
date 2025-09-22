@@ -24,6 +24,7 @@ internal object InterstitialFactory : CloudXInterstitialAdapterFactory,
 
     override fun create(
         contextProvider: ContextProvider,
+        placementName: String,
         placementId: String,
         bidId: String,
         adm: String,
@@ -32,6 +33,7 @@ internal object InterstitialFactory : CloudXInterstitialAdapterFactory,
     ): Result<CloudXInterstitialAdapter, String> = Result.Success(
         MetaInterstitialAdapter(
             contextProvider = contextProvider,
+            placementName = placementName,
             serverExtras = serverExtras,
             adm = adm,
             listener = listener
@@ -41,6 +43,7 @@ internal object InterstitialFactory : CloudXInterstitialAdapterFactory,
 
 internal class MetaInterstitialAdapter(
     private val contextProvider: ContextProvider,
+    private val placementName: String,
     private val serverExtras: Bundle,
     private val adm: String,
     private var listener: CloudXInterstitialAdapterListener?
@@ -50,45 +53,54 @@ internal class MetaInterstitialAdapter(
     private var interstitialAd: InterstitialAd? = null
 
     override fun load() {
-        val placementId = serverExtras.getPlacementId()
-        if (placementId == null) {
-            val message = "Placement ID is null"
-            CXLogger.e(TAG, message)
+        val metaPlacementId = serverExtras.getMetaPlacementId()
+        if (metaPlacementId == null) {
+            val message = "Meta placement ID is null"
+            CXLogger.e(TAG, placementName, message)
             listener?.onError(CloudXErrorCode.ADAPTER_INVALID_SERVER_EXTRAS.toCloudXError(message = message))
             return
         }
 
         // Check if an ad is already loaded
         val existingInterstitialAd = this.interstitialAd
-        if (checkAndHandleAdReady(placementId, existingInterstitialAd)) {
+        if (checkAndHandleAdReady(metaPlacementId, existingInterstitialAd)) {
             return
         }
 
-        val interstitialAd = InterstitialAd(contextProvider.getContext(), placementId)
+        val interstitialAd = InterstitialAd(contextProvider.getContext(), metaPlacementId)
         this.interstitialAd = interstitialAd
 
         // Check if the newly constructed ad is already loaded
-        if (checkAndHandleAdReady(placementId, interstitialAd)) {
+        if (checkAndHandleAdReady(metaPlacementId, interstitialAd)) {
             return
         }
 
-        CXLogger.d(TAG, "Loading interstitial ad for placement: $placementId")
+        CXLogger.d(
+            TAG,
+            placementName,
+            "Loading interstitial ad for Meta placement: $metaPlacementId"
+        )
         interstitialAd.loadAd(
             interstitialAd.buildLoadAdConfig()
-                .withAdListener(createAdListener(placementId, listener))
+                .withAdListener(createAdListener(metaPlacementId, listener))
                 .withBid(adm)
                 .build()
         )
     }
 
     override fun show() {
-        val placementId = serverExtras.getPlacementId()
-        CXLogger.d(TAG, "Attempting to show interstitial ad for placement: $placementId")
+        val metaPlacementId = serverExtras.getMetaPlacementId()
+        CXLogger.d(
+            TAG,
+            placementName,
+            "Attempting to show interstitial ad for Meta placement: $metaPlacementId"
+        )
         val ad = this.interstitialAd
         if (ad == null || !ad.isAdLoaded) {
             CXLogger.w(
                 TAG,
-                "Interstitial ad not ready to show for placement: $placementId (ad not loaded)"
+                placementName,
+                "Interstitial ad not ready to show for Meta placement: $metaPlacementId"
             )
             listener?.onError(
                 CloudXErrorCode.ADAPTER_INVALID_LOAD_STATE.toCloudXError(
@@ -100,7 +112,11 @@ internal class MetaInterstitialAdapter(
 
         // Check if the ad is already expired or invalidated, and do not show ad if that is the case
         if (ad.isAdInvalidated) {
-            CXLogger.w(TAG, "Interstitial ad invalidated for placement: $placementId")
+            CXLogger.w(
+                TAG,
+                placementName,
+                "Interstitial ad invalidated for Meta placement: $metaPlacementId"
+            )
             listener?.onError(
                 CloudXErrorCode.ADAPTER_INVALID_LOAD_STATE.toCloudXError(
                     message = "Interstitial ad is invalidated"
@@ -110,59 +126,84 @@ internal class MetaInterstitialAdapter(
         }
 
         // Show the ad
-        CXLogger.d(TAG, "Showing interstitial ad for placement: $placementId")
+        CXLogger.d(
+            TAG,
+            placementName,
+            "Showing interstitial ad for Meta placement: $metaPlacementId"
+        )
         ad.show()
     }
 
     override fun destroy() {
-        val placementId = serverExtras.getPlacementId()
-        CXLogger.d(TAG, "Destroying interstitial ad for placement: $placementId")
+        val metaPlacementId = serverExtras.getMetaPlacementId()
+        CXLogger.d(
+            TAG,
+            placementName,
+            "Destroying interstitial ad for Meta placement: $metaPlacementId"
+        )
         interstitialAd?.destroy()
         interstitialAd = null
         listener = null
     }
 
     private fun createAdListener(
-        placementId: String,
+        metaPlacementId: String,
         listener: CloudXInterstitialAdapterListener?
-    ) =
-        object : InterstitialAdListener {
-            override fun onError(ad: Ad?, adError: AdError?) {
-                CXLogger.e(
-                    TAG,
-                    "Interstitial ad failed to load for placement $placementId with error: ${adError?.errorMessage} (${adError?.errorCode})"
-                )
-                listener?.onError(adError.toCloudXError())
-            }
-
-            override fun onAdLoaded(ad: Ad?) {
-                CXLogger.d(
-                    TAG,
-                    "Interstitial ad loaded successfully for placement: $placementId"
-                )
-                listener?.onLoad()
-            }
-
-            override fun onAdClicked(ad: Ad?) {
-                CXLogger.d(TAG, "Interstitial ad clicked for placement: $placementId")
-                listener?.onClick()
-            }
-
-            override fun onLoggingImpression(ad: Ad?) {
-                CXLogger.d(TAG, "Interstitial ad impression logged for placement: $placementId")
-                listener?.onImpression()
-            }
-
-            override fun onInterstitialDisplayed(ad: Ad?) {
-                CXLogger.d(TAG, "Interstitial ad displayed for placement: $placementId")
-                listener?.onShow()
-            }
-
-            override fun onInterstitialDismissed(ad: Ad?) {
-                CXLogger.d(TAG, "Interstitial ad dismissed for placement: $placementId")
-                listener?.onHide()
-            }
+    ) = object : InterstitialAdListener {
+        override fun onError(ad: Ad?, adError: AdError?) {
+            CXLogger.e(
+                TAG,
+                placementName,
+                "Interstitial ad failed to load for Meta placement $metaPlacementId with error: ${adError?.errorMessage} (${adError?.errorCode})"
+            )
+            listener?.onError(adError.toCloudXError())
         }
+
+        override fun onAdLoaded(ad: Ad?) {
+            CXLogger.d(
+                TAG,
+                placementName,
+                "Interstitial ad loaded successfully for Meta placement: $metaPlacementId"
+            )
+            listener?.onLoad()
+        }
+
+        override fun onAdClicked(ad: Ad?) {
+            CXLogger.d(
+                TAG,
+                placementName,
+                "Interstitial ad clicked for Meta placement: $metaPlacementId"
+            )
+            listener?.onClick()
+        }
+
+        override fun onLoggingImpression(ad: Ad?) {
+            CXLogger.d(
+                TAG,
+                placementName,
+                "Interstitial ad impression logged for Meta placement: $metaPlacementId"
+            )
+            listener?.onImpression()
+        }
+
+        override fun onInterstitialDisplayed(ad: Ad?) {
+            CXLogger.d(
+                TAG,
+                placementName,
+                "Interstitial ad displayed for Meta placement: $metaPlacementId"
+            )
+            listener?.onShow()
+        }
+
+        override fun onInterstitialDismissed(ad: Ad?) {
+            CXLogger.d(
+                TAG,
+                placementName,
+                "Interstitial ad dismissed for Meta placement: $metaPlacementId"
+            )
+            listener?.onHide()
+        }
+    }
 
     /**
      * Helper function to check if an interstitial ad is ready and handle the callback
@@ -170,7 +211,11 @@ internal class MetaInterstitialAdapter(
      */
     private fun checkAndHandleAdReady(placementId: String, ad: InterstitialAd?): Boolean {
         return if (ad != null && ad.isAdLoaded && !ad.isAdInvalidated) {
-            CXLogger.d(TAG, "Interstitial ad already loaded for placement: $placementId")
+            CXLogger.d(
+                TAG,
+                placementName,
+                "Interstitial ad already loaded for Meta placement: $placementId"
+            )
             listener?.onLoad()
             true
         } else {

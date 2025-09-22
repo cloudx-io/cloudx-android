@@ -191,11 +191,11 @@ internal fun bidAdDecoration(
 )
 
 internal fun adapterLoggingDecoration(
+    placementName: String,
     placementId: String,
     adNetwork: AdNetwork,
     networkTimeoutMillis: Long,
     type: AdType,
-    placementName: String,
     price: Double,
 ): AdEventDecoration {
     val tag = "${adNetwork}${type}Adapter"

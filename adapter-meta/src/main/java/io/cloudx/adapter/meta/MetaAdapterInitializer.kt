@@ -54,18 +54,18 @@ internal object Initializer : CloudXAdapterInitializer {
                 }
             }
 
-            val placementIds = serverExtras.getPlacementIds()
-            if (placementIds.isEmpty()) {
-                CXLogger.w(TAG, "No placement IDs found for Meta adapter initialization")
+            val metaPlacementIds = serverExtras.getMetaPlacementIds()
+            if (metaPlacementIds.isEmpty()) {
+                CXLogger.w(TAG, "No Meta placement IDs found for Meta adapter initialization")
             }
 
             CXLogger.d(
                 TAG,
-                "Initializing Meta Audience Network SDK with placement IDs: $placementIds"
+                "Initializing Meta Audience Network SDK with placement IDs: $metaPlacementIds"
             )
             AudienceNetworkAds.buildInitSettings(context)
                 .withMediationService("CLOUDX")
-                .withPlacementIds(placementIds)
+                .withPlacementIds(metaPlacementIds)
                 .withInitListener(initListener)
                 .initialize()
         }

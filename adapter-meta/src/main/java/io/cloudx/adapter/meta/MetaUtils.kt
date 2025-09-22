@@ -6,10 +6,10 @@ import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.toCloudXError
 
-internal fun Bundle.getPlacementIds(): List<String> =
+internal fun Bundle.getMetaPlacementIds(): List<String> =
     getStringArray("placementIds")?.toList() ?: emptyList()
 
-internal fun Bundle.getPlacementId(): String? = getString("placement_id")
+internal fun Bundle.getMetaPlacementId(): String? = getString("placement_id")
 
 internal fun AdError?.toCloudXError(): CloudXError {
     return when (this?.errorCode) {

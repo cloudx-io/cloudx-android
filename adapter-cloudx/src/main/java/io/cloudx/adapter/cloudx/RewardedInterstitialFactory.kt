@@ -14,6 +14,7 @@ internal object RewardedInterstitialFactory :
 
     override fun create(
         contextProvider: ContextProvider,
+        placementName: String,
         placementId: String,
         bidId: String,
         adm: String,
@@ -21,9 +22,10 @@ internal object RewardedInterstitialFactory :
         listener: CloudXRewardedInterstitialAdapterListener
     ): Result<CloudXRewardedInterstitialAdapter, String> = Result.Success(
         StaticBidRewardedInterstitial(
-            contextProvider.getContext(),
-            adm,
-            listener
+            context = contextProvider.getContext(),
+            adm = adm,
+            placementName = placementName,
+            listener = listener
         )
     )
 }

@@ -14,6 +14,7 @@ internal object InterstitialFactory :
 
     override fun create(
         contextProvider: ContextProvider,
+        placementName: String,
         placementId: String,
         bidId: String,
         adm: String,
@@ -21,9 +22,9 @@ internal object InterstitialFactory :
         listener: CloudXInterstitialAdapterListener,
     ): Result<CloudXInterstitialAdapter, String> = Result.Success(
         StaticBidInterstitial(
-            contextProvider.getContext(),
-            adm,
-            listener
+            context = contextProvider.getContext(),
+            adm = adm,
+            listener = listener
         )
     )
 }

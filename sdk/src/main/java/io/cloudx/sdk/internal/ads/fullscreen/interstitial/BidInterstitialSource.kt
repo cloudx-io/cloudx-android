@@ -34,18 +34,18 @@ internal fun BidInterstitialSource(
     val adType = AdType.Interstitial
 
     return BidAdSource(
-        generateBidRequest,
-        BidRequestProvider.Params(
+        provideBidRequest = generateBidRequest,
+        bidRequestParams = BidRequestProvider.Params(
             placementId = placementId,
             adType = adType,
             placementName,
             accountId = accountId,
             appKey = appKey
         ),
-        requestBid,
-        cdpApi,
-        eventTracker,
-        metricsTracker
+        requestBid = requestBid,
+        cdpApi = cdpApi,
+        eventTracker = eventTracker,
+        metricsTracker = metricsTracker
     ) { createBidAdParams ->
         val placementName = createBidAdParams.placementName
         val placementId = createBidAdParams.placementId
@@ -66,22 +66,28 @@ internal fun BidInterstitialSource(
         ) { listener ->
             // TODO. IMPORTANT. Explicit Result cast isn't "cool", even though there's try catch somewhere.
             (factories[adNetwork]?.create(
-                ContextProvider(),
-                placementId,
-                bidId,
-                adm,
-                params,
-                listener
+                contextProvider = ContextProvider(),
+                placementName = placementName,
+                placementId = placementId,
+                bidId = bidId,
+                adm = adm,
+                serverExtras = params,
+                listener = listener
             ) as Result.Success).value
         }.decorate(
             baseAdDecoration() +
-                    bidAdDecoration(bid, auctionId, eventTracker, winLossTracker) +
+                    bidAdDecoration(
+                        bid = bid,
+                        auctionId = auctionId,
+                        eventTracker = eventTracker,
+                        winLossTracker = winLossTracker
+                    ) +
                     adapterLoggingDecoration(
+                        placementName = placementName,
                         placementId = placementId,
                         adNetwork = adNetwork,
                         networkTimeoutMillis = bidRequestTimeoutMillis,
                         type = adType,
-                        placementName = placementName,
                         price = price
                     )
         )

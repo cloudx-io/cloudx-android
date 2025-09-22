@@ -13,9 +13,10 @@ interface CloudXAdViewAdapterFactory : CloudXAdapterMetaData, CloudXAdViewSizeSu
 
     fun create(
         contextProvider: ContextProvider,
+        placementName: String,
+        placementId: String,
         adViewContainer: CloudXAdViewAdapterContainer,
         refreshSeconds: Int?,
-        placementId: String,
         bidId: String,
         adm: String,
         serverExtras: Bundle,

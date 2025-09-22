@@ -38,18 +38,18 @@ internal fun BidBannerSource(
     appKey: String
 ): BidAdSource<BannerAdapterDelegate> =
     BidAdSource(
-        generateBidRequest,
-        BidRequestProvider.Params(
+        provideBidRequest = generateBidRequest,
+        bidRequestParams = BidRequestProvider.Params(
             placementId = placementId,
             adType = placementType,
             placementName = placementName,
             accountId = accountId,
             appKey = appKey
         ),
-        requestBid,
-        cdpApi,
-        eventTracker,
-        metricsTracker
+        requestBid = requestBid,
+        cdpApi = cdpApi,
+        eventTracker = eventTracker,
+        metricsTracker = metricsTracker
     ) {
 
         val placementName = it.placementName
@@ -72,9 +72,10 @@ internal fun BidBannerSource(
             // TODO. Explicit Result cast isn't "cool", even though there's try catch somewhere.
             (factories[network]?.create(
                 contextProvider = ContextProvider(),
+                placementName = placementName,
+                placementId = placementId,
                 adViewContainer = adViewContainer,
                 refreshSeconds = refreshSeconds,
-                placementId = placementId,
                 bidId = bidId,
                 adm = adm,
                 serverExtras = params,
@@ -83,13 +84,18 @@ internal fun BidBannerSource(
             ) as Result.Success).value
         }.decorate(
             baseAdDecoration() +
-                    bidAdDecoration(bid, auctionId, eventTracker, winLossTracker) +
+                    bidAdDecoration(
+                        bid = bid,
+                        auctionId = auctionId,
+                        eventTracker = eventTracker,
+                        winLossTracker = winLossTracker
+                    ) +
                     adapterLoggingDecoration(
+                        placementName = placementName,
                         placementId = placementId,
                         adNetwork = network,
                         networkTimeoutMillis = bidRequestTimeoutMillis,
                         type = placementType,
-                        placementName = placementName,
                         price = price
                     )
         )

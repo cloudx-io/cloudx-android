@@ -12,10 +12,7 @@ package io.cloudx.sdk.internal.tracker.win_loss
  * @property description A human-readable description of the loss reason.
  */
 enum class LossReason(val code: Int, val description: String) {
-//  Unknown(0, "Unknown"),                                      // ❌ Not Needed
-    TechnicalError(1, "Technical error"),       // ✅ if crash happens, we assign this reason.
-//  Timeout(2, "Timeout"),                                      // ❌ SSP side
-//  BelowBidFloor(3, "Bid below bidfloor"),                     // ❌ SSP side
-    LostToHigherBid(4, "Lost to higher bid"),   // ✅ when the ad is not selected because another bid has a higher RANK.
-//  CreativeRejected(5, "Creative rejected")                    // ❌ SSP side
+    BID_WON(0, "Bid Won"),
+    INTERNAL_ERROR(1, "Internal Error"),
+    LOST_TO_HIGHER_BID(102, "Lost to Higher Bid"),
 }

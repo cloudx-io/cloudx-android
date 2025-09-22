@@ -82,7 +82,7 @@ internal class AdLoader<T : CXAdapterDelegate>(
                 winLossTracker.sendLoss(
                     bids.auctionId,
                     bidItem.bid,
-                    LossReason.TechnicalError,
+                    LossReason.INTERNAL_ERROR,
                     winnerBidPrice
                 )
             }
@@ -94,7 +94,7 @@ internal class AdLoader<T : CXAdapterDelegate>(
                     winLossTracker.sendLoss(
                         bids.auctionId,
                         bidItem.bid,
-                        LossReason.LostToHigherBid,
+                        LossReason.LOST_TO_HIGHER_BID,
                         winnerBidPrice
                     )
                 }

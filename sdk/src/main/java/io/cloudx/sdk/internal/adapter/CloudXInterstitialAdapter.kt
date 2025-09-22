@@ -9,6 +9,7 @@ interface CloudXInterstitialAdapterFactory : CloudXAdapterMetaData {
 
     fun create(
         contextProvider: ContextProvider,
+        placementName: String,
         placementId: String,
         bidId: String,
         adm: String,

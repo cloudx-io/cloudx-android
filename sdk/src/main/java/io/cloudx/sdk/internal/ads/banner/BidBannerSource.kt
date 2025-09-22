@@ -6,9 +6,8 @@ import io.cloudx.sdk.internal.adapter.BannerFactoryMiscParams
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterFactory
 import io.cloudx.sdk.internal.ads.BidAdSource
-import io.cloudx.sdk.internal.ads.adapterLoggingDecoration
-import io.cloudx.sdk.internal.ads.baseAdDecoration
-import io.cloudx.sdk.internal.ads.bidAdDecoration
+import io.cloudx.sdk.internal.ads.createAdEventTrackingDecorator
+import io.cloudx.sdk.internal.ads.createAdapterEventLoggingDecorator
 import io.cloudx.sdk.internal.ads.decorate
 import io.cloudx.sdk.internal.bid.BidApi
 import io.cloudx.sdk.internal.bid.BidRequestProvider
@@ -38,18 +37,18 @@ internal fun BidBannerSource(
     appKey: String
 ): BidAdSource<BannerAdapterDelegate> =
     BidAdSource(
-        generateBidRequest,
-        BidRequestProvider.Params(
+        provideBidRequest = generateBidRequest,
+        bidRequestParams = BidRequestProvider.Params(
             placementId = placementId,
             adType = placementType,
             placementName = placementName,
             accountId = accountId,
             appKey = appKey
         ),
-        requestBid,
-        cdpApi,
-        eventTracker,
-        metricsTracker
+        requestBid = requestBid,
+        cdpApi = cdpApi,
+        eventTracker = eventTracker,
+        metricsTracker = metricsTracker
     ) {
 
         val placementName = it.placementName
@@ -72,9 +71,10 @@ internal fun BidBannerSource(
             // TODO. Explicit Result cast isn't "cool", even though there's try catch somewhere.
             (factories[network]?.create(
                 contextProvider = ContextProvider(),
+                placementName = placementName,
+                placementId = placementId,
                 adViewContainer = adViewContainer,
                 refreshSeconds = refreshSeconds,
-                placementId = placementId,
                 bidId = bidId,
                 adm = adm,
                 serverExtras = params,
@@ -82,15 +82,15 @@ internal fun BidBannerSource(
                 listener = listener
             ) as Result.Success).value
         }.decorate(
-            baseAdDecoration() +
-                    bidAdDecoration(bid, auctionId, eventTracker, winLossTracker) +
-                    adapterLoggingDecoration(
-                        placementId = placementId,
-                        adNetwork = network,
-                        networkTimeoutMillis = bidRequestTimeoutMillis,
-                        type = placementType,
-                        placementName = placementName,
-                        price = price
-                    )
+            adEventDecorator = createAdEventTrackingDecorator(
+                bid = bid,
+                auctionId = auctionId,
+                eventTracker = eventTracker,
+                winLossTracker = winLossTracker
+            ) + createAdapterEventLoggingDecorator(
+                placementName = placementName,
+                adNetwork = network,
+                type = placementType,
+            )
         )
     }

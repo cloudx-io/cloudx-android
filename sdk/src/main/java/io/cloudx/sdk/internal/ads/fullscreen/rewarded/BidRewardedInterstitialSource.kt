@@ -4,9 +4,8 @@ import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapterFactory
 import io.cloudx.sdk.internal.ads.BidAdSource
-import io.cloudx.sdk.internal.ads.adapterLoggingDecoration
-import io.cloudx.sdk.internal.ads.baseAdDecoration
-import io.cloudx.sdk.internal.ads.bidAdDecoration
+import io.cloudx.sdk.internal.ads.createAdEventTrackingDecorator
+import io.cloudx.sdk.internal.ads.createAdapterEventLoggingDecorator
 import io.cloudx.sdk.internal.ads.decorate
 import io.cloudx.sdk.internal.bid.BidApi
 import io.cloudx.sdk.internal.bid.BidRequestProvider
@@ -32,20 +31,19 @@ internal fun BidRewardedInterstitialSource(
     appKey: String
 ): BidAdSource<RewardedInterstitialAdapterDelegate> {
     val adType = AdType.Rewarded
-
     return BidAdSource(
-        generateBidRequest,
-        BidRequestProvider.Params(
+        provideBidRequest = generateBidRequest,
+        bidRequestParams = BidRequestProvider.Params(
             placementId = placementId,
             adType = adType,
             placementName = placementName,
             accountId = accountId,
             appKey = appKey
         ),
-        requestBid,
-        cdpApi,
-        eventTracker,
-        metricsTracker
+        requestBid = requestBid,
+        cdpApi = cdpApi,
+        eventTracker = eventTracker,
+        metricsTracker = metricsTracker
     ) {
 
         val placementName = it.placementName
@@ -67,24 +65,25 @@ internal fun BidRewardedInterstitialSource(
         ) { listener ->
             // TODO. IMPORTANT. Explicit Result cast isn't "cool", even though there's try catch somewhere.
             (factories[network]?.create(
-                ContextProvider(),
-                placementId,
-                bidId,
-                adm,
-                params,
-                listener
+                contextProvider = ContextProvider(),
+                placementName = placementName,
+                placementId = placementId,
+                bidId = bidId,
+                adm = adm,
+                serverExtras = params,
+                listener = listener
             ) as Result.Success).value
         }.decorate(
-            baseAdDecoration() +
-                    bidAdDecoration(bid, auctionId, eventTracker, winLossTracker) +
-                    adapterLoggingDecoration(
-                        placementId = placementId,
-                        adNetwork = network,
-                        networkTimeoutMillis = bidRequestTimeoutMillis,
-                        type = adType,
-                        placementName = placementName,
-                        price = price
-                    )
+            adEventDecorator = createAdEventTrackingDecorator(
+                bid = bid,
+                auctionId = auctionId,
+                eventTracker = eventTracker,
+                winLossTracker = winLossTracker
+            ) + createAdapterEventLoggingDecorator(
+                placementName = placementName,
+                adNetwork = network,
+                type = adType,
+            )
         )
     }
 }

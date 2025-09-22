@@ -47,7 +47,7 @@ internal fun InterstitialAdapterDelegate(
     adNetwork: AdNetwork,
     externalPlacementId: String?,
     price: Double,
-    createInterstitial: (listener: CloudXInterstitialAdapterListener) -> CloudXInterstitialAdapter
+    createInterstitialAdapter: (listener: CloudXInterstitialAdapterListener) -> CloudXInterstitialAdapter
 ): InterstitialAdapterDelegate =
     InterstitialAdapterDelegateImpl(
         placementName = placementName,
@@ -55,7 +55,7 @@ internal fun InterstitialAdapterDelegate(
         bidderName = adNetwork.networkName,
         externalPlacementId = externalPlacementId,
         revenue = price,
-        createInterstitial = createInterstitial
+        createInterstitialAdapter = createInterstitialAdapter
     )
 
 /**
@@ -67,7 +67,7 @@ private class InterstitialAdapterDelegateImpl(
     override val bidderName: String,
     override val externalPlacementId: String?,
     override val revenue: Double,
-    createInterstitial: (listener: CloudXInterstitialAdapterListener) -> CloudXInterstitialAdapter,
+    createInterstitialAdapter: (listener: CloudXInterstitialAdapterListener) -> CloudXInterstitialAdapter,
 ) : InterstitialAdapterDelegate {
 
     // State management
@@ -79,11 +79,11 @@ private class InterstitialAdapterDelegateImpl(
     override val lastErrorEvent: StateFlow<CloudXError?> = _lastErrorEvent
 
     // Interstitial adapter with listener
-    private val interstitial = createInterstitial(createAdapterListener())
+    private val interstitialAdapter = createInterstitialAdapter(createAdapterListener())
 
     // Public API methods
     override val isAdLoadOperationAvailable: Boolean
-        get() = interstitial.isAdLoadOperationAvailable
+        get() = interstitialAdapter.isAdLoadOperationAvailable
 
     override suspend fun load(): Boolean {
         val evtJob = scope.async {
@@ -92,12 +92,12 @@ private class InterstitialAdapterDelegateImpl(
             }
         }
 
-        interstitial.load()
+        interstitialAdapter.load()
         return evtJob.await() is InterstitialAdapterDelegateEvent.Load
     }
 
     override fun show() {
-        interstitial.show()
+        interstitialAdapter.show()
     }
 
     override fun timeout() {
@@ -106,7 +106,7 @@ private class InterstitialAdapterDelegateImpl(
 
     override fun destroy() {
         scope.cancel()
-        interstitial.destroy()
+        interstitialAdapter.destroy()
     }
 
     private fun createAdapterListener(): CloudXInterstitialAdapterListener {

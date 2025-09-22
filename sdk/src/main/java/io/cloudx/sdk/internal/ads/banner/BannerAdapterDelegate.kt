@@ -45,7 +45,7 @@ internal fun BannerAdapterDelegate(
     adNetwork: AdNetwork,
     externalPlacementId: String?,
     price: Double,
-    createBanner: (listener: CloudXAdViewAdapterListener) -> CloudXAdViewAdapter
+    createBannerAdapter: (listener: CloudXAdViewAdapterListener) -> CloudXAdViewAdapter
 ): BannerAdapterDelegate =
     BannerAdapterDelegateImpl(
         placementName = placementName,
@@ -53,7 +53,7 @@ internal fun BannerAdapterDelegate(
         bidderName = adNetwork.networkName,
         externalPlacementId = externalPlacementId,
         revenue = price,
-        createBanner = createBanner
+        createBannerAdapter = createBannerAdapter
     )
 
 /**
@@ -65,7 +65,7 @@ private class BannerAdapterDelegateImpl(
     override val bidderName: String,
     override val externalPlacementId: String?,
     override val revenue: Double,
-    createBanner: (listener: CloudXAdViewAdapterListener) -> CloudXAdViewAdapter,
+    createBannerAdapter: (listener: CloudXAdViewAdapterListener) -> CloudXAdViewAdapter,
 ) : BannerAdapterDelegate {
 
     // State management
@@ -77,7 +77,7 @@ private class BannerAdapterDelegateImpl(
     override val lastErrorEvent: StateFlow<CloudXError?> = _lastErrorEvent
 
     // Banner adapter with listener
-    private val banner = createBanner(createAdapterListener())
+    private val bannerAdapter = createBannerAdapter(createAdapterListener())
 
     // Public API methods
     override suspend fun load(): Boolean {
@@ -87,7 +87,7 @@ private class BannerAdapterDelegateImpl(
             }
         }
 
-        banner.load()
+        bannerAdapter.load()
         return evtJob.await() is BannerAdapterDelegateEvent.Load
     }
 
@@ -97,7 +97,7 @@ private class BannerAdapterDelegateImpl(
 
     override fun destroy() {
         scope.cancel()
-        banner.destroy()
+        bannerAdapter.destroy()
     }
 
     // Private helper methods
@@ -129,5 +129,4 @@ private class BannerAdapterDelegateImpl(
             }
         }
     }
-
 }

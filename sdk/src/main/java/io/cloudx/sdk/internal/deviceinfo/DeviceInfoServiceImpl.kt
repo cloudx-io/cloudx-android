@@ -10,6 +10,7 @@ import io.cloudx.sdk.internal.CXLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.Locale
+import kotlin.coroutines.cancellation.CancellationException
 
 internal class DeviceInfoServiceImpl(
     private val appContext: Context
@@ -28,8 +29,10 @@ internal class DeviceInfoServiceImpl(
                     appContext, TelephonyManager::class.java
                 )?.networkOperatorName ?: ""
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
-            CXLogger.e(tag, e.toString())
+            CXLogger.e(tag, "Failed to get mobile carrier", e)
             ""
         }
 

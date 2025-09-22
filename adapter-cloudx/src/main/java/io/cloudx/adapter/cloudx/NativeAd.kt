@@ -30,6 +30,7 @@ import java.io.BufferedReader
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
+import kotlin.coroutines.cancellation.CancellationException
 
 internal class NativeAd(
     private val contextProvider: ContextProvider,
@@ -198,6 +199,8 @@ private suspend fun loadImageFromWebUrl(url: String?): Drawable? =
             (URL(url).content as InputStream).use {
                 Drawable.createFromStream(it, null)
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             null
         }
@@ -217,6 +220,8 @@ private suspend fun String.sendGet() = withContext(Dispatchers.IO) {
                         it.lines().forEach { line ->
                             println(line)
                         }
+                    } catch (e: CancellationException) {
+                        throw e
                     } catch (e: Exception) {
                         //
                     }
@@ -229,12 +234,16 @@ private suspend fun String.sendGet() = withContext(Dispatchers.IO) {
                         while (line != null) {
                             line = reader.readLine()
                         }
+                    } catch (e: CancellationException) {
+                        throw e
                     } catch (e: Exception) {
                         //
                     }
                 }
             }
         }
+    } catch (e: CancellationException) {
+        throw e
     } catch (e: Exception) {
         connection?.disconnect()
     }

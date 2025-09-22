@@ -236,7 +236,8 @@ class CloudXAdView internal constructor(
             } catch (e: Exception) {
                 CXLogger.e(
                     TAG,
-                    message = "CloudXAdView exception during adding ad view ${bannerViewToAdd.javaClass.simpleName}: $e",
+                    "CloudXAdView exception during adding ad view ${bannerViewToAdd.javaClass.simpleName}",
+                    e
                 )
             }
         }

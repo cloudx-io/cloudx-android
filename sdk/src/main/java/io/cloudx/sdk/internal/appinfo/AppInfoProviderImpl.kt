@@ -7,6 +7,7 @@ import android.os.Build
 import io.cloudx.sdk.internal.CXLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlin.coroutines.cancellation.CancellationException
 
 internal class AppInfoProviderImpl(
     private val appContext: Context
@@ -34,8 +35,10 @@ internal class AppInfoProviderImpl(
                     )
                 }
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
-            CXLogger.e(tag, e.toString())
+            CXLogger.w(tag, "Failed to retrieve app info", e)
             AppInfo("", "", "")
         }
 

@@ -5,12 +5,14 @@ import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.toAdNetwork
-import io.cloudx.sdk.internal.util.toBundle
 import io.cloudx.sdk.internal.util.Result
+import io.cloudx.sdk.internal.util.toBundle
+import io.cloudx.sdk.toFailure
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
+import kotlin.coroutines.cancellation.CancellationException
 
 internal suspend fun jsonToConfig(json: String): Result<Config, CloudXError> =
     withContext(Dispatchers.IO) {
@@ -49,11 +51,11 @@ internal suspend fun jsonToConfig(json: String): Result<Config, CloudXError> =
                     rawJson = root
                 )
             )
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
-            val errStr = e.toString()
-            CXLogger.e(component = "jsonToConfig", message = errStr)
-
-            Result.Failure(CloudXError(CloudXErrorCode.INVALID_RESPONSE))
+            CXLogger.e(component = "jsonToConfig", message = "Failed to parse config JSON", throwable = e)
+            CloudXErrorCode.INVALID_RESPONSE.toFailure(cause = e)
         }
     }
 

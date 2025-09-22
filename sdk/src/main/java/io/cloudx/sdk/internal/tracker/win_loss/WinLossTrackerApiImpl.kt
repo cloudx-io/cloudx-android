@@ -60,7 +60,7 @@ internal class WinLossTrackerApiImpl(
             throw e
         } catch (e: Exception) {
             println("hop: model - Win/Loss API call exception: ${e.message}")
-            CXLogger.e(tag, "Win/loss notification failed with exception: ${e.message}")
+            CXLogger.e(tag, "Win/loss notification failed", e)
             Result.Failure(CloudXError(CloudXErrorCode.NETWORK_ERROR))
         }
     }

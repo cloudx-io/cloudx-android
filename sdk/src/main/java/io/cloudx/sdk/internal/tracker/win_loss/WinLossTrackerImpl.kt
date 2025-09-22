@@ -1,5 +1,6 @@
 package io.cloudx.sdk.internal.tracker.win_loss
 
+import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.bid.Bid
 import io.cloudx.sdk.internal.db.CloudXDb
 import io.cloudx.sdk.internal.db.win_loss.CachedWinLossEvents
@@ -132,6 +133,7 @@ internal class WinLossTrackerImpl(
             }
             result
         } catch (e: Exception) {
+            CXLogger.e("WinLossTracker", "Failed to parse win/loss payload JSON", e)
             null
         }
     }

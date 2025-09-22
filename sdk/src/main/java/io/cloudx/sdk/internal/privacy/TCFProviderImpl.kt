@@ -3,6 +3,7 @@ package io.cloudx.sdk.internal.privacy
 import android.content.Context
 import android.preference.PreferenceManager
 import io.cloudx.sdk.internal.CXLogger
+import kotlin.coroutines.cancellation.CancellationException
 
 internal class TCFProviderImpl(context: Context) : TCFProvider {
 
@@ -12,9 +13,11 @@ internal class TCFProviderImpl(context: Context) : TCFProvider {
     override suspend fun tcString(): String? {
         val tcfConsent = try {
             sharedPrefs.getString(IABTCF_TCString, null)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             // In case value wasn't string, handle exception gracefully.
-            CXLogger.e(TAG, e.toString())
+            CXLogger.e(TAG, "Failed to read TCF string", e)
             null
         }
 
@@ -42,9 +45,11 @@ internal class TCFProviderImpl(context: Context) : TCFProvider {
                 1 -> true
                 else -> null
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             // In case value wasn't int, handle exception gracefully.
-            CXLogger.e(TAG, e.toString())
+            CXLogger.e(TAG, "Failed to read TCF preference value for key: $key", e)
             null
         }
     }

@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.coroutines.cancellation.CancellationException
 
 // TODO. Ugly. Duplication of VastWebView.
 //  Review settings during webview build/init.
@@ -67,6 +68,8 @@ internal class StaticWebView(
         withContext(Dispatchers.Main) {
             try {
                 loadDataWithDefaultBaseUrl(applyCSSRenderingFix(html))
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 CXLogger.e(message = e.toString())
             }

@@ -102,13 +102,13 @@ object ThreadUtils {
                 withContext(context, block)
             }
         } catch (e: TimeoutCancellationException) {
-            CXLogger.w(TAG, "Operation timed out after ${timeoutMs}ms")
+            CXLogger.w(TAG, "Operation timed out after ${timeoutMs}ms", e)
             null
         } catch (e: CancellationException) {
             CXLogger.d(TAG, "Operation was cancelled")
             throw e // Re-throw cancellation to maintain coroutine semantics
         } catch (e: Exception) {
-            CXLogger.e(TAG, "Operation failed with exception")
+            CXLogger.e(TAG, "Operation failed with exception", e)
             null
         }
     }

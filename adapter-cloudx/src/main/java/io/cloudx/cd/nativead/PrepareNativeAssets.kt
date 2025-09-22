@@ -4,6 +4,7 @@ import io.cloudx.sdk.internal.util.Result
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlin.coroutines.cancellation.CancellationException
 
 // TODO. Asset preparation Failure default/overridable logic (if required and not loaded -- fail ... or custom logic)
 internal suspend fun prepareNativeAssets(
@@ -26,6 +27,8 @@ internal suspend fun prepareNativeAssets(
                 }
             }.awaitAll()
         }
+    } catch (e: CancellationException) {
+        throw e
     } catch (e: Exception) {
         return Result.Failure("required asset failed to prepare: $e")
     }

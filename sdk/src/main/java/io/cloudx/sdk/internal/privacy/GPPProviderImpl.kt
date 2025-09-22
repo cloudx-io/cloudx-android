@@ -27,7 +27,7 @@ private class GPPProviderImpl(context: Context) : GPPProvider {
         return try {
             sharedPrefs.getString(IABGPP_GppString, null)?.takeIf { it.isNotBlank() }
         } catch (e: Exception) {
-            CXLogger.e(TAG, "Failed to read GPP string: ${e.message}")
+            CXLogger.e(TAG, "Failed to read GPP string", e)
             null
         }
     }
@@ -42,7 +42,7 @@ private class GPPProviderImpl(context: Context) : GPPProvider {
                 ?.sorted()
                 ?.takeIf { it.isNotEmpty() }
         } catch (e: Exception) {
-            CXLogger.e(TAG, "Failed to read or parse GPP SID: ${e.message}")
+            CXLogger.e(TAG, "Failed to read or parse GPP SID", e)
             null
         }
     }
@@ -87,7 +87,7 @@ private class GPPProviderImpl(context: Context) : GPPProvider {
                 sharingOptOut = sharingOptOut
             )
         } catch (e: Exception) {
-            CXLogger.e(TAG, "US-CA decode failed: ${e.message}")
+            CXLogger.e(TAG, "US-CA decode failed", e)
             null
         }
     }
@@ -112,7 +112,7 @@ private class GPPProviderImpl(context: Context) : GPPProvider {
                 sharingOptOut = sharingOptOutEffective
             )
         } catch (e: Exception) {
-            CXLogger.e(TAG, "US-National decode failed: ${e.message}")
+            CXLogger.e(TAG, "US-National decode failed", e)
             null
         }
     }

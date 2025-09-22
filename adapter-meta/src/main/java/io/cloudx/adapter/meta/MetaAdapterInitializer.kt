@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.coroutines.resume
 
 @Keep
@@ -42,6 +43,8 @@ internal object Initializer : CloudXAdapterInitializer {
                     // So we have a try catch block around it.
                     try {
                         continuation.resume(CloudXAdapterInitializationResult.Success)
+                    } catch (e: CancellationException) {
+                        throw e
                     } catch (e: Exception) {
                         CXLogger.w(TAG, "Continuation resumed more than once", e)
                     }

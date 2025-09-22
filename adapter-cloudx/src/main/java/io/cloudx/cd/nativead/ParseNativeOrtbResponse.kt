@@ -5,6 +5,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
+import kotlin.coroutines.cancellation.CancellationException
 
 internal suspend fun parseNativeOrtbResponse(
     nativeOrtbString: String
@@ -27,6 +28,8 @@ internal suspend fun parseNativeOrtbResponse(
                 )
             )
         }
+    } catch (e: CancellationException) {
+        throw e
     } catch (e: Exception) {
         Result.Failure(e.toString())
     }

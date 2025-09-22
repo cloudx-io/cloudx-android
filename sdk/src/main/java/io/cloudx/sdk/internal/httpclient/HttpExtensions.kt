@@ -4,6 +4,7 @@ import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.internal.CLOUDX_DEFAULT_RETRY_MS
 import io.cloudx.sdk.internal.util.Result
+import io.cloudx.sdk.toFailure
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.HttpRequestTimeoutException
@@ -77,13 +78,13 @@ internal suspend inline fun <T> httpCatching(
     } catch (e: CancellationException) {
         throw e
     } catch (e: HttpRequestTimeoutException) {
-        Result.Failure(CloudXError(CloudXErrorCode.NETWORK_TIMEOUT, cause = e))
+        CloudXErrorCode.NETWORK_TIMEOUT.toFailure(e.message, e)
     } catch (e: IOException) {
-        Result.Failure(CloudXError(CloudXErrorCode.NETWORK_ERROR, cause = e))
+        CloudXErrorCode.NETWORK_ERROR.toFailure(e.message, e)
     } catch (e: ServerResponseException) {
-        Result.Failure(CloudXError(CloudXErrorCode.SERVER_ERROR, cause = e))
+        CloudXErrorCode.SERVER_ERROR.toFailure(e.message, e)
     } catch (e: Exception) {
-        Result.Failure(CloudXError(CloudXErrorCode.NETWORK_ERROR, e.message, e))
+        CloudXErrorCode.NETWORK_ERROR.toFailure(e.message, e)
     }
 
 /** Map a response to Result using pluggable OK/NoContent handlers. */
@@ -95,16 +96,11 @@ internal suspend inline fun <T> HttpResponse.mapToResult(
     return when (status) {
         HttpStatusCode.OK -> onOk(this, body)
         HttpStatusCode.NoContent -> onNoContent(this, body)
-        HttpStatusCode.TooManyRequests -> Result.Failure(CloudXError(CloudXErrorCode.TOO_MANY_REQUESTS))
+        HttpStatusCode.TooManyRequests -> CloudXErrorCode.TOO_MANY_REQUESTS.toFailure()
         else -> when (status.value) {
-            in 400..499 -> Result.Failure(CloudXError(CloudXErrorCode.CLIENT_ERROR))
-            in 500..599 -> Result.Failure(CloudXError(CloudXErrorCode.SERVER_ERROR))
-            else -> Result.Failure(
-                CloudXError(
-                    CloudXErrorCode.UNEXPECTED_ERROR,
-                    "Unexpected status: $status"
-                )
-            )
+            in 400..499 -> CloudXErrorCode.CLIENT_ERROR.toFailure()
+            in 500..599 -> CloudXErrorCode.SERVER_ERROR.toFailure()
+            else -> CloudXErrorCode.UNEXPECTED_ERROR.toFailure("Unexpected status: $status")
         }
     }
 }

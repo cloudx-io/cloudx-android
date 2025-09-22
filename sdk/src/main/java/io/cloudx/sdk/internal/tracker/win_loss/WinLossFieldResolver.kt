@@ -89,9 +89,13 @@ internal class WinLossFieldResolver {
             processedUrl = processedUrl.replace(PLACEHOLDER_AUCTION_PRICE, loadedBidPrice.toString())
         }
 
-        if (processedUrl.contains(PLACEHOLDER_AUCTION_LOSS) && !isWin) {
-            val lossReasonCode = lossReason?.code ?: 1
-            processedUrl = processedUrl.replace(PLACEHOLDER_AUCTION_LOSS, lossReasonCode.toString())
+        if (processedUrl.contains(PLACEHOLDER_AUCTION_LOSS)) {
+            val finalLossReason = if (isWin) {
+                LossReason.BID_WON
+            } else {
+                lossReason ?: LossReason.INTERNAL_ERROR
+            }
+            processedUrl = processedUrl.replace(PLACEHOLDER_AUCTION_LOSS, finalLossReason.description)
         }
 
         return processedUrl

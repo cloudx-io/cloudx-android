@@ -2,7 +2,7 @@ package io.cloudx.sdk.internal.cdp
 
 import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.CloudXErrorCode
-import io.cloudx.sdk.internal.httpclient.cloudXConstantRetry
+import io.cloudx.sdk.internal.httpclient.cXConstantRetry
 import io.cloudx.sdk.internal.httpclient.httpCatching
 import io.cloudx.sdk.internal.util.Result
 import io.cloudx.sdk.internal.util.withIOContext
@@ -33,7 +33,7 @@ internal class CdpApiImpl(
                 httpClient.post(endpointUrl) {
                     contentType(ContentType.Application.Json)
                     setBody(requestBody)
-                    cloudXConstantRetry(1)
+                    cXConstantRetry(1)
                 }
             }
         }

@@ -19,6 +19,7 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
+import io.ktor.http.HttpMessageBuilder
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import java.io.IOException
@@ -27,16 +28,19 @@ import kotlin.coroutines.cancellation.CancellationException
 internal fun HttpRequestBuilder.requestTimeoutMs(millis: Long) =
     timeout { requestTimeoutMillis = millis }
 
+internal fun HttpMessageBuilder.cXAuthHeader(appKey: String) {
+    headers { append("Authorization", "Bearer $appKey") }
+}
 
-internal fun HttpRequestRetry.Configuration.cloudXRetry(retryMax: Int) {
+internal fun HttpRequestRetry.Configuration.cXRetry(retryMax: Int) {
     maxRetries = retryMax
     retryOnExceptionOrServerErrors()
     retryIf { _, resp -> resp.status == HttpStatusCode.TooManyRequests }
 }
 
-internal fun HttpRequestBuilder.cloudXConstantRetry(retryMax: Int) {
+internal fun HttpRequestBuilder.cXConstantRetry(retryMax: Int) {
     retry {
-        cloudXRetry(retryMax)
+        cXRetry(retryMax)
         constantDelay(
             millis = CLOUDX_DEFAULT_RETRY_MS,
             randomizationMs = 1000L,
@@ -45,9 +49,9 @@ internal fun HttpRequestBuilder.cloudXConstantRetry(retryMax: Int) {
     }
 }
 
-internal fun HttpRequestBuilder.cloudXExponentialRetry(retryMax: Int) {
+internal fun HttpRequestBuilder.cXExponentialRetry(retryMax: Int) {
     retry {
-        cloudXRetry(retryMax)
+        cXRetry(retryMax)
         exponentialDelay()
     }
 }
@@ -61,11 +65,11 @@ internal suspend fun HttpClient.postJsonWithRetry(
     retryMax: Int,
 ): HttpResponse {
     return this.post(url) {
-        headers { append("Authorization", "Bearer $appKey") }
+        cXAuthHeader(appKey)
         contentType(ContentType.Application.Json)
         setBody(jsonBody)
         requestTimeoutMs(timeoutMillis)
-        cloudXConstantRetry(retryMax)
+        cXConstantRetry(retryMax)
     }
 }
 
@@ -115,7 +119,7 @@ internal suspend fun HttpClient.getWithRetry(
     return this.get(url) {
         headers { append("Authorization", "Bearer $appKey") }
         requestTimeoutMs(timeoutMillis)
-        cloudXConstantRetry(retryMax)
+        cXConstantRetry(retryMax)
     }
 }
 

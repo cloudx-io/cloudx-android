@@ -2,7 +2,7 @@ package io.cloudx.sdk.internal.tracker
 
 import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.CloudXErrorCode
-import io.cloudx.sdk.internal.httpclient.cloudXExponentialRetry
+import io.cloudx.sdk.internal.httpclient.cXExponentialRetry
 import io.cloudx.sdk.internal.httpclient.httpCatching
 import io.cloudx.sdk.internal.util.Result
 import io.cloudx.sdk.internal.util.toSuccess
@@ -38,7 +38,7 @@ internal class EventTrackerApiImpl(
                 parameter("eventValue", "1")
                 parameter("eventName", eventName)
                 parameter("debug", true)
-                cloudXExponentialRetry(retryMax = 3)
+                cXExponentialRetry(retryMax = 3)
             }
         }
     }

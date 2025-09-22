@@ -24,9 +24,7 @@ internal fun interface WinLossTrackerApi {
 }
 
 internal fun WinLossTrackerApi(
-    timeoutMillis: Long = 10_000,
     httpClient: HttpClient = CloudXHttpClient(),
 ): WinLossTrackerApi = WinLossTrackerApiImpl(
-    timeoutMillis = timeoutMillis,
     httpClient = httpClient
 )

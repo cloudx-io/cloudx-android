@@ -2,7 +2,7 @@ package io.cloudx.sdk.internal.tracker.bulk
 
 import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.CloudXErrorCode
-import io.cloudx.sdk.internal.httpclient.cloudXExponentialRetry
+import io.cloudx.sdk.internal.httpclient.cXExponentialRetry
 import io.cloudx.sdk.internal.httpclient.httpCatching
 import io.cloudx.sdk.internal.util.Result
 import io.cloudx.sdk.internal.util.toSuccess
@@ -33,7 +33,7 @@ internal class EventTrackerBulkApiImpl(
             httpClient.post(endpointUrl) {
                 setBody(items.toJson())
                 contentType(ContentType.Application.Json)
-                cloudXExponentialRetry(3)
+                cXExponentialRetry(3)
             }
         }
     }

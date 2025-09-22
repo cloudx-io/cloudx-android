@@ -46,7 +46,7 @@ internal class WinLossFieldResolver {
         return when (fieldPath) {
             "sdk.win" -> if (isWin) "win" else null
             "sdk.loss" -> if (!isWin) "loss" else null
-            "sdk.lossReason" -> lossReason?.code
+            "sdk.lossReason" -> if (isWin) LossReason.BID_WON.code else lossReason?.code
             "sdk.[win|loss]" -> if (isWin) "win" else "loss"
             "sdk.sdk" -> "sdk"
             "sdk.[bid.nurl|bid.lurl]" -> {

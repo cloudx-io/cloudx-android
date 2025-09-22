@@ -24,7 +24,7 @@ private typealias Func = (() -> Unit)
 private typealias ClickFunc = (() -> Unit)
 private typealias ErrorFunc = ((error: CloudXError) -> Unit)
 
-class AdEventDecoration(
+class AdEventDecorator(
     val onLoad: Func? = null,
     val onShow: Func? = null,
     val onHide: Func? = null,
@@ -40,60 +40,60 @@ class AdEventDecoration(
     val onTimeout: Func? = null,
 ) {
 
-    operator fun plus(adEventDecoration: AdEventDecoration) = AdEventDecoration(
+    operator fun plus(adEventDecorator: AdEventDecorator) = AdEventDecorator(
         {
             onLoad?.invoke()
-            adEventDecoration.onLoad?.invoke()
+            adEventDecorator.onLoad?.invoke()
         },
         {
             onShow?.invoke()
-            adEventDecoration.onShow?.invoke()
+            adEventDecorator.onShow?.invoke()
         },
         {
             onHide?.invoke()
-            adEventDecoration.onHide?.invoke()
+            adEventDecorator.onHide?.invoke()
         },
         {
             onImpression?.invoke()
-            adEventDecoration.onImpression?.invoke()
+            adEventDecorator.onImpression?.invoke()
         },
         {
             onSkip?.invoke()
-            adEventDecoration.onSkip?.invoke()
+            adEventDecorator.onSkip?.invoke()
         },
         {
             onComplete?.invoke()
-            adEventDecoration.onComplete?.invoke()
+            adEventDecorator.onComplete?.invoke()
         },
         {
             onReward?.invoke()
-            adEventDecoration.onReward?.invoke()
+            adEventDecorator.onReward?.invoke()
         },
         {
             onClick?.invoke()
-            adEventDecoration.onClick?.invoke()
+            adEventDecorator.onClick?.invoke()
         },
         {
             onError?.invoke(it)
-            adEventDecoration.onError?.invoke(it)
+            adEventDecorator.onError?.invoke(it)
         },
         {
             onDestroy?.invoke()
-            adEventDecoration.onDestroy?.invoke()
+            adEventDecorator.onDestroy?.invoke()
         },
         {
             onStartLoad?.invoke()
-            adEventDecoration.onStartLoad?.invoke()
+            adEventDecorator.onStartLoad?.invoke()
         },
         {
             onTimeout?.invoke()
-            adEventDecoration.onTimeout?.invoke()
+            adEventDecorator.onTimeout?.invoke()
         },
     )
 }
 
-internal fun BannerAdapterDelegate.decorate(adEventDecoration: AdEventDecoration): BannerAdapterDelegate =
-    with(adEventDecoration) {
+internal fun BannerAdapterDelegate.decorate(adEventDecorator: AdEventDecorator): BannerAdapterDelegate =
+    with(adEventDecorator) {
         DecoratedBannerAdapterDelegate(
             onLoad,
             onShow,
@@ -107,8 +107,8 @@ internal fun BannerAdapterDelegate.decorate(adEventDecoration: AdEventDecoration
         )
     }
 
-internal fun InterstitialAdapterDelegate.decorate(adEventDecoration: AdEventDecoration): InterstitialAdapterDelegate =
-    with(adEventDecoration) {
+internal fun InterstitialAdapterDelegate.decorate(adEventDecorator: AdEventDecorator): InterstitialAdapterDelegate =
+    with(adEventDecorator) {
         DecoratedInterstitialAdapterDelegate(
             onLoad,
             onShow,
@@ -125,8 +125,8 @@ internal fun InterstitialAdapterDelegate.decorate(adEventDecoration: AdEventDeco
         )
     }
 
-internal fun RewardedInterstitialAdapterDelegate.decorate(adEventDecoration: AdEventDecoration): RewardedInterstitialAdapterDelegate =
-    with(adEventDecoration) {
+internal fun RewardedInterstitialAdapterDelegate.decorate(adEventDecorator: AdEventDecorator): RewardedInterstitialAdapterDelegate =
+    with(adEventDecorator) {
         DecoratedRewardedInterstitialAdapterDelegate(
             onLoad = onLoad,
             onShow = onShow,
@@ -142,14 +142,12 @@ internal fun RewardedInterstitialAdapterDelegate.decorate(adEventDecoration: AdE
         )
     }
 
-fun baseAdDecoration() = AdEventDecoration()
-
-internal fun bidAdDecoration(
+internal fun createAdEventTrackingDecorator(
     bid: Bid,
     auctionId: String,
     eventTracker: EventTracker,
     winLossTracker: WinLossTracker,
-) = AdEventDecoration(
+) = AdEventDecorator(
     onLoad = {},
     onImpression = {
         ThreadUtils.GlobalIOScope.launch {
@@ -190,40 +188,48 @@ internal fun bidAdDecoration(
     }
 )
 
-internal fun adapterLoggingDecoration(
+internal fun createAdapterEventLoggingDecorator(
     placementName: String,
-    placementId: String,
     adNetwork: AdNetwork,
-    networkTimeoutMillis: Long,
     type: AdType,
-    price: Double,
-): AdEventDecoration {
+): AdEventDecorator {
     val tag = "${adNetwork}${type}Adapter"
-
-    return AdEventDecoration(
-        onTimeout = {
-            CXLogger.d(
-                tag,
-                "LOAD TIMEOUT placement: $placementName, id: $placementId, price: $price"
-            )
+    return AdEventDecorator(
+        onStartLoad = {
+            CXLogger.d(tag, placementName, "STARTING LOAD")
         },
         onLoad = {
-            CXLogger.d(
-                tag,
-                "LOAD SUCCESS placement: $placementName, id: $placementId, price: $price"
-            )
+            CXLogger.d(tag, placementName, "LOAD SUCCESS")
         },
-        onError = {
-            CXLogger.e(
-                tag,
-                "ERROR placement: $placementName, id: $placementId, price: $price, error: ${it.effectiveMessage}"
-            )
+        onShow = {
+            CXLogger.d(tag, placementName, "SHOW")
         },
         onImpression = {
-            CXLogger.d(
-                tag,
-                "IMPRESSION placement: $placementName, id: $placementId, price: $price"
-            )
+            CXLogger.d(tag, placementName, "IMPRESSION")
         },
+        onClick = {
+            CXLogger.d(tag, placementName, "CLICK")
+        },
+        onHide = {
+            CXLogger.d(tag, placementName, "HIDE")
+        },
+        onSkip = {
+            CXLogger.d(tag, placementName, "SKIP")
+        },
+        onComplete = {
+            CXLogger.d(tag, placementName, "COMPLETE")
+        },
+        onReward = {
+            CXLogger.d(tag, placementName, "REWARD")
+        },
+        onTimeout = {
+            CXLogger.w(tag, placementName, "LOAD TIMEOUT")
+        },
+        onError = { error ->
+            CXLogger.e(tag, placementName, "ERROR - ${error.effectiveMessage}")
+        },
+        onDestroy = {
+            CXLogger.d(tag, placementName, "DESTROY")
+        }
     )
 }

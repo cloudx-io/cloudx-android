@@ -6,9 +6,8 @@ import io.cloudx.sdk.internal.adapter.BannerFactoryMiscParams
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterFactory
 import io.cloudx.sdk.internal.ads.BidAdSource
-import io.cloudx.sdk.internal.ads.adapterLoggingDecoration
-import io.cloudx.sdk.internal.ads.baseAdDecoration
-import io.cloudx.sdk.internal.ads.bidAdDecoration
+import io.cloudx.sdk.internal.ads.createAdEventTrackingDecorator
+import io.cloudx.sdk.internal.ads.createAdapterEventLoggingDecorator
 import io.cloudx.sdk.internal.ads.decorate
 import io.cloudx.sdk.internal.bid.BidApi
 import io.cloudx.sdk.internal.bid.BidRequestProvider
@@ -83,20 +82,15 @@ internal fun BidBannerSource(
                 listener = listener
             ) as Result.Success).value
         }.decorate(
-            baseAdDecoration() +
-                    bidAdDecoration(
-                        bid = bid,
-                        auctionId = auctionId,
-                        eventTracker = eventTracker,
-                        winLossTracker = winLossTracker
-                    ) +
-                    adapterLoggingDecoration(
-                        placementName = placementName,
-                        placementId = placementId,
-                        adNetwork = network,
-                        networkTimeoutMillis = bidRequestTimeoutMillis,
-                        type = placementType,
-                        price = price
-                    )
+            adEventDecorator = createAdEventTrackingDecorator(
+                bid = bid,
+                auctionId = auctionId,
+                eventTracker = eventTracker,
+                winLossTracker = winLossTracker
+            ) + createAdapterEventLoggingDecorator(
+                placementName = placementName,
+                adNetwork = network,
+                type = placementType,
+            )
         )
     }

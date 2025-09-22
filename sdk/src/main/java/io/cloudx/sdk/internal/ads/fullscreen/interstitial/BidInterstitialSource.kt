@@ -4,9 +4,8 @@ import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapterFactory
 import io.cloudx.sdk.internal.ads.BidAdSource
-import io.cloudx.sdk.internal.ads.adapterLoggingDecoration
-import io.cloudx.sdk.internal.ads.baseAdDecoration
-import io.cloudx.sdk.internal.ads.bidAdDecoration
+import io.cloudx.sdk.internal.ads.createAdEventTrackingDecorator
+import io.cloudx.sdk.internal.ads.createAdapterEventLoggingDecorator
 import io.cloudx.sdk.internal.ads.decorate
 import io.cloudx.sdk.internal.bid.BidApi
 import io.cloudx.sdk.internal.bid.BidRequestProvider
@@ -32,7 +31,6 @@ internal fun BidInterstitialSource(
     appKey: String
 ): BidAdSource<InterstitialAdapterDelegate> {
     val adType = AdType.Interstitial
-
     return BidAdSource(
         provideBidRequest = generateBidRequest,
         bidRequestParams = BidRequestProvider.Params(
@@ -75,21 +73,16 @@ internal fun BidInterstitialSource(
                 listener = listener
             ) as Result.Success).value
         }.decorate(
-            baseAdDecoration() +
-                    bidAdDecoration(
-                        bid = bid,
-                        auctionId = auctionId,
-                        eventTracker = eventTracker,
-                        winLossTracker = winLossTracker
-                    ) +
-                    adapterLoggingDecoration(
-                        placementName = placementName,
-                        placementId = placementId,
-                        adNetwork = adNetwork,
-                        networkTimeoutMillis = bidRequestTimeoutMillis,
-                        type = adType,
-                        price = price
-                    )
+            adEventDecorator = createAdEventTrackingDecorator(
+                bid = bid,
+                auctionId = auctionId,
+                eventTracker = eventTracker,
+                winLossTracker = winLossTracker
+            ) + createAdapterEventLoggingDecorator(
+                placementName = placementName,
+                adNetwork = adNetwork,
+                type = adType,
+            )
         )
     }
 }

@@ -24,7 +24,6 @@ internal object RewardedInterstitialFactory :
         StaticBidRewardedInterstitial(
             context = contextProvider.getContext(),
             adm = adm,
-            placementName = placementName,
             listener = listener
         )
     )

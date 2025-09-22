@@ -46,7 +46,7 @@ internal fun RewardedInterstitialAdapterDelegate(
     adNetwork: AdNetwork,
     externalPlacementId: String?,
     price: Double,
-    createRewardedInterstitial: (listener: CloudXRewardedInterstitialAdapterListener) -> CloudXRewardedInterstitialAdapter
+    createRewardedInterstitialAdapter: (listener: CloudXRewardedInterstitialAdapterListener) -> CloudXRewardedInterstitialAdapter
 ): RewardedInterstitialAdapterDelegate =
     RewardedInterstitialAdapterDelegateImpl(
         placementName = placementName,
@@ -54,7 +54,7 @@ internal fun RewardedInterstitialAdapterDelegate(
         bidderName = adNetwork.networkName,
         externalPlacementId = externalPlacementId,
         revenue = price,
-        createRewardedInterstitial = createRewardedInterstitial
+        createRewardedInterstitialAdapter = createRewardedInterstitialAdapter
     )
 
 /**
@@ -66,7 +66,7 @@ private class RewardedInterstitialAdapterDelegateImpl(
     override val bidderName: String,
     override val externalPlacementId: String?,
     override val revenue: Double,
-    createRewardedInterstitial: (listener: CloudXRewardedInterstitialAdapterListener) -> CloudXRewardedInterstitialAdapter,
+    createRewardedInterstitialAdapter: (listener: CloudXRewardedInterstitialAdapterListener) -> CloudXRewardedInterstitialAdapter,
 ) : RewardedInterstitialAdapterDelegate {
 
     // State management
@@ -78,11 +78,12 @@ private class RewardedInterstitialAdapterDelegateImpl(
     override val lastErrorEvent: StateFlow<CloudXError?> = _lastErrorEvent
 
     // Rewarded interstitial adapter with listener
-    private val rewardedInterstitial = createRewardedInterstitial(createAdapterListener())
+    private val rewardedInterstitialAdapter =
+        createRewardedInterstitialAdapter(createAdapterListener())
 
     // Public API methods
     override val isAdLoadOperationAvailable: Boolean
-        get() = rewardedInterstitial.isAdLoadOperationAvailable
+        get() = rewardedInterstitialAdapter.isAdLoadOperationAvailable
 
     override suspend fun load(): Boolean {
         val evtJob = scope.async {
@@ -91,12 +92,12 @@ private class RewardedInterstitialAdapterDelegateImpl(
             }
         }
 
-        rewardedInterstitial.load()
+        rewardedInterstitialAdapter.load()
         return evtJob.await() is RewardedInterstitialAdapterDelegateEvent.Load
     }
 
     override fun show() {
-        rewardedInterstitial.show()
+        rewardedInterstitialAdapter.show()
     }
 
     override fun timeout() {
@@ -105,7 +106,7 @@ private class RewardedInterstitialAdapterDelegateImpl(
 
     override fun destroy() {
         scope.cancel()
-        rewardedInterstitial.destroy()
+        rewardedInterstitialAdapter.destroy()
     }
 
     private fun createAdapterListener(): CloudXRewardedInterstitialAdapterListener {

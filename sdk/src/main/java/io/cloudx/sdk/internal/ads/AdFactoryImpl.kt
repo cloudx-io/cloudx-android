@@ -42,7 +42,7 @@ internal class AdFactoryImpl(
         // Validating placement exists for the key and ad type passed here.
         val placement = config.placements[placementName]
         if (placement == null || placement.toAdType() != adType) {
-            logCantFindPlacement(placementName)
+            logCantFindPlacement(placementName, adType, placement)
             return null
         }
 
@@ -100,7 +100,7 @@ internal class AdFactoryImpl(
         val placementName = params.placementName
         val placement = config.placements[placementName] as? Config.Placement.Interstitial
         if (placement == null) {
-            logCantFindPlacement(placementName)
+            logCantFindPlacement(placementName, AdType.Interstitial, config.placements[placementName])
             return null
         }
         val bidApi = createBidApi(placement.bidResponseTimeoutMillis)
@@ -128,7 +128,7 @@ internal class AdFactoryImpl(
         val placementName = params.placementName
         val placement = config.placements[placementName] as? Config.Placement.Rewarded
         if (placement == null) {
-            logCantFindPlacement(placementName)
+            logCantFindPlacement(placementName, AdType.Rewarded, config.placements[placementName])
             return null
         }
         val bidApi = createBidApi(placement.bidResponseTimeoutMillis)
@@ -159,8 +159,32 @@ internal class AdFactoryImpl(
 
     private fun createCdpApi() = CdpApi(ResolvedEndpoints.cdpEndpoint)
 
-    private fun logCantFindPlacement(placement: String) {
-        CXLogger.w(TAG, "can't create $placement placement: missing in SDK Config")
+    private fun logCantFindPlacement(
+        placementName: String,
+        requestedAdType: AdType,
+        foundPlacement: Config.Placement?
+    ) {
+        val availablePlacements = config.placements.keys.joinToString(", ")
+
+        val errorMessage = when {
+            foundPlacement == null -> {
+                "Placement '$placementName' not found in SDK configuration. " +
+                "Available placements: [$availablePlacements]. " +
+                "Please check your placement name or contact your account manager."
+            }
+            foundPlacement.toAdType() != requestedAdType -> {
+                val actualAdType = foundPlacement.toAdType()
+                "Placement '$placementName' exists but has wrong ad type. " +
+                "Requested: ${requestedAdType.javaClass.simpleName}, " +
+                "Actual: ${actualAdType?.javaClass?.simpleName ?: "Unknown"}. " +
+                "Please use the correct ad creation method for this placement type."
+            }
+            else -> {
+                "Unknown placement validation error for '$placementName'"
+            }
+        }
+
+        CXLogger.e(TAG, placementName, errorMessage)
     }
 }
 

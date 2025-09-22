@@ -17,8 +17,6 @@ internal class EventTrackerApiImpl(
     private val httpClient: HttpClient,
 ) : EventTrackerApi {
 
-    private val TAG = "EventTrackingApi"
-
     override suspend fun send(
         endpointUrl: String,
         encodedData: String,
@@ -27,7 +25,6 @@ internal class EventTrackerApiImpl(
         eventName: String
     ): Result<Unit, CloudXError> = withIOContext {
         httpCatching(
-            tag = TAG,
             onOk = { _, _ -> Unit.toSuccess() },
             onNoContent = { response, _ ->
                 CloudXErrorCode.UNEXPECTED_ERROR.toFailure(

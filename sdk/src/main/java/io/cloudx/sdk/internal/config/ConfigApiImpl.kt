@@ -3,7 +3,6 @@ package io.cloudx.sdk.internal.config
 import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.CloudXInitializationServer
-import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.HEADER_CLOUDX_STATUS
 import io.cloudx.sdk.internal.STATUS_ADS_DISABLED
 import io.cloudx.sdk.internal.STATUS_SDK_DISABLED
@@ -19,14 +18,11 @@ internal class ConfigApiImpl(
     private val httpClient: HttpClient
 ) : ConfigApi {
 
-    private val tag = "ConfigApiImpl"
-
     override suspend fun invoke(
         appKey: String,
         configRequest: ConfigRequest
     ): Result<Config, CloudXError> = withIOContext {
         httpCatching(
-            tag = tag,
             onOk = { _, json -> jsonToConfig(json) },
             onNoContent = { response, _ ->
                 val xStatus = response.headers[HEADER_CLOUDX_STATUS]
@@ -43,7 +39,6 @@ internal class ConfigApiImpl(
                 jsonBody = configRequest.toJson(),
                 timeoutMillis = timeoutMillis,
                 retryMax = 1,
-                tag = tag
             )
         }
     }

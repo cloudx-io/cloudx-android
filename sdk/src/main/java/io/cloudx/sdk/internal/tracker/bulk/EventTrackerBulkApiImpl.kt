@@ -18,14 +18,11 @@ internal class EventTrackerBulkApiImpl(
     private val httpClient: HttpClient,
 ) : EventTrackerBulkApi {
 
-    private val TAG = "EventTrackingBulkApi"
-
     override suspend fun send(
         endpointUrl: String,
         items: List<EventAM>
     ): Result<Unit, CloudXError> = withIOContext {
         httpCatching(
-            tag = TAG,
             onOk = { _, _ -> Unit.toSuccess() },
             onNoContent = { response, _ ->
                 CloudXErrorCode.UNEXPECTED_ERROR.toFailure(

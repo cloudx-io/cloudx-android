@@ -101,6 +101,7 @@ dependencies {
     implementation(libs.kotlin.reflect)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.ktor.client.android)
+    implementation(libs.ktor.client.logging)
     implementation(libs.appcompat)
     implementation(libs.google.advertisingid)
     implementation(libs.google.location)

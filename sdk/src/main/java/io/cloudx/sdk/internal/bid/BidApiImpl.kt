@@ -19,14 +19,11 @@ internal class BidApiImpl(
     private val httpClient: HttpClient
 ) : BidApi {
 
-    private val tag = "BidApiImpl"
-
     override suspend fun invoke(
         appKey: String,
         bidRequest: JSONObject
     ): Result<BidResponse, CloudXError> = withIOContext {
         httpCatching(
-            tag = tag,
             onOk = { _, json ->
                 val parseResult = jsonToBidResponse(json)
                 if (parseResult is Result.Success) {
@@ -52,7 +49,6 @@ internal class BidApiImpl(
                 jsonBody = bidRequest.toString(),
                 timeoutMillis = timeoutMillis,
                 retryMax = 1,
-                tag = tag
             )
         }
     }

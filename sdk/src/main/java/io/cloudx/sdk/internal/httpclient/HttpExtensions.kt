@@ -1,9 +1,8 @@
 package io.cloudx.sdk.internal.httpclient
 
-import io.cloudx.sdk.internal.CLOUDX_DEFAULT_RETRY_MS
 import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.CloudXErrorCode
-import io.cloudx.sdk.internal.CXLogger
+import io.cloudx.sdk.internal.CLOUDX_DEFAULT_RETRY_MS
 import io.cloudx.sdk.internal.util.Result
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpRequestRetry
@@ -59,9 +58,7 @@ internal suspend fun HttpClient.postJsonWithRetry(
     jsonBody: String,
     timeoutMillis: Long,
     retryMax: Int,
-    tag: String,
 ): HttpResponse {
-    CXLogger.d(tag, "HTTP → POST $url\nBody: $jsonBody")
     return this.post(url) {
         headers { append("Authorization", "Bearer $appKey") }
         contentType(ContentType.Application.Json)
@@ -91,12 +88,10 @@ internal suspend inline fun <T> httpCatching(
 
 /** Map a response to Result using pluggable OK/NoContent handlers. */
 internal suspend inline fun <T> HttpResponse.mapToResult(
-    tag: String,
     crossinline onOk: suspend (resp: HttpResponse, body: String) -> Result<T, CloudXError>,
     crossinline onNoContent: suspend (resp: HttpResponse, body: String) -> Result<T, CloudXError>
 ): Result<T, CloudXError> {
     val body = bodyAsText()
-    CXLogger.d(tag, "HTTP ← ${status.value}\n$body")
     return when (status) {
         HttpStatusCode.OK -> onOk(this, body)
         HttpStatusCode.NoContent -> onNoContent(this, body)
@@ -120,9 +115,7 @@ internal suspend fun HttpClient.getWithRetry(
     appKey: String,
     timeoutMillis: Long,
     retryMax: Int,
-    tag: String,
 ): HttpResponse {
-    CXLogger.d(tag, "HTTP → GET $url")
     return this.get(url) {
         headers { append("Authorization", "Bearer $appKey") }
         requestTimeoutMs(timeoutMillis)
@@ -132,10 +125,9 @@ internal suspend fun HttpClient.getWithRetry(
 
 /** Convenience wrapper that combines httpCatching + postJsonWithRetry + mapToResult */
 internal suspend inline fun <T> httpCatching(
-    tag: String,
     crossinline onOk: suspend (resp: HttpResponse, body: String) -> Result<T, CloudXError>,
     crossinline onNoContent: suspend (resp: HttpResponse, body: String) -> Result<T, CloudXError>,
     crossinline block: suspend () -> HttpResponse
 ): Result<T, CloudXError> = httpCatching {
-    block().mapToResult(tag, onOk, onNoContent)
+    block().mapToResult(onOk, onNoContent)
 }

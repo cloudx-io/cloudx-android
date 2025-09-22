@@ -19,12 +19,9 @@ internal class CdpApiImpl(
     private val httpClient: HttpClient
 ) : CdpApi {
 
-    private val TAG = "CdpApi"
-
     override suspend fun enrich(original: JSONObject): Result<JSONObject, CloudXError> =
         withIOContext {
             httpCatching(
-                tag = TAG,
                 onOk = { _, json -> Result.Success(JSONObject(json)) },
                 onNoContent = { response, _ ->
                     CloudXErrorCode.UNEXPECTED_ERROR.toFailure(

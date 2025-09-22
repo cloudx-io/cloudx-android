@@ -21,7 +21,6 @@ internal class GeoApiImpl(
     override suspend fun fetchGeoHeaders(endpointUrl: String): Result<Map<String, String>, CloudXError> =
         withIOContext {
             httpCatching(
-                tag = TAG,
                 onOk = { response, _ ->
                     val headersMap = response.headers.entries()
                         .associate { (key, values) -> key to values.joinToString(",") }

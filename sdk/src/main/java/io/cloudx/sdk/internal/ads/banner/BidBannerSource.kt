@@ -34,7 +34,8 @@ internal fun BidBannerSource(
     miscParams: BannerFactoryMiscParams,
     bidRequestTimeoutMillis: Long,
     accountId: String,
-    appKey: String
+    appKey: String,
+    appId: String
 ): BidAdSource<BannerAdapterDelegate> =
     BidAdSource(
         provideBidRequest = generateBidRequest,
@@ -43,7 +44,8 @@ internal fun BidBannerSource(
             adType = placementType,
             placementName = placementName,
             accountId = accountId,
-            appKey = appKey
+            appKey = appKey,
+            appId = appId
         ),
         requestBid = requestBid,
         cdpApi = cdpApi,

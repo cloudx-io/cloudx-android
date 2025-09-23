@@ -90,7 +90,8 @@ internal class AdFactoryImpl(
             winLossTracker = winLossTracker,
             connectionStatusService = connectionStatusService,
             accountId = config.accountId ?: "",
-            appKey = appKey
+            appKey = appKey,
+            appId = config.appId ?: ""
         )
     }
 
@@ -118,7 +119,8 @@ internal class AdFactoryImpl(
             winLossTracker = winLossTracker,
             connectionStatusService = connectionStatusService,
             accountId = config.accountId ?: "",
-            appKey = appKey
+            appKey = appKey,
+            appId =  config.appId ?: ""
         )
     }
 
@@ -146,7 +148,8 @@ internal class AdFactoryImpl(
             winLossTracker = winLossTracker,
             connectionStatusService = connectionStatusService,
             accountId = config.accountId ?: "",
-            appKey = appKey
+            appKey = appKey,
+            appId = config.appId ?: ""
         )
     }
 

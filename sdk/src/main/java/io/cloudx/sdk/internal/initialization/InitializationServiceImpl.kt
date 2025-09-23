@@ -243,7 +243,8 @@ internal class InitializationServiceImpl(
             adType = AdType.Banner.Standard,
             placementName = "",
             accountId = cfg.accountId ?: "",
-            appKey = appKey
+            appKey = appKey,
+            appId = cfg.appId ?: ""
         )
         val bidRequestProvider = BidRequestProvider(
             emptyMap()

@@ -28,7 +28,8 @@ internal fun BidInterstitialSource(
     winLossTracker: WinLossTracker,
     bidRequestTimeoutMillis: Long,
     accountId: String,
-    appKey: String
+    appKey: String,
+    appId: String
 ): BidAdSource<InterstitialAdapterDelegate> {
     val adType = AdType.Interstitial
     return BidAdSource(
@@ -38,7 +39,8 @@ internal fun BidInterstitialSource(
             adType = adType,
             placementName,
             accountId = accountId,
-            appKey = appKey
+            appKey = appKey,
+            appId = appId
         ),
         requestBid = requestBid,
         cdpApi = cdpApi,

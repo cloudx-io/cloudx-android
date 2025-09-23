@@ -1,8 +1,8 @@
 package io.cloudx.sdk.internal.ads.banner
 
 import io.cloudx.sdk.CloudXAdViewListener
-import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.CloudXDestroyable
+import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.CXLogger
@@ -259,7 +259,8 @@ internal fun BannerManager(
     winLossTracker: WinLossTracker,
     connectionStatusService: ConnectionStatusService,
     accountId: String,
-    appKey: String
+    appKey: String,
+    appId: String
 ): BannerManager {
 
     val bidRequestProvider = BidRequestProvider(
@@ -283,7 +284,8 @@ internal fun BannerManager(
             miscParams = miscParams,
             bidRequestTimeoutMillis = 0,
             accountId = accountId,
-            appKey = appKey
+            appKey = appKey,
+            appId = appId
         )
 
 

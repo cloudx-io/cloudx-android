@@ -70,7 +70,8 @@ internal fun InterstitialManager(
     winLossTracker: WinLossTracker,
     connectionStatusService: ConnectionStatusService,
     accountId: String,
-    appKey: String
+    appKey: String,
+    appId: String
 ): CloudXInterstitialAd {
 
     val bidRequestProvider = BidRequestProvider(
@@ -90,7 +91,8 @@ internal fun InterstitialManager(
             winLossTracker = winLossTracker,
             bidRequestTimeoutMillis = 0,
             accountId = accountId,
-            appKey = appKey
+            appKey = appKey,
+            appId = appId
         )
 
     val adLoader = AdLoader(

@@ -4,7 +4,6 @@ import io.cloudx.sdk.BuildConfig
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.ApplicationContext
-import io.cloudx.sdk.internal.tracker.PlacementLoopIndexTracker
 import io.cloudx.sdk.internal.adapter.CloudXAdapterBidRequestExtrasProvider
 import io.cloudx.sdk.internal.appinfo.AppInfoProvider
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
@@ -13,6 +12,7 @@ import io.cloudx.sdk.internal.gaid.GAIDProvider
 import io.cloudx.sdk.internal.httpclient.UserAgentProvider
 import io.cloudx.sdk.internal.privacy.PrivacyService
 import io.cloudx.sdk.internal.screen.ScreenService
+import io.cloudx.sdk.internal.tracker.PlacementLoopIndexTracker
 import org.json.JSONObject
 
 // TODO. Separate Json conversion logic from business logic.
@@ -26,6 +26,7 @@ internal interface BidRequestProvider {
         val placementName: String,
         val accountId: String,
         val appKey: String,
+        val appId: String,
         val osVersionOld: Int? = null
     )
 }

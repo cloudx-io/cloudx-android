@@ -3,7 +3,6 @@ package io.cloudx.sdk.internal.bid
 import android.content.Context
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.AdType
-import io.cloudx.sdk.internal.tracker.PlacementLoopIndexTracker
 import io.cloudx.sdk.internal.adapter.CloudXAdapterBidRequestExtrasProvider
 import io.cloudx.sdk.internal.ads.native.NativeAdSpecs
 import io.cloudx.sdk.internal.appinfo.AppInfoProvider
@@ -18,6 +17,7 @@ import io.cloudx.sdk.internal.privacy.PrivacyService
 import io.cloudx.sdk.internal.screen.ScreenService
 import io.cloudx.sdk.internal.state.SdkKeyValueState
 import io.cloudx.sdk.internal.toBidRequestString
+import io.cloudx.sdk.internal.tracker.PlacementLoopIndexTracker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -49,7 +49,7 @@ internal class BidRequestProviderImpl(
 
                 put("app", JSONObject().apply {
                     val appInfo = provideAppInfo()
-                    put("id", "5646234")
+                    put("id", params.appId)
                     put("bundle", appInfo.packageName)
                     put("ver", appInfo.appVersion)
                     put("publisher", JSONObject().apply {

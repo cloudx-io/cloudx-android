@@ -31,7 +31,6 @@ internal class EventTrackerApiImpl(
                 parameter("campaignId", URLEncoder.encode(campaignId, Charsets.UTF_8.name()))
                 parameter("eventValue", "1")
                 parameter("eventName", eventName)
-                parameter("debug", true)
                 cXExponentialRetry(retryMax = 3)
             }
         }

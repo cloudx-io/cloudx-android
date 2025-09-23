@@ -20,7 +20,6 @@ internal object TrackingFieldResolver {
     private var tracking: List<String>? = null
     private val requestDataMap = ConcurrentHashMap<String, JSONObject>()
     private val responseDataMap = ConcurrentHashMap<String, JSONObject>()
-    private val loadedBidMap = ConcurrentHashMap<String, String>()
     private var configDataMap: JSONObject? = null
     private val sdkMap = ConcurrentHashMap<String, MutableMap<String, String>>()
     private var auctionedLoopIndex = ConcurrentHashMap<String, Int>()
@@ -67,10 +66,6 @@ internal object TrackingFieldResolver {
         params[key] = value
     }
 
-    fun saveLoadedBid(auctionId: String, bidId: String) {
-        loadedBidMap[auctionId] = bidId
-    }
-
     fun setLoopIndex(auctionId: String, loopIndex: Int) {
         auctionedLoopIndex[auctionId] = loopIndex
     }
@@ -79,11 +74,11 @@ internal object TrackingFieldResolver {
         return accountId
     }
 
-    fun buildPayload(auctionId: String): String? {
+    fun buildPayload(auctionId: String, bidId: String? = null): String? {
         val trackingList = tracking ?: return null
 
         val values = trackingList.map { field ->
-            resolveField(auctionId, field)?.toString().orEmpty()
+            resolveField(auctionId, field, bidId)?.toString().orEmpty()
         }
 
         return values.joinToString(";")
@@ -96,7 +91,6 @@ internal object TrackingFieldResolver {
     fun clear() {
         requestDataMap.clear()
         responseDataMap.clear()
-        loadedBidMap.clear()
         sdkMap.clear()
         auctionedLoopIndex.clear()
     }
@@ -136,22 +130,22 @@ internal object TrackingFieldResolver {
         return current
     }
 
-    fun resolveField(auctionId: String, field: String): Any? {
+    fun resolveField(auctionId: String, field: String, bidId: String? = null): Any? {
         // placeholder‐expander
         val placeholderRegex = Regex("""\$\{([^}]+)\}""")
         fun expandTemplate(template: String): String =
             placeholderRegex.replace(template) { m ->
                 val innerPath = m.groupValues[1]
-                resolveField(auctionId, innerPath)?.toString().orEmpty()
+                resolveField(auctionId, innerPath, bidId)?.toString().orEmpty()
             }
 
         return when {
             // —— BID fields ——
             field.startsWith("bid.") -> {
-                val bidId = loadedBidMap[auctionId] ?: return null
+                val targetBidId = bidId ?: return null // bidId is now required for bid fields
                 val seatbid = responseDataMap[auctionId]?.optJSONArray("seatbid") ?: return null
 
-                // find winning bid object
+                // find specific bid object by bidId
                 val bidObj = sequence {
                     for (i in 0 until seatbid.length()) {
                         val seat = seatbid.getJSONObject(i)
@@ -159,7 +153,7 @@ internal object TrackingFieldResolver {
                         for (j in 0 until bids.length())
                             yield(bids.getJSONObject(j))
                     }
-                }.firstOrNull { it.optString("id") == bidId } ?: return null
+                }.firstOrNull { it.optString("id") == targetBidId } ?: return null
 
                 // strip prefix, expand placeholders, then resolve deep path
                 val rawTemplate = field.removePrefix("bid.")

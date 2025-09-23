@@ -152,8 +152,7 @@ internal fun createAdEventTrackingDecorator(
     onImpression = {
         ThreadUtils.GlobalIOScope.launch {
             // Save the loaded bid for existing impression tracking
-            TrackingFieldResolver.saveLoadedBid(auctionId, bid.id)
-            var payload = TrackingFieldResolver.buildPayload(auctionId)
+            var payload = TrackingFieldResolver.buildPayload(auctionId, bid.id)
             payload = payload?.replace(auctionId, auctionId)
             val accountId = TrackingFieldResolver.getAccountId()
 
@@ -169,10 +168,9 @@ internal fun createAdEventTrackingDecorator(
     },
     onClick = {
         ThreadUtils.GlobalIOScope.launch {
-            TrackingFieldResolver.saveLoadedBid(auctionId, bid.id)
             val clickCount = ClickCounterTracker.incrementAndGet(auctionId)
 
-            val payload = TrackingFieldResolver.buildPayload(auctionId)?.replace(
+            val payload = TrackingFieldResolver.buildPayload(auctionId, bid.id)?.replace(
                 auctionId,
                 "$auctionId-$clickCount"
             )

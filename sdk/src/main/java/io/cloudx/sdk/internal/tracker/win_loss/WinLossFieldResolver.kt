@@ -65,7 +65,7 @@ internal class WinLossFieldResolver {
             }
 
             else -> {
-                TrackingFieldResolver.resolveField(auctionId, fieldPath)
+                TrackingFieldResolver.resolveField(auctionId, fieldPath, bid?.id)
             }
         }
     }

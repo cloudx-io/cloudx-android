@@ -45,27 +45,25 @@ internal class CrashReportingService(
 
     fun registerSdkCrashHandler() {
         val currentHandler = Thread.getDefaultUncaughtExceptionHandler()
-        if (currentHandler !is SdkCrashHandler) {  // Only set if not already set by us
-            Thread.setDefaultUncaughtExceptionHandler(
-                SdkCrashHandler { thread, throwable ->
-                    currentHandler?.uncaughtException(thread, throwable)
-                    if (!isSdkRelatedError(throwable)) return@SdkCrashHandler
-                    config?.let {
-                        val sessionId = it.sessionId
-                        val errorMessage = throwable.message
-                        val stackTrace = throwable.stackTraceToString()
+        if (currentHandler is SdkCrashHandler) return  // Only set if not already set by us
+        Thread.setDefaultUncaughtExceptionHandler(
+            SdkCrashHandler(currentHandler) { thread, throwable ->
+                if (!isSdkRelatedError(throwable)) return@SdkCrashHandler
+                config?.let {
+                    val sessionId = it.sessionId
+                    val errorMessage = throwable.message
+                    val stackTrace = throwable.stackTraceToString()
 
-                        val pendingReport = PendingCrashReport(
-                            sessionId = sessionId,
-                            errorMessage = errorMessage ?: "Unknown error",
-                            errorDetails = stackTrace,
-                            basePayload = basePayload,
-                        )
-                        savePendingCrashReport(pendingReport)
-                    }
+                    val pendingReport = PendingCrashReport(
+                        sessionId = sessionId,
+                        errorMessage = errorMessage ?: "Unknown error",
+                        errorDetails = stackTrace,
+                        basePayload = basePayload,
+                    )
+                    savePendingCrashReport(pendingReport)
                 }
-            )
-        }
+            }
+        )
     }
 
     fun getPendingCrashIfAny(): PendingCrashReport? {

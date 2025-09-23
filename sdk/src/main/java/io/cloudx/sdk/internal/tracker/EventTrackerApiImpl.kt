@@ -1,13 +1,11 @@
 package io.cloudx.sdk.internal.tracker
 
 import io.cloudx.sdk.CloudXError
-import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.internal.httpclient.cXExponentialRetry
 import io.cloudx.sdk.internal.httpclient.httpCatching
 import io.cloudx.sdk.internal.util.Result
 import io.cloudx.sdk.internal.util.toSuccess
 import io.cloudx.sdk.internal.util.withIOContext
-import io.cloudx.sdk.toFailure
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
@@ -26,11 +24,7 @@ internal class EventTrackerApiImpl(
     ): Result<Unit, CloudXError> = withIOContext {
         httpCatching(
             onOk = { _, _ -> Unit.toSuccess() },
-            onNoContent = { response, _ ->
-                CloudXErrorCode.UNEXPECTED_ERROR.toFailure(
-                    message = "Unexpected status: ${response.status}"
-                )
-            }
+            onNoContent = { _, _ -> Unit.toSuccess() }
         ) {
             httpClient.get(endpointUrl) {
                 parameter("impression", URLEncoder.encode(encodedData, Charsets.UTF_8.name()))

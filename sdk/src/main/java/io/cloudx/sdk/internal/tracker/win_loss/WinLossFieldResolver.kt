@@ -19,7 +19,7 @@ internal class WinLossFieldResolver {
     fun buildWinLossPayload(
         auctionId: String,
         bid: Bid?,
-        lossReason: LossReason?,
+        lossReason: LossReason,
         isWin: Boolean,
         loadedBidPrice: Float
     ): Map<String, Any>? {
@@ -38,7 +38,7 @@ internal class WinLossFieldResolver {
     private fun resolveWinLossField(
         auctionId: String,
         bid: Bid?,
-        lossReason: LossReason?,
+        lossReason: LossReason,
         fieldPath: String,
         isWin: Boolean,
         loadedBidPrice: Float
@@ -46,7 +46,7 @@ internal class WinLossFieldResolver {
         return when (fieldPath) {
             "sdk.win" -> if (isWin) "win" else null
             "sdk.loss" -> if (!isWin) "loss" else null
-            "sdk.lossReason" -> if (isWin) LossReason.BID_WON.description else lossReason?.description
+            "sdk.lossReason" -> lossReason.description
             "sdk.[win|loss]" -> if (isWin) "win" else "loss"
             "sdk.sdk" -> "sdk"
             "sdk.[bid.nurl|bid.lurl]" -> {
@@ -65,7 +65,7 @@ internal class WinLossFieldResolver {
             }
 
             else -> {
-                TrackingFieldResolver.resolveField(auctionId, fieldPath)
+                TrackingFieldResolver.resolveField(auctionId, fieldPath, bid?.id)
             }
         }
     }
@@ -80,7 +80,7 @@ internal class WinLossFieldResolver {
     private fun replaceUrlTemplates(
         url: String,
         isWin: Boolean,
-        lossReason: LossReason?,
+        lossReason: LossReason,
         loadedBidPrice: Float
     ): String {
         var processedUrl = url
@@ -90,12 +90,7 @@ internal class WinLossFieldResolver {
         }
 
         if (processedUrl.contains(PLACEHOLDER_AUCTION_LOSS)) {
-            val finalLossReason = if (isWin) {
-                LossReason.BID_WON
-            } else {
-                lossReason ?: LossReason.INTERNAL_ERROR
-            }
-            processedUrl = processedUrl.replace(PLACEHOLDER_AUCTION_LOSS, finalLossReason.code.toString())
+            processedUrl = processedUrl.replace(PLACEHOLDER_AUCTION_LOSS, lossReason.code.toString())
         }
 
         return processedUrl

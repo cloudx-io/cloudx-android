@@ -1,7 +1,6 @@
 package io.cloudx.sdk.internal.tracker.win_loss
 
 import io.cloudx.sdk.internal.bid.Bid
-import io.cloudx.sdk.internal.db.Database
 import io.cloudx.sdk.internal.util.ThreadUtils
 
 internal interface WinLossTracker {
@@ -14,10 +13,12 @@ internal interface WinLossTracker {
 
     fun trySendingPendingWinLossEvents()
 
+    fun markAsLoaded(auctionId: String, bid: Bid)
+
     fun sendLoss(
         auctionId: String,
         bid: Bid,
-        lossReason: LossReason? = null,
+        lossReason: LossReason,
         winnerBidPrice: Float = -1f
     )
 
@@ -33,7 +34,7 @@ private val LazySingleInstance by lazy {
     WinLossTrackerImpl(
         ThreadUtils.GlobalIOScope,
         WinLossFieldResolver(),
-        Database(),
+        WinLossTrackerDb(),
         WinLossTrackerApi()
     )
 }

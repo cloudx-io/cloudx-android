@@ -40,7 +40,6 @@ class CloudXAdView internal constructor(
     private val initJob: Job
 
     // State management
-    private val isBannerAttachedToWindow = MutableStateFlow(isAttachedToWindow)
     private val isBannerShown = MutableStateFlow(isShown)
     private val viewabilityTracker = createViewabilityTracker(mainScope, isBannerShown)
 
@@ -63,7 +62,6 @@ class CloudXAdView internal constructor(
             val initState = CXSdk.initState.first { it is InitializationState.Initialized }
                     as InitializationState.Initialized
             val adFactory = initState.initializationService.adFactory
-            isBannerAttachedToWindow.first { it }
             bannerManager = adFactory!!.createBannerManager(
                 AdFactory.CreateBannerParams(
                     adType = adType,
@@ -76,21 +74,12 @@ class CloudXAdView internal constructor(
         }
     }
 
-    override fun onAttachedToWindow() {
-        super.onAttachedToWindow()
-        isBannerAttachedToWindow.value = true
-    }
-
-    override fun onDetachedFromWindow() {
-        super.onDetachedFromWindow()
-        isBannerAttachedToWindow.value = false
-    }
-
     override fun onVisibilityChanged(changedView: View, visibility: Int) {
         super.onVisibilityChanged(changedView, visibility)
         isBannerShown.value = visibility == VISIBLE
     }
 
+    // Public API
     fun load() {
         if (bannerManager != null) {
             bannerManager?.load()
@@ -101,19 +90,6 @@ class CloudXAdView internal constructor(
             val error = CloudXErrorCode.NOT_INITIALIZED.toCloudXError()
             CXLogger.e(TAG, error.effectiveMessage)
             listener?.onAdLoadFailed(error)
-        }
-    }
-
-    // Public API
-    fun show() {
-        mainScope.launch {
-            visibility = View.VISIBLE
-        }
-    }
-
-    fun hide() {
-        mainScope.launch {
-            visibility = View.GONE
         }
     }
 
@@ -224,7 +200,7 @@ class CloudXAdView internal constructor(
 //                                listener?.onAdHidden(CloudXAd(adNetwork))
 //                            }
 
-                            listener?.onAdCollapsed(placementName)
+//                            listener?.onAdCollapsed(placementName)
                             PlacementLoopIndexTracker.reset(placementName)
                             destroy()
                         }

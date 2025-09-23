@@ -1,6 +1,5 @@
 package io.cloudx.demo.demoapp
 
-import android.app.Activity
 import android.os.Bundle
 import android.view.View
 import android.view.View.GONE
@@ -14,6 +13,7 @@ import androidx.fragment.app.Fragment
 import io.cloudx.demo.demoapp.loglistview.commonLogTagListRules
 import io.cloudx.demo.demoapp.loglistview.setupLogListView
 import io.cloudx.sdk.CloudX
+import io.cloudx.sdk.CloudXAd
 import io.cloudx.sdk.CloudXAdListener
 import io.cloudx.sdk.CloudXAdView
 import io.cloudx.sdk.CloudXAdViewListener
@@ -99,16 +99,6 @@ abstract class BannerProgrammaticFragment : Fragment(R.layout.fragment_banner_pr
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        bannerAdViews.value.forEach { it.show() }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        bannerAdViews.value.forEach { it.hide() }
-    }
-
     private fun onLoadShowClick() {
         val newBannerAdViews = mutableListOf<CloudXAdView>()
         placements.forEachIndexed { index, placementName ->
@@ -116,7 +106,6 @@ abstract class BannerProgrammaticFragment : Fragment(R.layout.fragment_banner_pr
             val bannerAdView =
                 createAdView(placementName, createBannerListener(placementName))
             CXLogger.i(logTag, "Banner ad created for \"$placementName\" placement")
-            bannerAdView.visibility = VISIBLE
             val adContainer = llAds.getChildAt(index) as AdContainerLayout
             adContainer.addAdView(bannerAdView)
             newBannerAdViews.add(bannerAdView)
@@ -170,11 +159,11 @@ abstract class BannerProgrammaticFragment : Fragment(R.layout.fragment_banner_pr
         object : CloudXAdViewListener, CloudXAdListener by LoggedCloudXAdListener(
             logTag = logTag, placementName = placementName
         ) {
-            override fun onAdExpanded(placementName: String) {
+            override fun onAdExpanded(cloudXAd: CloudXAd) {
                 CXLogger.i(logTag, "Ad expanded by user: $placementName")
             }
 
-            override fun onAdCollapsed(placementName: String) {
+            override fun onAdCollapsed(cloudXAd: CloudXAd) {
                 CXLogger.i(logTag, "Ad closed by user: $placementName")
                 destroyBanners()
             }

@@ -42,6 +42,10 @@ internal class WinLossTrackerImpl(
         }
     }
 
+    override fun markAsLoaded(auctionId: String, bid: Bid) {
+        
+    }
+
     override fun sendLoss(
         auctionId: String,
         bid: Bid,

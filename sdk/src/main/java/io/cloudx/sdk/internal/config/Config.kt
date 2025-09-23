@@ -13,6 +13,7 @@ import org.json.JSONObject
  * @property placements - (key - [Placement.name]) ad placements
  */
 internal class Config(
+    val appId: String,
     val sessionId: String,
     val precacheSize: Int,
     val auctionEndpointUrl: EndpointConfig,

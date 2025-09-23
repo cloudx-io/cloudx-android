@@ -24,6 +24,7 @@ internal suspend fun jsonToConfig(json: String): Result<Config, CloudXError> =
 
             Result.Success(
                 Config(
+                    appId = root.getString("appID"),
                     precacheSize = root.getInt("preCacheSize"),
                     auctionEndpointUrl = auctionEndpoint,
                     cdpEndpointUrl = cdpEndpoint,

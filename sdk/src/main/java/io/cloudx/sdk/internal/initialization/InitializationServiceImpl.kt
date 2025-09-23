@@ -99,6 +99,15 @@ internal class InitializationServiceImpl(
             this.config = cfg
             crashReportingService.setConfig(cfg)
 
+            TrackingFieldResolver.setSessionConstData(
+                sessionId = cfg.sessionId,
+                sdkVersion = BuildConfig.SDK_VERSION_NAME,
+                deviceType = if (provideDeviceInfo().isTablet) "tablet" else "mobile",
+                abTestGroup = ResolvedEndpoints.testGroupName,
+                appBundle = appInfoProvider().packageName
+            )
+            TrackingFieldResolver.setConfig(cfg)
+
             eventTracker.setEndpoint(cfg.trackingEndpointUrl)
             eventTracker.trySendingPendingTrackingEvents()
 
@@ -223,20 +232,6 @@ internal class InitializationServiceImpl(
     }
 
     private suspend fun sendInitSDKEvent(cfg: Config, appKey: String) {
-        val deviceInfo = provideDeviceInfo()
-        val sdkVersion = BuildConfig.SDK_VERSION_NAME
-        val deviceType = if (deviceInfo.isTablet) "tablet" else "mobile"
-        val sessionId = cfg.sessionId
-
-        TrackingFieldResolver.setSessionConstData(
-            sessionId,
-            sdkVersion,
-            deviceType,
-            ResolvedEndpoints.testGroupName,
-            appInfoProvider().packageName
-        )
-        TrackingFieldResolver.setConfig(cfg)
-
         val eventId = UUID.randomUUID().toString()
         val bidRequestParams = BidRequestProvider.Params(
             placementId = "",
@@ -258,7 +253,7 @@ internal class InitializationServiceImpl(
         if (payload != null && accountId != null) {
             basePayload = payload.replace(eventId, ARG_PLACEHOLDER_EVENT_ID)
             crashReportingService.setBasePayload(basePayload)
-            metricsTracker.setBasicData(sessionId, accountId, basePayload)
+            metricsTracker.setBasicData(cfg.sessionId, accountId, basePayload)
 
             val secret = XorEncryption.generateXorSecret(accountId)
             val campaignId = XorEncryption.generateCampaignIdBase64(accountId)
@@ -266,7 +261,6 @@ internal class InitializationServiceImpl(
             eventTracker.send(impressionId, campaignId, "1", EventType.SDK_INIT)
         }
     }
-
 
     companion object {
         private const val ARG_PLACEHOLDER_EVENT_ID = "{eventId}"

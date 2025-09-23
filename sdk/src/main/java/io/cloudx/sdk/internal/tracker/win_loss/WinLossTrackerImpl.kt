@@ -2,20 +2,20 @@ package io.cloudx.sdk.internal.tracker.win_loss
 
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.bid.Bid
-import io.cloudx.sdk.internal.db.CloudXDb
 import io.cloudx.sdk.internal.db.win_loss.CachedWinLossEvents
 import io.cloudx.sdk.internal.util.Result
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.json.JSONObject
-import java.util.UUID
 
 internal class WinLossTrackerImpl(
     private val scope: CoroutineScope,
     private val winLossFieldResolver: WinLossFieldResolver,
-    private val db: CloudXDb,
+    private val trackerDb: WinLossTrackerDb,
     private val trackerApi: WinLossTrackerApi
 ) : WinLossTracker {
+
+    private val tag = "WinLossTracker"
 
     private var appKey: String? = null
     private var endpointUrl: String? = null
@@ -34,31 +34,62 @@ internal class WinLossTrackerImpl(
 
     override fun trySendingPendingWinLossEvents() {
         scope.launch {
-            val cached = db.cachedWinLossEventDao().getAll()
-            if (cached.isEmpty()) {
+            trackerDb.convertLoadedToLoss()
+
+            val pending = trackerDb.getPendingEvents()
+            if (pending.isEmpty()) {
                 return@launch
             }
-            sendCached(cached)
+            sendCached(pending)
         }
     }
 
     override fun markAsLoaded(auctionId: String, bid: Bid) {
-        
+        scope.launch {
+            val winPayloadMap = winLossFieldResolver.buildWinLossPayload(
+                auctionId = auctionId,
+                bid = bid,
+                lossReason = LossReason.BID_WON,
+                isWin = true,
+                loadedBidPrice = bid.price ?: -1f
+            )
+            val lossPayloadMap = winLossFieldResolver.buildWinLossPayload(
+                auctionId = auctionId,
+                bid = bid,
+                lossReason = LossReason.INTERNAL_ERROR,
+                isWin = false,
+                loadedBidPrice = bid.price ?: -1f
+            )
+
+            val winPayloadJson = winPayloadMap?.toJsonString()
+            val lossPayloadJson = lossPayloadMap?.toJsonString()
+
+            trackerDb.saveLoadedBid(auctionId, bid, winPayloadJson, lossPayloadJson)
+        }
     }
 
     override fun sendLoss(
         auctionId: String,
         bid: Bid,
-        lossReason: LossReason?,
+        lossReason: LossReason,
         winnerBidPrice: Float
     ) {
         scope.launch {
-            val payload = winLossFieldResolver.buildWinLossPayload(
-                auctionId, bid, lossReason, isWin = false, winnerBidPrice
+            val payloadMap = winLossFieldResolver.buildWinLossPayload(
+                auctionId = auctionId,
+                bid = bid,
+                lossReason = lossReason,
+                isWin = false,
+                loadedBidPrice = winnerBidPrice
             )
-            if (payload != null) {
-                trackWinLoss(payload)
+            val payloadJson = payloadMap?.toJsonString()
+            if (payloadJson == null) {
+                CXLogger.w(tag, "Skipping loss event with empty payload (auctionId=$auctionId, bidId=${bid.id})")
+                return@launch
             }
+
+            trackerDb.saveLossEvent(auctionId, bid, payloadJson)
+            trackWinLoss(payloadJson, auctionId, bid.id)
         }
     }
 
@@ -67,62 +98,49 @@ internal class WinLossTrackerImpl(
         bid: Bid
     ) {
         scope.launch {
-            val winnerBidPrice = bid.price ?: -1f
-
-            val payload = winLossFieldResolver.buildWinLossPayload(
-                auctionId, bid, lossReason = null, isWin = true, winnerBidPrice
+            val payloadMap = winLossFieldResolver.buildWinLossPayload(
+                auctionId,
+                bid,
+                lossReason = LossReason.BID_WON,
+                isWin = true,
+                loadedBidPrice = bid.price ?: -1f
             )
-            if (payload != null) {
-                trackWinLoss(payload)
+            val payloadJson = payloadMap?.toJsonString()
+            if (payloadJson == null) {
+                CXLogger.w(tag, "Skipping win event with empty payload (auctionId=$auctionId, bidId=${bid.id})")
+                return@launch
             }
+
+            trackerDb.saveWinEvent(auctionId, bid, payloadJson)
+            trackWinLoss(payloadJson, auctionId, bid.id)
         }
-    }
-
-    private suspend fun trackWinLoss(payload: Map<String, Any>) {
-        val eventId = saveToDb(payload)
-        val endpoint = endpointUrl
-        val key = appKey
-
-        if (endpoint.isNullOrBlank() || key.isNullOrBlank()) {
-            return
-        }
-
-        val result = trackerApi.send(key, endpoint, payload)
-
-        if (result is Result.Success) {
-            db.cachedWinLossEventDao().delete(eventId)
-        }
-    }
-
-    private suspend fun saveToDb(payload: Map<String, Any>): String {
-        val eventId = UUID.randomUUID().toString()
-        val payloadJson = JSONObject(payload).toString()
-
-        db.cachedWinLossEventDao().insert(
-            CachedWinLossEvents(
-                id = eventId,
-                payload = payloadJson
-            )
-        )
-        return eventId
     }
 
     private suspend fun sendCached(entries: List<CachedWinLossEvents>) {
+        entries.forEach { entry ->
+            val payloadJson = entry.payload
+            if (payloadJson.isNullOrEmpty()) {
+                CXLogger.w(tag, "Skipping cached entry due to empty payload (auctionId=${entry.auctionId}, bidId=${entry.bidId}, state=${entry.state})")
+                return@forEach
+            }
+            trackWinLoss(payloadJson, entry.auctionId, entry.bidId)
+        }
+    }
+
+    private suspend fun trackWinLoss(payloadJson: String, auctionId: String, bidId: String) {
         val endpoint = endpointUrl
         val key = appKey
 
         if (endpoint.isNullOrBlank() || key.isNullOrBlank()) {
+            CXLogger.w(tag, "Missing endpoint or app key for win/loss tracking")
             return
         }
 
-        entries.forEach { entry ->
-            val payload = parsePayload(entry.payload)
-            if (payload != null) {
-                val result = trackerApi.send(key, endpoint, payload)
-                if (result is Result.Success) {
-                    db.cachedWinLossEventDao().delete(entry.id)
-                }
-            }
+        val payload = parsePayload(payloadJson) ?: return
+        val result = trackerApi.send(key, endpoint, payload)
+
+        if (result is Result.Success) {
+            trackerDb.deleteEvent(auctionId, bidId)
         }
     }
 
@@ -137,8 +155,10 @@ internal class WinLossTrackerImpl(
             }
             result
         } catch (e: Exception) {
-            CXLogger.e("WinLossTracker", "Failed to parse win/loss payload JSON", e)
+            CXLogger.e(tag, "Failed to parse win/loss payload JSON", e)
             null
         }
     }
+
+    private fun Map<String, Any>.toJsonString(): String = JSONObject(this).toString()
 }

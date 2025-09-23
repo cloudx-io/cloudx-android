@@ -6,13 +6,14 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "cached_win_loss_events_table")
 data class CachedWinLossEvents(
     @PrimaryKey val id: String,
-    val payload: String
-    ,
     val auctionId: String,
     val bidId: String,
-    val state: String, // "LOADED", "WIN", "LOSS"
-    val bidJson: String,
-    val timestamp: Long
+    val state: String,
+    val payload: String?,
+    val winPayload: String?,
+    val lossPayload: String?,
+    val createdAt: Long,
+    val updatedAt: Long
 ) {
     companion object {
         const val STATE_LOADED = "LOADED"

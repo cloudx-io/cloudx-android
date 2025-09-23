@@ -13,13 +13,13 @@ import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.ApplicationContext
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.CXSdk
-import io.cloudx.sdk.internal.tracker.PlacementLoopIndexTracker
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
 import io.cloudx.sdk.internal.ads.AdFactory
 import io.cloudx.sdk.internal.ads.banner.BannerManager
 import io.cloudx.sdk.internal.common.createViewabilityTracker
 import io.cloudx.sdk.internal.initialization.InitializationState
 import io.cloudx.sdk.internal.size
+import io.cloudx.sdk.internal.tracker.PlacementLoopIndexTracker
 import io.cloudx.sdk.internal.util.ThreadUtils
 import io.cloudx.sdk.internal.util.dpToPx
 import kotlinx.coroutines.Job
@@ -89,6 +89,19 @@ class CloudXAdView internal constructor(
     override fun onVisibilityChanged(changedView: View, visibility: Int) {
         super.onVisibilityChanged(changedView, visibility)
         isBannerShown.value = visibility == VISIBLE
+    }
+
+    fun load() {
+        if (bannerManager != null) {
+            bannerManager?.load()
+            return
+        }
+
+        if (CXSdk.initState.value is InitializationState.Uninitialized) {
+            val error = CloudXErrorCode.NOT_INITIALIZED.toCloudXError()
+            CXLogger.e(TAG, error.effectiveMessage)
+            listener?.onAdLoadFailed(error)
+        }
     }
 
     // Public API

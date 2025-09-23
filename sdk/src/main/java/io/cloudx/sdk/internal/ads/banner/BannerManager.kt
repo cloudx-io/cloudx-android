@@ -34,6 +34,7 @@ import java.util.concurrent.TimeUnit
 
 internal interface BannerManager : CloudXDestroyable {
     var listener: CloudXAdViewListener?
+    fun load()
     fun startAutoRefresh()
     fun stopAutoRefresh()
 }
@@ -73,6 +74,14 @@ private class BannerManagerImpl(
         restartBannerRefresh()
     }
 
+    override fun load() {
+        if (bannerRefreshTimer.isManuallyEnabled) {
+            CXLogger.w(TAG, placementName, "Unable to load a new ad. Auto-refresh is enabled.")
+            return
+        }
+        restartBannerRefresh()
+    }
+
     // Public auto-refresh control methods
     override fun startAutoRefresh() {
         CXLogger.i(TAG, placementName, "Starting auto-refresh")
@@ -104,18 +113,24 @@ private class BannerManagerImpl(
                 )
 
                 metricsTracker.trackMethodCall(MetricsType.Method.BannerRefresh)
-
-                CXLogger.d(
-                    TAG,
-                    placementName,
-                    "Banner refresh scheduled in ${refreshSeconds}s"
-                )
+                CXLogger.d(TAG, placementName, "Banner refresh scheduled in ${refreshSeconds}s")
                 bannerRefreshTimer.awaitTimeout(refreshDelayMillis)
             }
         }
     }
 
     // Backup banner methods
+    private suspend fun loadBackupBanner(): Result<BannerAdapterDelegate, CloudXError> {
+        loadBackupBannerIfAbsent()
+
+        val banner = backupBanner.mapNotNull { it }.first()
+
+        backupBannerErrorHandlerJob?.cancel()
+        backupBanner.value = null
+
+        return banner
+    }
+
     private fun loadBackupBannerIfAbsent() {
         if (backupBanner.value is Result.Success || backupBannerLoadJob?.isActive == true) {
             return
@@ -166,17 +181,6 @@ private class BannerManagerImpl(
             }
             value = null
         }
-    }
-
-    private suspend fun loadBackupBanner(): Result<BannerAdapterDelegate, CloudXError> {
-        loadBackupBannerIfAbsent()
-
-        val banner = backupBanner.mapNotNull { it }.first()
-
-        backupBannerErrorHandlerJob?.cancel()
-        backupBanner.value = null
-
-        return banner
     }
 
     // Current banner management methods

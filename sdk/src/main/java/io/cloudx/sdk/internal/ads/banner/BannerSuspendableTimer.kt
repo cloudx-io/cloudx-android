@@ -16,7 +16,7 @@ internal class BannerSuspendableTimer(
 
     // State tracking
     private var isVisible = false
-    private var isManuallyEnabled = true // Start enabled by default
+    var isManuallyEnabled = true // Start enabled by default
 
     init {
         // Initialize visibility state tracking

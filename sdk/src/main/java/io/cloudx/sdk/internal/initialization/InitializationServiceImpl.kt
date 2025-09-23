@@ -19,6 +19,8 @@ import io.cloudx.sdk.internal.crash.CrashReportingService
 import io.cloudx.sdk.internal.deviceinfo.DeviceInfoProvider
 import io.cloudx.sdk.internal.geo.GeoApi
 import io.cloudx.sdk.internal.geo.GeoInfoHolder
+import io.cloudx.sdk.internal.privacy.PrivacyService
+import io.cloudx.sdk.internal.state.SdkKeyValueState
 import io.cloudx.sdk.internal.tracker.ClickCounterTracker
 import io.cloudx.sdk.internal.tracker.EventTracker
 import io.cloudx.sdk.internal.tracker.EventType
@@ -26,8 +28,6 @@ import io.cloudx.sdk.internal.tracker.TrackingFieldResolver
 import io.cloudx.sdk.internal.tracker.metrics.MetricsTracker
 import io.cloudx.sdk.internal.tracker.metrics.MetricsType
 import io.cloudx.sdk.internal.tracker.win_loss.WinLossTracker
-import io.cloudx.sdk.internal.privacy.PrivacyService
-import io.cloudx.sdk.internal.state.SdkKeyValueState
 import io.cloudx.sdk.internal.util.Result
 import io.cloudx.sdk.internal.util.normalizeAndHash
 import kotlinx.coroutines.Dispatchers
@@ -226,7 +226,7 @@ internal class InitializationServiceImpl(
         val deviceInfo = provideDeviceInfo()
         val sdkVersion = BuildConfig.SDK_VERSION_NAME
         val deviceType = if (deviceInfo.isTablet) "tablet" else "mobile"
-        val sessionId = cfg.sessionId + UUID.randomUUID().toString()
+        val sessionId = cfg.sessionId
 
         TrackingFieldResolver.setSessionConstData(
             sessionId,

@@ -48,9 +48,7 @@ internal class CrashReportingService(
         if (currentHandler !is SdkCrashHandler) {  // Only set if not already set by us
             Thread.setDefaultUncaughtExceptionHandler(
                 SdkCrashHandler { thread, throwable ->
-                    currentHandler?.uncaughtException(thread, throwable)
                     if (!isSdkRelatedError(throwable)) return@SdkCrashHandler
-
                     config?.let {
                         val sessionId = it.sessionId
                         val errorMessage = throwable.message
@@ -62,9 +60,9 @@ internal class CrashReportingService(
                             errorDetails = stackTrace,
                             basePayload = basePayload,
                         )
-
                         savePendingCrashReport(pendingReport)
                     }
+                    currentHandler?.uncaughtException(thread, throwable)
                 }
             )
         }

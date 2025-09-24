@@ -2,6 +2,7 @@ package io.cloudx.sdk.internal.ads
 
 import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.CloudXErrorCode
+import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.tracker.win_loss.LossReason
@@ -115,6 +116,7 @@ internal class AdLoader<T : CXAdapterDelegate>(
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
+            CXLogger.e(TAG, placementName, "Failed to create ad", e)
             return null
         }
 

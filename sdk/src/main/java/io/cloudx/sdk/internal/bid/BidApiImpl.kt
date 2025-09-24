@@ -2,7 +2,6 @@ package io.cloudx.sdk.internal.bid
 
 import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.CloudXErrorCode
-import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.HEADER_CLOUDX_STATUS
 import io.cloudx.sdk.internal.STATUS_ADS_DISABLED
 import io.cloudx.sdk.internal.httpclient.httpCatching

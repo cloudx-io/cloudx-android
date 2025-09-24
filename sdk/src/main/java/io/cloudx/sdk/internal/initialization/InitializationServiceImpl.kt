@@ -188,9 +188,7 @@ internal class InitializationServiceImpl(
     private suspend fun resolveAdapters(config: Config): BidAdNetworkFactories =
         withContext(Dispatchers.IO) {
             val factories = adapterResolver.resolveBidAdNetworkFactories(
-                forTheseNetworks = config.bidders.map {
-                    it.key
-                }.toSet()
+                forTheseNetworks = config.bidders.map { it.key }.toSet()
             )
 
             this@InitializationServiceImpl.factories = factories

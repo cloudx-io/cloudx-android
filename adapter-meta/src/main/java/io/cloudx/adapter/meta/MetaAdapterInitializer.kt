@@ -4,10 +4,14 @@ import android.content.Context
 import android.os.Bundle
 import androidx.annotation.Keep
 import com.facebook.ads.AudienceNetworkAds
+import io.cloudx.sdk.CloudXError
+import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.CloudXPrivacy
 import io.cloudx.sdk.internal.CXLogger
-import io.cloudx.sdk.internal.adapter.CloudXAdapterInitializationResult
 import io.cloudx.sdk.internal.adapter.CloudXAdapterInitializer
+import io.cloudx.sdk.internal.util.Result
+import io.cloudx.sdk.internal.util.toSuccess
+import io.cloudx.sdk.toFailure
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -22,15 +26,15 @@ internal object Initializer : CloudXAdapterInitializer {
         context: Context,
         serverExtras: Bundle,
         privacy: StateFlow<CloudXPrivacy>
-    ): CloudXAdapterInitializationResult = withContext(Dispatchers.Main) {
+    ): Result<Unit, CloudXError> = withContext(Dispatchers.Main) {
         if (isInitialized) {
             CXLogger.d(TAG, "Meta SDK already initialized")
-            return@withContext CloudXAdapterInitializationResult.Success
+            return@withContext Unit.toSuccess()
         }
 
         privacy.updatePrivacy()
 
-        suspendCancellableCoroutine<CloudXAdapterInitializationResult> { continuation ->
+        suspendCancellableCoroutine { continuation ->
             val initListener = AudienceNetworkAds.InitListener { initResult ->
                 if (initResult.isSuccess) {
                     CXLogger.d(
@@ -42,7 +46,7 @@ internal object Initializer : CloudXAdapterInitializer {
                     // Sometimes adapters call [Continuation.resume] twice which they shouldn't.
                     // So we have a try catch block around it.
                     try {
-                        continuation.resume(CloudXAdapterInitializationResult.Success)
+                        continuation.resume(Unit.toSuccess())
                     } catch (e: CancellationException) {
                         throw e
                     } catch (e: Exception) {
@@ -53,7 +57,9 @@ internal object Initializer : CloudXAdapterInitializer {
                         TAG,
                         "Meta SDK failed to finish initialization: ${initResult.message}"
                     )
-                    continuation.resume(CloudXAdapterInitializationResult.Error(initResult.message))
+                    continuation.resume(
+                        CloudXErrorCode.ADAPTER_INITIALIZATION_ERROR.toFailure(message = initResult.message)
+                    )
                 }
             }
 

@@ -10,6 +10,7 @@ import io.cloudx.sdk.internal.httpclient.httpCatching
 import io.cloudx.sdk.internal.httpclient.postJsonWithRetry
 import io.cloudx.sdk.internal.util.Result
 import io.cloudx.sdk.internal.util.withIOContext
+import io.cloudx.sdk.toFailure
 import io.ktor.client.HttpClient
 
 internal class ConfigApiImpl(
@@ -27,9 +28,9 @@ internal class ConfigApiImpl(
             onNoContent = { response, _ ->
                 val xStatus = response.headers[HEADER_CLOUDX_STATUS]
                 when (xStatus) {
-                    STATUS_SDK_DISABLED -> Result.Failure(CloudXError(CloudXErrorCode.SDK_DISABLED))
-                    STATUS_ADS_DISABLED -> Result.Failure(CloudXError(CloudXErrorCode.ADS_DISABLED))
-                    else -> Result.Failure(CloudXError(CloudXErrorCode.NO_FILL))
+                    STATUS_SDK_DISABLED -> CloudXErrorCode.SDK_DISABLED.toFailure()
+                    STATUS_ADS_DISABLED -> CloudXErrorCode.ADS_DISABLED.toFailure()
+                    else -> CloudXErrorCode.NO_FILL.toFailure()
                 }
             }
         ) {

@@ -88,7 +88,7 @@ internal suspend inline fun <T> httpCatching(
     } catch (e: ServerResponseException) {
         CloudXErrorCode.SERVER_ERROR.toFailure(e.message, e)
     } catch (e: Exception) {
-        CloudXErrorCode.NETWORK_ERROR.toFailure(e.message, e)
+        CloudXErrorCode.UNEXPECTED_ERROR.toFailure(e.message, e)
     }
 
 /** Map a response to Result using pluggable OK/NoContent handlers. */

@@ -46,13 +46,14 @@ enum class CloudXErrorCode(
 
     // --- Adapter (600–699)
     ADAPTER_UNEXPECTED_ERROR(600, "Ad network adapter encountered an unexpected error."),
-    ADAPTER_INVALID_SERVER_EXTRAS(601, "Ad network adapter received invalid server parameters."),
-    ADAPTER_NO_CONNECTION(602, "Ad network adapter failed to establish connection with ad server."),
-    ADAPTER_NO_FILL(603, "Ad network adapter could not fill the ad request - no inventory available."),
-    ADAPTER_SERVER_ERROR(604, "Ad network server returned an error response."),
-    ADAPTER_TIMEOUT(605, "Ad network adapter request timed out."),
-    ADAPTER_INVALID_LOAD_STATE(606, "Ad network adapter is in an invalid state for loading ads."),
-    ADAPTER_INVALID_CONFIGURATION(607, "Ad network adapter has invalid or missing configuration."),
+    ADAPTER_INITIALIZATION_ERROR(601, "Ad network adapter encountered an unexpected error."),
+    ADAPTER_INVALID_SERVER_EXTRAS(602, "Ad network adapter received invalid server parameters."),
+    ADAPTER_NO_CONNECTION(603, "Ad network adapter failed to establish connection with ad server."),
+    ADAPTER_NO_FILL(604, "Ad network adapter could not fill the ad request - no inventory available."),
+    ADAPTER_SERVER_ERROR(605, "Ad network server returned an error response."),
+    ADAPTER_TIMEOUT(606, "Ad network adapter request timed out."),
+    ADAPTER_INVALID_LOAD_STATE(607, "Ad network adapter is in an invalid state for loading ads."),
+    ADAPTER_INVALID_CONFIGURATION(608, "Ad network adapter has invalid or missing configuration."),
 
     // --- General (700–799)
     UNEXPECTED_ERROR(700, "An unexpected error occurred.")

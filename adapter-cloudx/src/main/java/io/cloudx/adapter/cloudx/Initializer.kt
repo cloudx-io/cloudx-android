@@ -2,10 +2,12 @@ package io.cloudx.adapter.cloudx
 
 import android.content.Context
 import android.os.Bundle
+import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.CloudXPrivacy
 import io.cloudx.sdk.internal.CXLogger
-import io.cloudx.sdk.internal.adapter.CloudXAdapterInitializationResult
 import io.cloudx.sdk.internal.adapter.CloudXAdapterInitializer
+import io.cloudx.sdk.internal.util.Result
+import io.cloudx.sdk.internal.util.toSuccess
 import kotlinx.coroutines.flow.StateFlow
 
 object Initializer : CloudXAdapterInitializer {
@@ -13,8 +15,8 @@ object Initializer : CloudXAdapterInitializer {
         context: Context,
         serverExtras: Bundle,
         privacy: StateFlow<CloudXPrivacy>
-    ): CloudXAdapterInitializationResult {
+    ): Result<Unit, CloudXError> {
         CXLogger.i("CloudX-DSP Initializer", "initialized")
-        return CloudXAdapterInitializationResult.Success
+        return Unit.toSuccess()
     }
 }

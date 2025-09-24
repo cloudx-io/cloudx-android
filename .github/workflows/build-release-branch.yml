@@ -1,0 +1,167 @@
+name: 🏗️ Build Release Branch
+
+on:
+  push:
+    branches:
+      - 'release/**'
+  pull_request:
+    branches:
+      - 'release/**'
+      - 'main'
+    types: [opened, synchronize, reopened]
+
+env:
+  ANDROID_HOME: /Users/administrator/Library/Android/sdk
+
+jobs:
+  validate-release:
+    name: 🔍 Validate Release Branch
+    runs-on: self-hosted
+    outputs:
+      version: ${{ steps.extract-version.outputs.version }}
+      release-version: ${{ steps.extract-release-version.outputs.release-version }}
+    steps:
+      - name: 🧾 Checkout code
+        uses: actions/checkout@v3
+
+      - name: 🏷️ Extract release version from branch name
+        id: extract-release-version
+        run: |
+          if [[ "${{ github.ref_name }}" =~ ^release/(.+)$ ]]; then
+            RELEASE_VERSION="${BASH_REMATCH[1]}"
+            echo "release-version=$RELEASE_VERSION" >> $GITHUB_OUTPUT
+            echo "Extracted release version: $RELEASE_VERSION"
+          else
+            echo "Not a release branch, skipping..."
+            exit 1
+          fi
+
+      - name: 📋 Extract version from libs.versions.toml
+        id: extract-version
+        run: |
+          VERSION=$(grep '^sdkVersionName = ' gradle/libs.versions.toml | sed 's/sdkVersionName = "\(.*\)"/\1/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Config version: $VERSION"
+          echo "Branch version: ${{ steps.extract-release-version.outputs.release-version }}"
+
+      - name: ✅ Validate version consistency
+        run: |
+          CONFIG_VERSION="${{ steps.extract-version.outputs.version }}"
+          BRANCH_VERSION="${{ steps.extract-release-version.outputs.release-version }}"
+
+          if [ "$CONFIG_VERSION" != "$BRANCH_VERSION" ]; then
+            echo "❌ Version mismatch!"
+            echo "   Branch: release/$BRANCH_VERSION"
+            echo "   Config: $CONFIG_VERSION"
+            echo ""
+            echo "Please ensure versions match:"
+            echo "1. Branch name: release/$CONFIG_VERSION"
+            echo "2. Or update libs.versions.toml to: sdkVersionName = \"$BRANCH_VERSION\""
+            exit 1
+          else
+            echo "✅ Version consistency validated: $CONFIG_VERSION"
+          fi
+
+  build-and-test:
+    name: 🏗️ Build & Test Release
+    runs-on: self-hosted
+    needs: validate-release
+    steps:
+      - name: 🧾 Checkout code
+        uses: actions/checkout@v3
+
+      - name: ☕ Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: 🔐 Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: 🧪 Run tests
+        run: ./gradlew :sdk:test --continue
+
+      - name: 🏗️ Build Release AAR
+        run: ./gradlew :sdk:assembleRelease --refresh-dependencies
+
+      - name: 🏗️ Build Demo APK
+        run: ./gradlew :app:assembleDebug --refresh-dependencies
+
+      - name: 📋 Verify outputs
+        run: |
+          echo "🔍 Checking build outputs..."
+          ls -la ./sdk/build/outputs/aar/
+          ls -la ./app/build/outputs/apk/debug/
+
+      - name: 📤 Upload Release AAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: cloudx-sdk-release-${{ needs.validate-release.outputs.version }}
+          path: ./sdk/build/outputs/aar/sdk-release.aar
+
+      - name: 📤 Upload Demo APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: cloudx-demo-release-${{ needs.validate-release.outputs.version }}
+          path: ./app/build/outputs/apk/debug/cloudx-demo-debug-${{ needs.validate-release.outputs.version }}.apk
+
+  slack-notification:
+    name: 📢 Slack Notification
+    runs-on: self-hosted
+    needs: [validate-release, build-and-test]
+    if: always()
+    steps:
+      - name: 🔔 Send Slack notification
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              "text": "🏗️ Release Branch Build #${{ github.run_number }} finished",
+              "attachments": [{
+                "author_name": "cloudexchange.android.sdk/build-release-branch",
+                "fallback": "Release branch build pipeline finished",
+                "color": "${{ needs.build-and-test.result == 'success' && needs.validate-release.result == 'success' && 'good' || 'danger' }}",
+                "fields": [
+                  {
+                    "title": "Status",
+                    "value": "${{ (needs.build-and-test.result == 'success' && needs.validate-release.result == 'success') && '✅ Success' || '❌ Failed' }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Release Version",
+                    "value": "`${{ needs.validate-release.outputs.version }}`",
+                    "short": true
+                  },
+                  {
+                    "title": "Branch",
+                    "value": "`${{ github.ref_name }}`",
+                    "short": true
+                  },
+                  {
+                    "title": "Event",
+                    "value": "`${{ github.event_name }}`",
+                    "short": true
+                  },
+                  {
+                    "title": "Build Status",
+                    "value": "${{ needs.build-and-test.result == 'success' && '🏗️ AAR & APK built successfully' || '❌ Build failed' }}",
+                    "short": false
+                  },
+                  {
+                    "title": "Pipeline Log",
+                    "value": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Pipeline Log>",
+                    "short": true
+                  },
+                  {
+                    "title": "Artifacts",
+                    "value": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Download Artifacts>",
+                    "short": true
+                  }
+                ]
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.CLOUDX_ALERTS_MOBILE_SLACK }}

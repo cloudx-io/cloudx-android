@@ -104,8 +104,8 @@ private class BannerManagerImpl(
                 banner.fold(
                     onSuccess = {
                         hideAndDestroyCurrentBanner()
-                        showNewBanner(it)
                         listener?.onAdLoaded(it)
+                        showNewBanner(it)
                     },
                     onFailure = {
                         listener?.onAdLoadFailed(it)

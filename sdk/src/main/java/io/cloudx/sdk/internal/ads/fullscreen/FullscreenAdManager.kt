@@ -139,9 +139,19 @@ internal class FullscreenAdManager<
                 }
             )
 
-            ad.show()
+            try {
+                ad.show()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                CXLogger.e(tag, "Unexpected error during ad show", e)
+                isError = true
+                hideOrErrorEvent.value = true
+                listener?.onAdDisplayFailed(e.toCloudXError())
+            }
 
             hideOrErrorEvent.first { it }
+
 
             adLifecycleJob.cancel()
             if (isError) {

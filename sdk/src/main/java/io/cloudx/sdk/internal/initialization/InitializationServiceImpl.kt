@@ -30,6 +30,7 @@ import io.cloudx.sdk.internal.tracker.metrics.MetricsType
 import io.cloudx.sdk.internal.tracker.win_loss.WinLossTracker
 import io.cloudx.sdk.internal.util.Result
 import io.cloudx.sdk.internal.util.normalizeAndHash
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.UUID
@@ -221,11 +222,17 @@ internal class InitializationServiceImpl(
                 return@onEach
             }
 
-            adapterInitializers[bidderCfg.key]?.initialize(
-                context,
-                bidderCfg.value.initData,
-                privacyService.cloudXPrivacy
-            )
+            try {
+                adapterInitializers[bidderCfg.key]?.initialize(
+                    context,
+                    bidderCfg.value.initData,
+                    privacyService.cloudXPrivacy
+                )
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                CXLogger.e(TAG, "Failed to initialize adapter for ${bidderCfg.key}", e)
+            }
         }
     }
 

@@ -18,7 +18,7 @@ class LoggedCloudXAdListener(
     }
 
     override fun onAdLoadFailed(cloudXError: CloudXError) {
-        CXLogger.i(
+        CXLogger.e(
             logTag,
             "Load failed; placement: $placementName; error: ${cloudXError.effectiveMessage}"
         )
@@ -32,7 +32,7 @@ class LoggedCloudXAdListener(
     }
 
     override fun onAdDisplayFailed(cloudXError: CloudXError) {
-        CXLogger.i(
+        CXLogger.e(
             logTag,
             "Display failed; placement: $placementName; error: ${cloudXError.effectiveMessage}"
         )

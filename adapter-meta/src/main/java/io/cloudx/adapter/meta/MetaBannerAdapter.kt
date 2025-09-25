@@ -66,7 +66,7 @@ internal class MetaBannerAdapter(
 
     override fun load() {
         val metaPlacementId = serverExtras.getMetaPlacementId()
-        if (metaPlacementId == null) {
+        if (metaPlacementId.isNullOrEmpty()) {
             val message = "Meta placement ID is null"
             CXLogger.e(TAG, placementName, message)
             listener?.onError(CloudXErrorCode.ADAPTER_INVALID_SERVER_EXTRAS.toCloudXError(message = message))

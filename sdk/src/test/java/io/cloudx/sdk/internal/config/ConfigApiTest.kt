@@ -6,7 +6,7 @@ import io.cloudx.sdk.RoboMockkTest
 import io.cloudx.sdk.internal.appinfo.AppInfoProvider
 import io.cloudx.sdk.internal.httpclient.UserAgentProvider
 import io.cloudx.sdk.internal.util.Result
-import io.cloudx.sdk.mocks.MockAppInfoProvider
+import io.cloudx.sdk.fake.FakeAppInfoProvider
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respondError
@@ -30,7 +30,7 @@ class ConfigApiTest : RoboMockkTest() {
         mockkStatic(::AppInfoProvider).also {
             every {
                 AppInfoProvider()
-            } returns MockAppInfoProvider
+            } returns FakeAppInfoProvider
         }
 
         provideConfigRequest = ConfigRequestProvider()

@@ -1,4 +1,4 @@
-package io.cloudx.sdk.mocks
+package io.cloudx.sdk.fake
 
 import android.content.Context
 import android.os.Bundle
@@ -9,7 +9,7 @@ import io.cloudx.sdk.internal.util.Result
 import io.cloudx.sdk.internal.util.toSuccess
 import kotlinx.coroutines.flow.StateFlow
 
-internal class MockAdapterInitializer : CloudXAdapterInitializer {
+internal class FakeAdapterInitializer : CloudXAdapterInitializer {
     override suspend fun initialize(
         context: Context,
         serverExtras: Bundle,

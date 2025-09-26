@@ -1,15 +1,14 @@
 package io.cloudx.sdk.internal.bid
 
-import com.google.common.truth.Truth
 import io.cloudx.sdk.RoboMockkTest
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.appinfo.AppInfoProvider
 import io.cloudx.sdk.internal.httpclient.UserAgentProvider
 import io.cloudx.sdk.internal.screen.ScreenService
 import io.cloudx.sdk.internal.util.Result
-import io.cloudx.sdk.mocks.MockAppInfoProvider
-import io.cloudx.sdk.mocks.MockScreenService
-import io.cloudx.sdk.mocks.MockUserAgentProvider
+import io.cloudx.sdk.fake.FakeAppInfoProvider
+import io.cloudx.sdk.fake.FakeScreenService
+import io.cloudx.sdk.fake.FakeUserAgentProvider
 import io.mockk.InternalPlatformDsl.toStr
 import io.mockk.every
 import io.mockk.mockkStatic
@@ -28,19 +27,19 @@ class BidApiTest: RoboMockkTest() {
         mockkStatic(::AppInfoProvider).also {
             every {
                 AppInfoProvider()
-            } returns MockAppInfoProvider
+            } returns FakeAppInfoProvider
         }
 
         mockkStatic(::ScreenService).also {
             every {
                 ScreenService(any())
-            } returns MockScreenService
+            } returns FakeScreenService
         }
 
         mockkStatic(::UserAgentProvider).also {
             every {
                 UserAgentProvider()
-            } returns MockUserAgentProvider
+            } returns FakeUserAgentProvider
         }
 
         provideBidRequest = BidRequestProvider(mapOf())

@@ -1,4 +1,4 @@
-package io.cloudx.sdk.mocks
+package io.cloudx.sdk.fake
 
 import android.os.Bundle
 import io.cloudx.sdk.internal.AdNetwork
@@ -9,7 +9,7 @@ import io.cloudx.sdk.internal.config.ConfigRequest
 import io.cloudx.sdk.internal.util.Result
 import java.util.UUID
 
-internal class MockConfigAPIWithPredefinedConfig : ConfigApi {
+internal class FakeConfigAPIWithPredefinedConfig : ConfigApi {
 
     override suspend fun invoke(
         appKey: String,

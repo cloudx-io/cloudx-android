@@ -12,9 +12,9 @@ import io.cloudx.sdk.internal.tracker.EventTracker
 import io.cloudx.sdk.internal.tracker.metrics.MetricsTracker
 import io.cloudx.sdk.internal.privacy.PrivacyService
 import io.cloudx.sdk.internal.util.Result
-import io.cloudx.sdk.mocks.MockAdapterFactoryResolver
-import io.cloudx.sdk.mocks.MockConfigAPIWithPredefinedConfig
-import io.cloudx.sdk.mocks.MockConfigRequestProviderWithArbitraryValues
+import io.cloudx.sdk.fake.FakeAdapterFactoryResolver
+import io.cloudx.sdk.fake.FakeConfigAPIWithPredefinedConfig
+import io.cloudx.sdk.fake.FakeConfigRequestProviderWithArbitraryValues
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
@@ -54,9 +54,9 @@ class InitializationServiceImplTest : RoboMockkTest() {
 
         val svc = InitializationServiceImpl(
             context = activity.applicationContext, // or just appCtx
-            configApi = MockConfigAPIWithPredefinedConfig(),
-            provideConfigRequest = MockConfigRequestProviderWithArbitraryValues(),
-            adapterResolver = MockAdapterFactoryResolver(),
+            configApi = FakeConfigAPIWithPredefinedConfig(),
+            provideConfigRequest = FakeConfigRequestProviderWithArbitraryValues(),
+            adapterResolver = FakeAdapterFactoryResolver(),
             privacyService = PrivacyService(),
             _metricsTracker = MetricsTracker(),
             eventTracker = EventTracker(),

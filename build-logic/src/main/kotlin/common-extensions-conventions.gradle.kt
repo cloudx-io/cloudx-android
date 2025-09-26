@@ -27,10 +27,6 @@ internal fun com.android.build.gradle.internal.dsl.BaseAppModuleExtension.setupK
 internal fun CommonExtension<*, *, *, *, *>.setupTestOptions() {
     testOptions {
         animationsDisabled = true
-
-        // Tests are run in isolation if this is set but are slower. Comment if you want test to go faster but less precise
-        execution = "ANDROIDX_TEST_ORCHESTRATOR"
-
         unitTests {
             isIncludeAndroidResources = true
         }

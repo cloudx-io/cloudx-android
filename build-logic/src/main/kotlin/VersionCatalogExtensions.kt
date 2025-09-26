@@ -39,9 +39,6 @@ internal val VersionCatalog.mavenGroupId: String
 internal val VersionCatalog.testUnit
     get() = findBundleOrThrow("test-unit")
 
-internal val VersionCatalog.testInstrumentation
-    get() = findBundleOrThrow("test-instrumentation")
-
 internal val VersionCatalog.kotlinxCoroutinesAndroid
     get() = findLibraryOrThrow("kotlinx-coroutines-android")
 

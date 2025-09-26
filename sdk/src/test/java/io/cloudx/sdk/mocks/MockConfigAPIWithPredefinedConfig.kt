@@ -16,6 +16,7 @@ internal class MockConfigAPIWithPredefinedConfig : ConfigApi {
         configRequest: ConfigRequest
     ): Result<Config, CloudXError> = Result.Success(
         Config(
+            appId = "",
             precacheSize = 5,
             auctionEndpointUrl = Config.EndpointConfig("nopoint"),
             cdpEndpointUrl = Config.EndpointConfig(""),

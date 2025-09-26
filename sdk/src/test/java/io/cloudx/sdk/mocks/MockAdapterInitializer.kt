@@ -10,7 +10,6 @@ import io.cloudx.sdk.internal.util.toSuccess
 import kotlinx.coroutines.flow.StateFlow
 
 internal class MockAdapterInitializer : CloudXAdapterInitializer {
-
     override suspend fun initialize(
         context: Context,
         serverExtras: Bundle,

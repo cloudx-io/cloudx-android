@@ -32,13 +32,6 @@ constraintlayout = "2.1.4"
 lifecycle = "2.7.0"
 room = "2.6.1"
 
-# === Testing ===
-junit = "4.13.2"
-mockk = "1.13.9"
-androidx-test-ext-junit = "1.1.5"
-espresso-core = "3.5.1"
-test-orchestrator = "1.4.2"
-
 # === Ad Network SDKs ===
 metaAudienceNetworkVersion = "6.17.0"
 mintegral = "16.7.71"
@@ -95,13 +88,10 @@ google-location = "com.google.android.gms:play-services-location:21.1.0"
 google-ads = "com.google.android.gms:play-services-ads:23.0.0"
 
 # === Testing ===
-junit = { group = "junit", name = "junit", version.ref = "junit" }
-mockk-agent = { group = "io.mockk", name = "mockk-agent", version.ref = "mockk" }
-mockk-android = { group = "io.mockk", name = "mockk-android", version.ref = "mockk" }
+junit = "org.junit.jupiter:junit-jupiter:5.13.4"
+truth = "com.google.truth:truth:1.4.5"
+mockk = "io.mockk:mockk:1.13.17"
 robolectric = "org.robolectric:robolectric:4.11.1"
-androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-test-ext-junit" }
-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso-core" }
-androidx-test-orchestrator = { group = "androidx.test", name = "orchestrator", version.ref = "test-orchestrator" }
 
 # === Ad Network SDKs ===
 metaAudienceNetwork = { group = "com.facebook.android", name = "audience-network-sdk", version.ref = "metaAudienceNetworkVersion" }
@@ -112,8 +102,7 @@ mintegral-newinterstitial = { group = "com.mbridge.msdk.oversea", name = "newint
 mintegral-mbbanner = { group = "com.mbridge.msdk.oversea", name = "mbbanner", version.ref = "mintegral" }
 
 [bundles]
-test-unit = ["junit", "robolectric", "kotlinx-coroutines-test", "ktor-client-mock", "mockk-agent", "mockk-android"]
-test-instrumentation = ["androidx-test-ext-junit", "espresso-core", "mockk-agent", "mockk-android"]
+test-unit = ["junit", "truth", "kotlinx-coroutines-test", "ktor-client-mock", "mockk", "robolectric"]
 
 mintegral = [
     "mintegral-reward",

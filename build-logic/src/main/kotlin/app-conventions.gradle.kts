@@ -30,5 +30,4 @@ android {
 
 dependencies {
     testImplementation(libs.testUnit)
-    androidTestImplementation(libs.testInstrumentation)
 }

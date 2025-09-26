@@ -68,10 +68,6 @@ android {
                 "proguard-rules.pro"
             )
         }
-        debug {
-            enableAndroidTestCoverage = true
-            enableUnitTestCoverage = true
-        }
     }
     sourceSets["main"].kotlin {
         srcDir("src/main/samples/kotlin")
@@ -86,10 +82,6 @@ android {
     }
     testOptions {
         animationsDisabled = true
-
-        // Tests are run in isolation if this is set but are slower. Comment if you want test to go faster but less precise
-        execution = "ANDROIDX_TEST_ORCHESTRATOR"
-
         unitTests {
             isIncludeAndroidResources = true
         }
@@ -116,5 +108,4 @@ dependencies {
     ksp(libs.androidx.room.compiler)
 
     testImplementation(libs.bundles.test.unit)
-    androidTestImplementation(libs.bundles.test.instrumentation)
 }

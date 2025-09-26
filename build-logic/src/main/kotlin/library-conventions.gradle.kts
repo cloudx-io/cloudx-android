@@ -1,5 +1,4 @@
 import gradle.kotlin.dsl.accessors._624aae704a5c30b505ab3598db099943.android
-import gradle.kotlin.dsl.accessors._624aae704a5c30b505ab3598db099943.androidTestImplementation
 import gradle.kotlin.dsl.accessors._624aae704a5c30b505ab3598db099943.testImplementation
 
 plugins {
@@ -12,7 +11,6 @@ android {
 
     defaultConfig {
         minSdk = libs.minSdk
-
         testInstrumentationRunner = libs.testInstrumentationRunner
         consumerProguardFiles("consumer-rules.pro")
     }
@@ -42,5 +40,4 @@ android {
 
 dependencies {
     testImplementation(libs.testUnit)
-    androidTestImplementation(libs.testInstrumentation)
 }

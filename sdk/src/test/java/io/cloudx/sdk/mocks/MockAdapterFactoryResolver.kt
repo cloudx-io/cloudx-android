@@ -6,7 +6,6 @@ import io.cloudx.sdk.internal.initialization.BidAdNetworkFactories
 import io.mockk.mockk
 
 internal class MockAdapterFactoryResolver : AdapterFactoryResolver {
-
     override fun resolveBidAdNetworkFactories(forTheseNetworks: Set<AdNetwork>): BidAdNetworkFactories {
         return BidAdNetworkFactories(
             initializers = mutableMapOf(

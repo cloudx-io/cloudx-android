@@ -50,7 +50,6 @@ android {
     // Inlined from setupTestOptions
     testOptions {
         animationsDisabled = true
-        execution = "ANDROIDX_TEST_ORCHESTRATOR"
         unitTests {
             isIncludeAndroidResources = true
         }

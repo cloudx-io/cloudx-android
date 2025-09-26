@@ -1,5 +1,6 @@
 package io.cloudx.sdk.internal.bid
 
+import com.google.common.truth.Truth
 import io.cloudx.sdk.RoboMockkTest
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.appinfo.AppInfoProvider

@@ -48,7 +48,6 @@ android {
     // Inlined from setupTestOptions
     testOptions {
         animationsDisabled = true
-        execution = "ANDROIDX_TEST_ORCHESTRATOR"
         unitTests {
             isIncludeAndroidResources = true
         }
@@ -63,9 +62,6 @@ dependencies {
 
     // Test dependencies
     testImplementation(libs.bundles.test.unit)
-    androidTestImplementation(libs.bundles.test.instrumentation)
-    // Required for ANDROIDX_TEST_ORCHESTRATOR
-    androidTestUtil(libs.androidx.test.orchestrator)
 }
 
 mavenPublishing {

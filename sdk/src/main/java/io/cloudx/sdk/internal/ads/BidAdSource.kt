@@ -31,12 +31,12 @@ internal interface BidAdSource<T : CloudXDestroyable> {
     suspend fun requestBid(): Result<BidAdSourceResponse<T>, CloudXError>
 }
 
-internal open class BidAdSourceResponse<T : CloudXDestroyable>(
+internal data class BidAdSourceResponse<T : CloudXDestroyable>(
     val bidItemsByRank: List<Item<T>>,
     val auctionId: String
 ) {
 
-    class Item<T>(
+    data class Item<T>(
         val bid: Bid,
         val adNetwork: AdNetwork,
         val adNetworkOriginal: AdNetwork, // todo: only used for demo

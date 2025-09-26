@@ -84,6 +84,9 @@ android {
         animationsDisabled = true
         unitTests {
             isIncludeAndroidResources = true
+            all {
+                it.jvmArgs("-XX:+EnableDynamicAgentLoading")
+            }
         }
     }
 }

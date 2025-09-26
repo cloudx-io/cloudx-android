@@ -2,12 +2,13 @@ package io.cloudx.sdk.internal.ads
 
 import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.CloudXErrorCode
-import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.tracker.win_loss.LossReason
 import io.cloudx.sdk.internal.tracker.win_loss.WinLossTracker
 import io.cloudx.sdk.internal.util.Result
+import io.cloudx.sdk.internal.util.toSuccess
+import io.cloudx.sdk.toFailure
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.coroutineScope
@@ -31,16 +32,8 @@ internal class AdLoader<T : CXAdapterDelegate>(
         return when (val result = bidAdSource.requestBid()) {
             is Result.Success -> {
                 val banner = loadWinner(result.value)
-                if (banner != null) {
-                    Result.Success(banner)
-                } else {
-                    Result.Failure(
-                        CloudXError(
-                            CloudXErrorCode.NO_FILL,
-                            "No fill - all candidates failed to load"
-                        )
-                    )
-                }
+                banner?.toSuccess()
+                    ?: CloudXErrorCode.NO_FILL.toFailure(message = "No fill - all candidates failed to load")
             }
 
             is Result.Failure -> {
@@ -50,17 +43,17 @@ internal class AdLoader<T : CXAdapterDelegate>(
     }
 
     private suspend fun loadWinner(
-        bids: BidAdSourceResponse<T>
+        bidResponse: BidAdSourceResponse<T>
     ): T? = coroutineScope {
 
         var loadedAd: T? = null
         var loadedAdIndex = -1
         var winnerBidPrice = -1f
 
-        for ((index, bidItem) in bids.bidItemsByRank.withIndex()) {
+        for ((index, bidItem) in bidResponse.bidItemsByRank.withIndex()) {
             ensureActive()
 
-            val ad = loadAd(bidAdLoadTimeoutMillis, bidItem.createBidAd)
+            val ad = createAndLoadAdapter(bidAdLoadTimeoutMillis, bidItem.createBidAd)
 
             if (ad != null) {
                 CXLogger.i(
@@ -73,7 +66,7 @@ internal class AdLoader<T : CXAdapterDelegate>(
                 loadedAdIndex = index
                 winnerBidPrice = bidItem.bid.price ?: -1f
 
-                winLossTracker.markAsLoaded(bids.auctionId, bidItem.bid)
+                winLossTracker.markAsLoaded(bidResponse.auctionId, bidItem.bid)
                 break
             } else {
                 CXLogger.w(
@@ -83,7 +76,7 @@ internal class AdLoader<T : CXAdapterDelegate>(
                 )
 
                 winLossTracker.sendLoss(
-                    bids.auctionId,
+                    bidResponse.auctionId,
                     bidItem.bid,
                     LossReason.INTERNAL_ERROR,
                     winnerBidPrice
@@ -92,10 +85,10 @@ internal class AdLoader<T : CXAdapterDelegate>(
         }
 
         if (loadedAdIndex != -1) {
-            bids.bidItemsByRank.forEachIndexed { index, bidItem ->
+            bidResponse.bidItemsByRank.forEachIndexed { index, bidItem ->
                 if (index > loadedAdIndex) {
                     winLossTracker.sendLoss(
-                        bids.auctionId,
+                        bidResponse.auctionId,
                         bidItem.bid,
                         LossReason.LOST_TO_HIGHER_BID,
                         winnerBidPrice
@@ -107,12 +100,12 @@ internal class AdLoader<T : CXAdapterDelegate>(
         loadedAd
     }
 
-    private suspend fun loadAd(
+    private suspend fun createAndLoadAdapter(
         timeoutMs: Long,
-        createAd: suspend () -> T
+        createAdapter: suspend () -> T
     ): T? {
         val ad = try {
-            createAd()
+            createAdapter()
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {

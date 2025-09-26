@@ -57,7 +57,8 @@ class BidApiTest: RoboMockkTest() {
             adType = AdType.Banner.MREC,
             placementName = "",
             accountId = "",
-            appKey = ""
+            appKey = "",
+            appId = ""
         )
 
         val auctionId = UUID.randomUUID().toStr()

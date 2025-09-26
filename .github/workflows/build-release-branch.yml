@@ -10,129 +10,66 @@ on:
       - 'main'
     types: [opened, synchronize, reopened]
 
-env:
-  ANDROID_HOME: /Users/administrator/Library/Android/sdk
 
 jobs:
-  validate-release:
-    name: 🔍 Validate Release Branch
+  build:
+    name: build-sdk-android
     runs-on: self-hosted
     outputs:
+      artifact-url: ${{ steps.upload-artifact.outputs.artifact-url  }}
       version: ${{ steps.extract-version.outputs.version }}
-      release-version: ${{ steps.extract-release-version.outputs.release-version }}
     steps:
-      - name: 🧾 Checkout code
-        uses: actions/checkout@v3
-
-      - name: 🏷️ Extract release version from branch name
-        id: extract-release-version
-        run: |
-          if [[ "${{ github.ref_name }}" =~ ^release/(.+)$ ]]; then
-            RELEASE_VERSION="${BASH_REMATCH[1]}"
-            echo "release-version=$RELEASE_VERSION" >> $GITHUB_OUTPUT
-            echo "Extracted release version: $RELEASE_VERSION"
-          else
-            echo "Not a release branch, skipping..."
-            exit 1
-          fi
-
-      - name: 📋 Extract version from libs.versions.toml
-        id: extract-version
-        run: |
-          VERSION=$(grep '^sdkVersionName = ' gradle/libs.versions.toml | sed 's/sdkVersionName = "\(.*\)"/\1/')
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Config version: $VERSION"
-          echo "Branch version: ${{ steps.extract-release-version.outputs.release-version }}"
-
-      - name: ✅ Validate version consistency
-        run: |
-          CONFIG_VERSION="${{ steps.extract-version.outputs.version }}"
-          BRANCH_VERSION="${{ steps.extract-release-version.outputs.release-version }}"
-
-          if [ "$CONFIG_VERSION" != "$BRANCH_VERSION" ]; then
-            echo "❌ Version mismatch!"
-            echo "   Branch: release/$BRANCH_VERSION"
-            echo "   Config: $CONFIG_VERSION"
-            echo ""
-            echo "Please ensure versions match:"
-            echo "1. Branch name: release/$CONFIG_VERSION"
-            echo "2. Or update libs.versions.toml to: sdkVersionName = \"$BRANCH_VERSION\""
-            exit 1
-          else
-            echo "✅ Version consistency validated: $CONFIG_VERSION"
-          fi
-
-  build-and-test:
-    name: 🏗️ Build & Test Release
-    runs-on: self-hosted
-    needs: validate-release
-    steps:
-      - name: 🧾 Checkout code
-        uses: actions/checkout@v3
-
-      - name: ☕ Set up JDK 17
+      - uses: actions/checkout@v3
+      - name: set up JDK 17
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: gradle
-
-      - name: 🔐 Grant execute permission for gradlew
+      - name: Grant execute permission for gradlew
         run: chmod +x gradlew
-
-      - name: 🧪 Run tests
-        run: ./gradlew :sdk:test --continue
-
-      - name: 🏗️ Build Release AAR
-        run: ./gradlew :sdk:assembleRelease --refresh-dependencies
-
-      - name: 🏗️ Build Demo APK
-        run: ./gradlew :app:assembleDebug --refresh-dependencies
-
-      - name: 📋 Verify outputs
+      - name: Extract version from libs.versions.toml
+        id: extract-version
         run: |
-          echo "🔍 Checking build outputs..."
-          ls -la ./sdk/build/outputs/aar/
-          ls -la ./app/build/outputs/apk/debug/
+          VERSION=$(grep '^sdkVersionName = ' gradle/libs.versions.toml | sed 's/sdkVersionName = "\(.*\)"/\1/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Extracted version: $VERSION"
 
-      - name: 📤 Upload Release AAR
-        uses: actions/upload-artifact@v4
+      - name: Extract short commit SHA
+        id: short-sha
+        run: echo "short_sha=${GITHUB_SHA:0:8}" >> $GITHUB_OUTPUT
+      - name: Build APK with Gradle
+        run: ./gradlew clean --refresh-dependencies assembleDebug
+      - name: Check folder with APK
+        run: ls -la ./app/build/outputs/apk/debug
+      - name: upload-artifact
+        id: upload-artifact
+        uses: actions/upload-artifact@master
         with:
-          name: cloudx-sdk-release-${{ needs.validate-release.outputs.version }}
-          path: ./sdk/build/outputs/aar/sdk-release.aar
+          name: cloudx-sdk-android-apk-${{ steps.extract-version.outputs.version }}
+          path: ./app/build/outputs/apk/debug/cloudx-demo-debug-${{ steps.extract-version.outputs.version }}.apk
 
-      - name: 📤 Upload Demo APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: cloudx-demo-release-${{ needs.validate-release.outputs.version }}
-          path: ./app/build/outputs/apk/debug/cloudx-demo-debug-${{ needs.validate-release.outputs.version }}.apk
-
-  slack-notification:
-    name: 📢 Slack Notification
-    runs-on: self-hosted
-    needs: [validate-release, build-and-test]
-    if: always()
-    steps:
-      - name: 🔔 Send Slack notification
+      - name: 📢 Slack Notification
         uses: 8398a7/action-slack@v3
+        if: always()
         with:
           status: custom
           custom_payload: |
             {
-              "text": "🏗️ Release Branch Build #${{ github.run_number }} finished",
+              "text": "🤖 CloudX Demo APK Build #${{ github.run_number }} finished",
               "attachments": [{
-                "author_name": "cloudexchange.android.sdk/build-release-branch",
-                "fallback": "Release branch build pipeline finished",
-                "color": "${{ needs.build-and-test.result == 'success' && needs.validate-release.result == 'success' && 'good' || 'danger' }}",
+                "author_name": "cloudexchange.android.sdk/build-demo-android",
+                "fallback": "Demo APK build pipeline finished",
+                "color": "${{ job.status == 'success' && 'good' || 'danger' }}",
                 "fields": [
                   {
                     "title": "Status",
-                    "value": "${{ (needs.build-and-test.result == 'success' && needs.validate-release.result == 'success') && '✅ Success' || '❌ Failed' }}",
+                    "value": "${{ job.status == 'success' && '✅ Success' || '❌ Failed' }}",
                     "short": true
                   },
                   {
-                    "title": "Release Version",
-                    "value": "`${{ needs.validate-release.outputs.version }}`",
+                    "title": "Version",
+                    "value": "`${{ steps.extract-version.outputs.version }}`",
                     "short": true
                   },
                   {
@@ -141,13 +78,13 @@ jobs:
                     "short": true
                   },
                   {
-                    "title": "Event",
-                    "value": "`${{ github.event_name }}`",
+                    "title": "Commit",
+                    "value": "`${{ steps.short-sha.outputs.short_sha }}`",
                     "short": true
                   },
                   {
-                    "title": "Build Status",
-                    "value": "${{ needs.build-and-test.result == 'success' && '🏗️ AAR & APK built successfully' || '❌ Build failed' }}",
+                    "title": "APK Status",
+                    "value": "${{ job.status == 'success' && '📱 Demo APK built and uploaded' || '❌ APK build failed' }}",
                     "short": false
                   },
                   {
@@ -157,7 +94,7 @@ jobs:
                   },
                   {
                     "title": "Artifacts",
-                    "value": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Download Artifacts>",
+                    "value": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Download APK>",
                     "short": true
                   }
                 ]
@@ -165,3 +102,22 @@ jobs:
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.CLOUDX_ALERTS_MOBILE_SLACK }}
+
+  dispatch:
+    name: trigger-autotest
+    runs-on: self-hosted
+    needs: build
+    steps:
+      - uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.PAT_TOKEN }}
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: 'cloudx-xenoss',
+              repo: 'cloudexchange.sdk.android.automated.testing',
+              workflow_id: 'android.yml',
+              ref: 'master',
+              inputs: {
+                'artifact-url' : '${{ needs.build.outputs.artifact-url }}',
+              },
+            });

@@ -4,7 +4,7 @@ A powerful Android SDK for maximizing ad revenue through intelligent ad mediatio
 
 ## Features
 
-- **Multiple Ad Formats**: Banner, Interstitial, Rewarded, Native, and MREC ads
+- **Multiple Ad Formats**: Banner, Interstitial, and MREC ads
 - **Intelligent Mediation**: Automatic optimization across multiple ad networks
 - **Real-time Bidding**: Advanced bidding technology for maximum revenue
 - **Comprehensive Analytics**: Detailed reporting and performance metrics
@@ -29,10 +29,6 @@ Add these permissions to your `AndroidManifest.xml`:
 <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 <uses-permission android:name="android.permission.READ_BASIC_PHONE_STATE" />
 <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
-
-<!-- Optional: For better targeting -->
-<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 ```
 
 ## Installation
@@ -56,10 +52,11 @@ dependencyResolutionManagement {
 ```kotlin
 dependencies {
     // CloudX Core SDK
-    implementation("io.cloudx:sdk:<latest-sdk-version>")
-    
+    implementation("io.cloudx:sdk:0.0.1.41")
+
     // Optional: CloudX Adapters (add as needed)
-    // implementation("io.cloudx:adapter-meta:<latest-adapter-version>")
+    implementation("io.cloudx:adapter-cloudx:0.0.1.41")
+    implementation("io.cloudx:adapter-meta:0.0.1.41")
 }
 ```
 
@@ -73,51 +70,60 @@ dependencies {
 ```kotlin
 // Initialize with app key and optional hashed user ID
 CloudX.initialize(
-    context = this,
-    initializationParams = CloudX.InitializationParams(
+    initParams = CloudXInitializationParams(
         appKey = "your-app-key-here",
-        initEndpointUrl = "https://pro.cloudx.io/sdk",
+        initServer = CloudXInitializationServer.Production,
         hashedUserId = "hashed-user-id-optional"
-    )
-) { status ->
-    if (status.initialized) {
-        Log.d("CloudX", "✅ CloudX SDK initialized successfully")
-    } else {
-        Log.e("CloudX", "❌ Failed to initialize CloudX SDK: ${status.description}")
+    ),
+    listener = object : CloudXInitializationListener {
+        override fun onInitialized() {
+            Log.d("CloudX", "✅ CloudX SDK initialized successfully")
+        }
+
+        override fun onInitializationFailed(cloudXError: CloudXError) {
+            Log.e("CloudX", "❌ Failed to initialize CloudX SDK: ${cloudXError.effectiveMessage}")
+        }
     }
-}
+)
 ```
 
 **Java:**
 ```java
 // Initialize with app key and optional hashed user ID
 CloudX.initialize(
-    this,
-    new CloudX.InitializationParams(
+    new CloudXInitializationParams(
         "your-app-key-here",
-        "https://pro.cloudx.io/sdk",
+        CloudXInitializationServer.production(),
         "hashed-user-id-optional"
     ),
-    status -> {
-        if (status.getInitialized()) {
+    new CloudXInitializationListener() {
+        @Override
+        public void onInitialized() {
             Log.d("CloudX", "✅ CloudX SDK initialized successfully");
-        } else {
-            Log.e("CloudX", "❌ Failed to initialize CloudX SDK: " + status.getDescription());
+        }
+
+        @Override
+        public void onInitializationFailed(CloudXError cloudXError) {
+            Log.e("CloudX", "❌ Failed to initialize CloudX SDK: " + cloudXError.getEffectiveMessage());
         }
     }
 );
 ```
 
-### 2. Check SDK Status
+### 2. Enable Debug Logging (Optional)
 
 **Kotlin:**
 ```kotlin
-val isInitialized = CloudX.isInitialized
+// Enable debug logging for troubleshooting
+CloudX.setLoggingEnabled(true)
+CloudX.setMinLogLevel(CloudXLogLevel.DEBUG)
 ```
 
 **Java:**
 ```java
-boolean isInitialized = CloudX.isInitialized();
+// Enable debug logging for troubleshooting
+CloudX.setLoggingEnabled(true);
+CloudX.setMinLogLevel(CloudXLogLevel.DEBUG);
 ```
 
 ## Ad Integration
@@ -129,79 +135,62 @@ Banner ads are rectangular ads that appear at the top or bottom of the screen.
 **Kotlin:**
 ```kotlin
 class MainActivity : AppCompatActivity(), CloudXAdViewListener {
-    private var bannerAd: CloudXAdView? = null
-    
+    private lateinit var bannerAd: CloudXAdView
+
     private fun createBannerAd() {
         // Create banner ad
-        bannerAd = CloudX.createBanner(
-            activity = this,
-            placementName = "your-banner-placement",
-            listener = this
+        bannerAd = CloudX.createBanner("your-banner-placement-name")
+
+        // Set listener
+        bannerAd.listener = this
+
+        // Add to view hierarchy
+        val layoutParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
         )
-        
-        bannerAd?.let { banner ->
-            // Add to view hierarchy
-            val layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            )
-            layoutParams.gravity = Gravity.CENTER_HORIZONTAL
-            
-            // Add to your container view
-            findViewById<LinearLayout>(R.id.banner_container).addView(banner, layoutParams)
-            
-            // Banner starts loading automatically when added to view hierarchy
-        } ?: run {
-            Log.e("CloudX", "Failed to create banner ad - check placement name and SDK initialization")
-        }
-    }
-    
-    override fun onResume() {
-        super.onResume()
-        bannerAd?.show()
-    }
-    
-    override fun onPause() {
-        super.onPause()
-        bannerAd?.hide()
+        layoutParams.gravity = Gravity.CENTER_HORIZONTAL
+
+        // Add to your container view
+        findViewById<LinearLayout>(R.id.banner_container).addView(bannerAd, layoutParams)
     }
     
     override fun onDestroy() {
         super.onDestroy()
-        bannerAd?.destroy()
+        bannerAd.destroy()
     }
     
     // CloudXAdViewListener callbacks
     override fun onAdLoaded(cloudXAd: CloudXAd) {
-        Log.d("CloudX", "✅ Banner ad loaded successfully from ${cloudXAd.networkName}")
+        Log.d("CloudX", "✅ Banner ad loaded successfully from ${cloudXAd.bidderName}")
     }
     
-    override fun onAdLoadFailed(cloudXAdError: CloudXAdError) {
-        Log.e("CloudX", "❌ Banner ad failed to load: ${cloudXAdError.description}")
+    override fun onAdLoadFailed(cloudXError: CloudXError) {
+        Log.e("CloudX", "❌ Banner ad failed to load: ${cloudXError.effectiveMessage}")
     }
     
     override fun onAdDisplayed(cloudXAd: CloudXAd) {
-        Log.d("CloudX", "👀 Banner ad shown from ${cloudXAd.networkName}")
+        Log.d("CloudX", "👀 Banner ad shown from ${cloudXAd.bidderName}")
     }
-    
+
     override fun onAdClicked(cloudXAd: CloudXAd) {
-        Log.d("CloudX", "👆 Banner ad clicked from ${cloudXAd.networkName}")
+        Log.d("CloudX", "👆 Banner ad clicked from ${cloudXAd.bidderName}")
     }
-    
+
     override fun onAdHidden(cloudXAd: CloudXAd) {
-        Log.d("CloudX", "🔚 Banner ad hidden from ${cloudXAd.networkName}")
+        Log.d("CloudX", "🔚 Banner ad hidden from ${cloudXAd.bidderName}")
     }
     
-    override fun onAdDisplayFailed(cloudXAdError: CloudXAdError) {
-        Log.e("CloudX", "❌ Banner ad failed to display: ${cloudXAdError.description}")
+    override fun onAdDisplayFailed(cloudXError: CloudXError) {
+        Log.e("CloudX", "❌ Banner ad failed to display: ${cloudXError.effectiveMessage}")
     }
     
-    override fun onAdExpanded(placementName: String) {
-        Log.d("CloudX", "📈 Banner ad expanded for placement: $placementName")
+    override fun onAdExpanded(cloudXAd: CloudXAd) {
+        Log.d("CloudX", "📈 Banner ad expanded from ${cloudXAd.bidderName}")
     }
-    
-    override fun onAdCollapsed(placementName: String) {
-        Log.d("CloudX", "📉 Banner ad collapsed for placement: $placementName")
+
+    override fun onAdCollapsed(cloudXAd: CloudXAd) {
+        Log.d("CloudX", "📉 Banner ad collapsed from ${cloudXAd.bidderName}")
     }
 }
 ```
@@ -210,49 +199,26 @@ class MainActivity : AppCompatActivity(), CloudXAdViewListener {
 ```java
 public class MainActivity extends AppCompatActivity implements CloudXAdViewListener {
     private CloudXAdView bannerAd;
-    
+
     private void createBannerAd() {
         // Create banner ad
-        bannerAd = CloudX.createBanner(
-            this,
-            "your-banner-placement",
-            this
+        bannerAd = CloudX.createBanner("your-banner-placement-name");
+
+        // Set listener
+        bannerAd.setListener(this);
+
+        // Add to view hierarchy
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
         );
-        
-        if (bannerAd != null) {
-            // Add to view hierarchy
-            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            );
-            layoutParams.gravity = Gravity.CENTER_HORIZONTAL;
-            
-            // Add to your container view
-            LinearLayout container = findViewById(R.id.banner_container);
-            container.addView(bannerAd, layoutParams);
-            
-            // Banner starts loading automatically when added to view hierarchy
-        } else {
-            Log.e("CloudX", "Failed to create banner ad - check placement name and SDK initialization");
-        }
+        layoutParams.gravity = Gravity.CENTER_HORIZONTAL;
+
+        // Add to your container view
+        LinearLayout container = findViewById(R.id.banner_container);
+        container.addView(bannerAd, layoutParams);
     }
-    
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (bannerAd != null) {
-            bannerAd.show();
-        }
-    }
-    
-    @Override
-    protected void onPause() {
-        super.onPause();
-        if (bannerAd != null) {
-            bannerAd.hide();
-        }
-    }
-    
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -264,42 +230,42 @@ public class MainActivity extends AppCompatActivity implements CloudXAdViewListe
     // CloudXAdViewListener callbacks
     @Override
     public void onAdLoaded(CloudXAd cloudXAd) {
-        Log.d("CloudX", "✅ Banner ad loaded successfully from " + cloudXAd.getNetworkName());
+        Log.d("CloudX", "✅ Banner ad loaded successfully from " + cloudXAd.getBidderName());
     }
     
     @Override
-    public void onAdLoadFailed(CloudXAdError cloudXAdError) {
-        Log.e("CloudX", "❌ Banner ad failed to load: " + cloudXAdError.getDescription());
+    public void onAdLoadFailed(CloudXError cloudXError) {
+        Log.e("CloudX", "❌ Banner ad failed to load: " + cloudXError.getEffectiveMessage());
     }
     
     @Override
     public void onAdDisplayed(CloudXAd cloudXAd) {
-        Log.d("CloudX", "👀 Banner ad shown from " + cloudXAd.getNetworkName());
+        Log.d("CloudX", "👀 Banner ad shown from " + cloudXAd.getBidderName());
     }
-    
+
     @Override
     public void onAdClicked(CloudXAd cloudXAd) {
-        Log.d("CloudX", "👆 Banner ad clicked from " + cloudXAd.getNetworkName());
+        Log.d("CloudX", "👆 Banner ad clicked from " + cloudXAd.getBidderName());
     }
-    
+
     @Override
     public void onAdHidden(CloudXAd cloudXAd) {
-        Log.d("CloudX", "🔚 Banner ad hidden from " + cloudXAd.getNetworkName());
+        Log.d("CloudX", "🔚 Banner ad hidden from " + cloudXAd.getBidderName());
     }
     
     @Override
-    public void onAdDisplayFailed(CloudXAdError cloudXAdError) {
-        Log.e("CloudX", "❌ Banner ad failed to display: " + cloudXAdError.getDescription());
+    public void onAdDisplayFailed(CloudXError cloudXError) {
+        Log.e("CloudX", "❌ Banner ad failed to display: " + cloudXError.getEffectiveMessage());
     }
     
     @Override
-    public void onAdExpanded(String placementName) {
-        Log.d("CloudX", "📈 Banner ad expanded for placement: " + placementName);
+    public void onAdExpanded(CloudXAd cloudXAd) {
+        Log.d("CloudX", "📈 Banner ad expanded from " + cloudXAd.getBidderName());
     }
-    
+
     @Override
-    public void onAdCollapsed(String placementName) {
-        Log.d("CloudX", "📉 Banner ad collapsed for placement: " + placementName);
+    public void onAdCollapsed(CloudXAd cloudXAd) {
+        Log.d("CloudX", "📉 Banner ad collapsed from " + cloudXAd.getBidderName());
     }
 }
 ```
@@ -311,69 +277,57 @@ Interstitial ads are full-screen ads that appear between app content.
 **Kotlin:**
 ```kotlin
 class MainActivity : AppCompatActivity(), CloudXInterstitialListener {
-    private var interstitialAd: CloudXInterstitialAd? = null
-    
+    private lateinit var interstitialAd: CloudXInterstitialAd
+
     private fun createInterstitialAd() {
         // Create interstitial ad
-        interstitialAd = CloudX.createInterstitial(
-            activity = this,
-            placementName = "your-interstitial-placement",
-            listener = this
-        )
-        
-        interstitialAd?.let { ad ->
-            // Load the ad
-            ad.load()
-            
-            // Optional: Listen to load status changes
-            ad.setIsAdLoadedListener { isLoaded ->
-                Log.d("CloudX", "Interstitial ad load status changed: $isLoaded")
-            }
-        } ?: run {
-            Log.e("CloudX", "Failed to create interstitial ad")
-        }
+        interstitialAd = CloudX.createInterstitial("your-interstitial-placement-name")
+
+        // Set listener
+        interstitialAd.listener = this
+
+        // Load the ad
+        interstitialAd.load()
     }
     
     private fun showInterstitialAd() {
-        interstitialAd?.let { ad ->
-            if (ad.isAdLoaded) {
-                ad.show()
-            } else {
-                Log.w("CloudX", "Interstitial ad not ready yet")
-            }
+        if (interstitialAd.isAdReady) {
+            interstitialAd.show()
+        } else {
+            Log.w("CloudX", "Interstitial ad not ready yet")
         }
     }
-    
+
     override fun onDestroy() {
         super.onDestroy()
-        interstitialAd?.destroy()
+        interstitialAd.destroy()
     }
     
     // CloudXInterstitialListener callbacks
     override fun onAdLoaded(cloudXAd: CloudXAd) {
-        Log.d("CloudX", "✅ Interstitial ad loaded successfully from ${cloudXAd.networkName}")
+        Log.d("CloudX", "✅ Interstitial ad loaded successfully from ${cloudXAd.bidderName}")
     }
     
-    override fun onAdLoadFailed(cloudXAdError: CloudXAdError) {
-        Log.e("CloudX", "❌ Interstitial ad failed to load: ${cloudXAdError.description}")
+    override fun onAdLoadFailed(cloudXError: CloudXError) {
+        Log.e("CloudX", "❌ Interstitial ad failed to load: ${cloudXError.effectiveMessage}")
     }
     
     override fun onAdDisplayed(cloudXAd: CloudXAd) {
-        Log.d("CloudX", "👀 Interstitial ad shown from ${cloudXAd.networkName}")
+        Log.d("CloudX", "👀 Interstitial ad shown from ${cloudXAd.bidderName}")
     }
-    
-    override fun onAdDisplayFailed(cloudXAdError: CloudXAdError) {
-        Log.e("CloudX", "❌ Interstitial ad failed to show: ${cloudXAdError.description}")
+
+    override fun onAdDisplayFailed(cloudXError: CloudXError) {
+        Log.e("CloudX", "❌ Interstitial ad failed to show: ${cloudXError.effectiveMessage}")
     }
-    
+
     override fun onAdHidden(cloudXAd: CloudXAd) {
-        Log.d("CloudX", "🔚 Interstitial ad hidden from ${cloudXAd.networkName}")
+        Log.d("CloudX", "🔚 Interstitial ad hidden from ${cloudXAd.bidderName}")
         // Reload for next use
         createInterstitialAd()
     }
-    
+
     override fun onAdClicked(cloudXAd: CloudXAd) {
-        Log.d("CloudX", "👆 Interstitial ad clicked from ${cloudXAd.networkName}")
+        Log.d("CloudX", "👆 Interstitial ad clicked from ${cloudXAd.bidderName}")
     }
 }
 ```
@@ -382,77 +336,63 @@ class MainActivity : AppCompatActivity(), CloudXInterstitialListener {
 ```java
 public class MainActivity extends AppCompatActivity implements CloudXInterstitialListener {
     private CloudXInterstitialAd interstitialAd;
-    
+
     private void createInterstitialAd() {
         // Create interstitial ad
-        interstitialAd = CloudX.createInterstitial(
-            this,
-            "your-interstitial-placement",
-            this
-        );
-        
-        if (interstitialAd != null) {
-            // Load the ad
-            interstitialAd.load();
-            
-            // Optional: Listen to load status changes
-            interstitialAd.setIsAdLoadedListener(isLoaded -> {
-                Log.d("CloudX", "Interstitial ad load status changed: " + isLoaded);
-            });
-        } else {
-            Log.e("CloudX", "Failed to create interstitial ad");
-        }
+        interstitialAd = CloudX.createInterstitial("your-interstitial-placement-name");
+
+        // Set listener
+        interstitialAd.setListener(this);
+
+        // Load the ad
+        interstitialAd.load();
     }
     
     private void showInterstitialAd() {
-        if (interstitialAd != null) {
-            if (interstitialAd.getIsAdLoaded()) {
-                interstitialAd.show();
-            } else {
-                Log.w("CloudX", "Interstitial ad not ready yet");
-            }
+        if (interstitialAd.getIsAdReady()) {
+            interstitialAd.show();
+        } else {
+            Log.w("CloudX", "Interstitial ad not ready yet");
         }
     }
     
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (interstitialAd != null) {
-            interstitialAd.destroy();
-        }
+        interstitialAd.destroy();
     }
     
     // CloudXInterstitialListener callbacks
     @Override
     public void onAdLoaded(CloudXAd cloudXAd) {
-        Log.d("CloudX", "✅ Interstitial ad loaded successfully from " + cloudXAd.getNetworkName());
+        Log.d("CloudX", "✅ Interstitial ad loaded successfully from " + cloudXAd.getBidderName());
     }
     
     @Override
-    public void onAdLoadFailed(CloudXAdError cloudXAdError) {
-        Log.e("CloudX", "❌ Interstitial ad failed to load: " + cloudXAdError.getDescription());
+    public void onAdLoadFailed(CloudXError cloudXError) {
+        Log.e("CloudX", "❌ Interstitial ad failed to load: " + cloudXError.getEffectiveMessage());
     }
     
     @Override
     public void onAdDisplayed(CloudXAd cloudXAd) {
-        Log.d("CloudX", "👀 Interstitial ad shown from " + cloudXAd.getNetworkName());
+        Log.d("CloudX", "👀 Interstitial ad shown from " + cloudXAd.getBidderName());
     }
-    
+
     @Override
-    public void onAdDisplayFailed(CloudXAdError cloudXAdError) {
-        Log.e("CloudX", "❌ Interstitial ad failed to show: " + cloudXAdError.getDescription());
+    public void onAdDisplayFailed(CloudXError cloudXError) {
+        Log.e("CloudX", "❌ Interstitial ad failed to show: " + cloudXError.getEffectiveMessage());
     }
-    
+
     @Override
     public void onAdHidden(CloudXAd cloudXAd) {
-        Log.d("CloudX", "🔚 Interstitial ad hidden from " + cloudXAd.getNetworkName());
+        Log.d("CloudX", "🔚 Interstitial ad hidden from " + cloudXAd.getBidderName());
         // Reload for next use
         createInterstitialAd();
     }
-    
+
     @Override
     public void onAdClicked(CloudXAd cloudXAd) {
-        Log.d("CloudX", "👆 Interstitial ad clicked from " + cloudXAd.getNetworkName());
+        Log.d("CloudX", "👆 Interstitial ad clicked from " + cloudXAd.getBidderName());
     }
 }
 ```
@@ -565,30 +505,6 @@ CloudX.setAppKeyValue("user_level", "premium");
 CloudX.clearAllKeyValues();
 ```
 
-### Revenue Information
-
-Get publisher revenue information for loaded ads:
-
-**Kotlin:**
-```kotlin
-// For fullscreen ads (Interstitial/Rewarded)
-interstitialAd?.adToDisplayInfo?.let { info ->
-    val revenue = info.publisherRevenue // Revenue in USD
-    val network = info.networkName      // Ad network name
-    Log.d("CloudX", "Expected revenue: $$revenue from $network")
-}
-```
-
-**Java:**
-```java
-// For fullscreen ads (Interstitial/Rewarded)
-CloudXAdToDisplayInfoApi.Info info = interstitialAd.getAdToDisplayInfo();
-if (info != null) {
-    Double revenue = info.getPublisherRevenue(); // Revenue in USD
-    String network = info.getNetworkName();      // Ad network name
-    Log.d("CloudX", "Expected revenue: $" + revenue + " from " + network);
-}
-```
 
 ### Test Mode Configuration
 
@@ -614,20 +530,18 @@ enableMetaAudienceNetworkTestMode(true);
 
 | Method | Description |
 |--------|-------------|
-| `CloudX.initialize(context, params, listener)` | Initialize SDK with context and parameters |
-| `CloudX.isInitialized` | Check if SDK is initialized |
+| `CloudX.initialize(params, listener)` | Initialize SDK with parameters and listener |
 | `CloudX.setPrivacy(privacy)` | Set privacy preferences |
+| `CloudX.setLoggingEnabled(enabled)` | Enable/disable SDK logging |
+| `CloudX.setMinLogLevel(level)` | Set minimum log level |
 
 ### Ad Creation Methods
 
 | Method | Description |
 |--------|-------------|
-| `CloudX.createBanner(activity, placement, listener)` | Create banner ad (320x50) |
-| `CloudX.createMREC(activity, placement, listener)` | Create MREC ad (300x250) |
-| `CloudX.createNativeAdSmall(activity, placement, listener)` | Create small native ad |
-| `CloudX.createNativeAdMedium(activity, placement, listener)` | Create medium native ad |
-| `CloudX.createInterstitial(activity, placement, listener)` | Create interstitial ad |
-| `CloudX.createRewardedInterstitial(activity, placement, listener)` | Create rewarded ad |
+| `CloudX.createBanner(placement)` | Create banner ad (320x50) |
+| `CloudX.createMREC(placement)` | Create MREC ad (300x250) |
+| `CloudX.createInterstitial(placement)` | Create interstitial ad |
 
 ### User Targeting Methods
 
@@ -642,12 +556,11 @@ enableMetaAudienceNetworkTestMode(true);
 
 | Method | Description |
 |--------|-------------|
-| `load()` | Load ad content (fullscreen ads) |
-| `show()` | Show/resume ad display |
-| `hide()` | Hide/pause ad display (banner ads) |
-| `isAdLoaded` | Check if fullscreen ad is ready |
+| `load()` | Load ad content (interstitial only) |
+| `show()` | Show fullscreen ad (interstitial only) |
+| `isAdReady` | Check if fullscreen ad is ready |
 | `destroy()` | Destroy ad and release resources |
-| `setIsAdLoadedListener(listener)` | Listen to load status changes |
+| `listener` | Property to set ad event listener |
 
 ### Listener Callbacks
 
@@ -659,12 +572,9 @@ All ad types support these common callbacks:
 - `onAdHidden(ad)` - Ad was hidden
 - `onAdClicked(ad)` - Ad was clicked
 
-**Banner/Native ads additionally support:**
-- `onAdExpanded(placement)` - Ad was expanded
-- `onAdCollapsed(placement)` - Ad was collapsed
-
-**Rewarded ads additionally support:**
-- `onUserRewarded(ad)` - User earned reward
+**Banner ads additionally support:**
+- `onAdExpanded(ad)` - Ad was expanded
+- `onAdCollapsed(ad)` - Ad was collapsed
 
 ## Troubleshooting
 
@@ -672,7 +582,7 @@ All ad types support these common callbacks:
 
 1. **SDK not initialized**
    - Ensure you call `CloudX.initialize()` before creating ads
-   - Check that the initialization callback is called with success
+   - Check that the `onInitialized()` callback is called successfully
 
 2. **Ads not loading**
    - Verify your placement names are correct
@@ -694,16 +604,16 @@ Enable debug logging to troubleshoot issues:
 
 **Kotlin:**
 ```kotlin
-// Access internal logging (for debugging only)
-import io.cloudx.sdk.internal.CXLogger
-CXLogger.logEnabled = true
+// Enable debug logging for troubleshooting
+CloudX.setLoggingEnabled(true)
+CloudX.setMinLogLevel(CloudXLogLevel.DEBUG)
 ```
 
 **Java:**
 ```java
-// Access internal logging (for debugging only)
-import io.cloudx.sdk.internal.CXLogger;
-CXLogger.setLogEnabled(true);
+// Enable debug logging for troubleshooting
+CloudX.setLoggingEnabled(true);
+CloudX.setMinLogLevel(CloudXLogLevel.DEBUG);
 ```
 
 ## Support

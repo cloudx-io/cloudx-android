@@ -13,6 +13,8 @@ internal interface WinLossTracker {
 
     fun trySendingPendingWinLossEvents()
 
+    fun saveBidsAsNew(auctionId: String, bids: List<Bid>)
+
     fun markAsLoaded(auctionId: String, bid: Bid)
 
     fun sendLoss(

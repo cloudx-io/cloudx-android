@@ -45,7 +45,8 @@ internal fun BidInterstitialSource(
         requestBid = requestBid,
         cdpApi = cdpApi,
         eventTracker = eventTracker,
-        metricsTracker = metricsTracker
+        metricsTracker = metricsTracker,
+        winLossTracker = winLossTracker
     ) { createBidAdParams ->
         val placementName = createBidAdParams.placementName
         val placementId = createBidAdParams.placementId

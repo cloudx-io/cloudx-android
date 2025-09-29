@@ -50,7 +50,8 @@ internal fun BidBannerSource(
         requestBid = requestBid,
         cdpApi = cdpApi,
         eventTracker = eventTracker,
-        metricsTracker = metricsTracker
+        metricsTracker = metricsTracker,
+        winLossTracker = winLossTracker
     ) {
 
         val placementName = it.placementName

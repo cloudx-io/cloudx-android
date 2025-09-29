@@ -17,6 +17,9 @@ internal interface CachedWinLossEventDao {
     @Query("SELECT * FROM cached_win_loss_events_table WHERE state != :state")
     suspend fun getAllExceptState(state: String): List<CachedWinLossEvents>
 
+    @Query("SELECT * FROM cached_win_loss_events_table WHERE state NOT IN (:states)")
+    suspend fun getAllExceptStates(states: List<String>): List<CachedWinLossEvents>
+
     @Query("SELECT * FROM cached_win_loss_events_table WHERE auctionId = :auctionId AND bidId = :bidId LIMIT 1")
     suspend fun findByAuctionAndBid(auctionId: String, bidId: String): CachedWinLossEvents?
 

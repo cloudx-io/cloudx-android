@@ -34,7 +34,7 @@ internal class WinLossTrackerImpl(
 
     override fun trySendingPendingWinLossEvents() {
         scope.launch {
-            trackerDb.convertLoadedToLoss()
+            trackerDb.convertUnfinishedBidsToLoss()
 
             val pending = trackerDb.getPendingEvents()
             if (pending.isEmpty()) {
@@ -44,15 +44,25 @@ internal class WinLossTrackerImpl(
         }
     }
 
+    override fun saveBidsAsNew(auctionId: String, bids: List<Bid>) {
+        scope.launch {
+            bids.forEach { bid ->
+                val lossPayloadMap = winLossFieldResolver.buildWinLossPayload(
+                    auctionId = auctionId,
+                    bid = bid,
+                    lossReason = LossReason.INTERNAL_ERROR,
+                    isWin = false,
+                    loadedBidPrice = bid.price ?: -1f
+                )
+                val lossPayloadJson = lossPayloadMap?.toJsonString()
+
+                trackerDb.saveNewBid(auctionId, bid, lossPayloadJson)
+            }
+        }
+    }
+
     override fun markAsLoaded(auctionId: String, bid: Bid) {
         scope.launch {
-            val winPayloadMap = winLossFieldResolver.buildWinLossPayload(
-                auctionId = auctionId,
-                bid = bid,
-                lossReason = LossReason.BID_WON,
-                isWin = true,
-                loadedBidPrice = bid.price ?: -1f
-            )
             val lossPayloadMap = winLossFieldResolver.buildWinLossPayload(
                 auctionId = auctionId,
                 bid = bid,
@@ -61,10 +71,9 @@ internal class WinLossTrackerImpl(
                 loadedBidPrice = bid.price ?: -1f
             )
 
-            val winPayloadJson = winPayloadMap?.toJsonString()
             val lossPayloadJson = lossPayloadMap?.toJsonString()
 
-            trackerDb.saveLoadedBid(auctionId, bid, winPayloadJson, lossPayloadJson)
+            trackerDb.saveLoadedBid(auctionId, bid, lossPayloadJson)
         }
     }
 

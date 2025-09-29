@@ -82,14 +82,14 @@ jobs:
           name: sdk-release-${{ needs.determine-sdk.outputs.version }}
           path: sdk/build/outputs/aar/sdk-release.aar
 
-#      - name: 🚀 Create GitHub Release with SDK AAR
-#        uses: softprops/action-gh-release@v1
-#        with:
-#          name: Release ${{ github.ref_name }}
-#          tag_name: ${{ github.ref_name }}
-#          files: sdk/build/outputs/aar/sdk-release.aar
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #      - name: 🚀 Create GitHub Release with SDK AAR
+      #        uses: softprops/action-gh-release@v1
+      #        with:
+      #          name: Release ${{ github.ref_name }}
+      #          tag_name: ${{ github.ref_name }}
+      #          files: sdk/build/outputs/aar/sdk-release.aar
+      #        env:
+      #          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 📢 Slack Notification
         uses: 8398a7/action-slack@v3

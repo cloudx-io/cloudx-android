@@ -19,6 +19,7 @@ internal class WinLossTrackerImpl(
 
     private var appKey: String? = null
     private var endpointUrl: String? = null
+    private var eventsMapping: Map<String, Map<String, String>> = emptyMap()
 
     override fun setAppKey(appKey: String) {
         this.appKey = appKey
@@ -30,6 +31,10 @@ internal class WinLossTrackerImpl(
 
     override fun setPayloadMapping(payloadMapping: Map<String, String>) {
         winLossFieldResolver.setPayloadMapping(payloadMapping)
+    }
+
+    override fun setEventsMapping(eventsMapping: Map<String, Map<String, String>>) {
+        this.eventsMapping = eventsMapping
     }
 
     override fun trySendingPendingWinLossEvents() {

@@ -11,6 +11,8 @@ internal interface WinLossTracker {
 
     fun setPayloadMapping(payloadMapping: Map<String, String>)
 
+    fun setEventsMapping(eventsMapping: Map<String, Map<String, String>>)
+
     fun trySendingPendingWinLossEvents()
 
     fun saveBidsAsNew(auctionId: String, bids: List<Bid>)

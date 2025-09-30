@@ -16,6 +16,7 @@ import io.cloudx.sdk.internal.tracker.ClickCounterTracker
 import io.cloudx.sdk.internal.tracker.EventTracker
 import io.cloudx.sdk.internal.tracker.EventType
 import io.cloudx.sdk.internal.tracker.TrackingFieldResolver
+import io.cloudx.sdk.internal.tracker.win_loss.BidLifecycleEvent
 import io.cloudx.sdk.internal.tracker.win_loss.WinLossTracker
 import io.cloudx.sdk.internal.util.ThreadUtils
 import kotlinx.coroutines.launch
@@ -162,7 +163,7 @@ internal fun createAdEventTrackingDecorator(
                 eventTracker.send(impressionId, campaignId, "1", EventType.IMPRESSION)
             }
 
-            winLossTracker.sendWin(auctionId, bid)
+            winLossTracker.sendEvent(auctionId, bid, BidLifecycleEvent.RENDER_SUCCESS)
         }
     },
     onClick = {

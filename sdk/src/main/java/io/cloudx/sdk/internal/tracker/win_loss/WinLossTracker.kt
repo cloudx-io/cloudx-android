@@ -19,16 +19,11 @@ internal interface WinLossTracker {
 
     fun markAsLoaded(auctionId: String, bid: Bid)
 
-    fun sendLoss(
+    fun sendEvent(
         auctionId: String,
         bid: Bid,
-        lossReason: LossReason,
+        event: BidLifecycleEvent,
         winnerBidPrice: Float = -1f
-    )
-
-    fun sendWin(
-        auctionId: String,
-        bid: Bid
     )
 }
 

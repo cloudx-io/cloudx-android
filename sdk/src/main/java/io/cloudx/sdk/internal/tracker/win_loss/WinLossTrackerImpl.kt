@@ -82,50 +82,58 @@ internal class WinLossTrackerImpl(
         }
     }
 
-    override fun sendLoss(
+    override fun sendEvent(
         auctionId: String,
         bid: Bid,
-        lossReason: LossReason,
+        event: BidLifecycleEvent,
         winnerBidPrice: Float
     ) {
         scope.launch {
+            val bidderName = bid.adNetwork.networkName
+            val bidderEventsConfig = eventsMapping[bidderName] ?: eventsMapping["default"]
+
+            if (bidderEventsConfig == null) {
+                CXLogger.d(tag, "No events config found for bidder '$bidderName', skipping ${event.eventKey} event")
+                return@launch
+            }
+
+            val eventUrlType = bidderEventsConfig[event.eventKey]
+            if (eventUrlType == null) {
+                CXLogger.d(tag, "Event ${event.eventKey} not configured for bidder '$bidderName', skipping")
+                return@launch
+            }
+
+            val isWin = when (event) {
+                BidLifecycleEvent.RENDER_SUCCESS -> true
+                else -> false
+            }
+
+            val effectiveLossReason = when (event) {
+                BidLifecycleEvent.LOAD_START -> LossReason.BID_WON
+                BidLifecycleEvent.LOAD_FAIL -> LossReason.INTERNAL_ERROR
+                BidLifecycleEvent.LOAD_SUCCESS -> LossReason.BID_WON
+                BidLifecycleEvent.RENDER_SUCCESS -> LossReason.BID_WON
+                BidLifecycleEvent.LOSS -> LossReason.LOST_TO_HIGHER_BID
+            }
+
             val payloadMap = winLossFieldResolver.buildWinLossPayload(
                 auctionId = auctionId,
                 bid = bid,
-                lossReason = lossReason,
-                isWin = false,
-                loadedBidPrice = winnerBidPrice
+                lossReason = effectiveLossReason,
+                isWin = isWin,
+                loadedBidPrice = if (isWin) bid.price ?: -1f else winnerBidPrice
             )
             val payloadJson = payloadMap?.toJsonString()
             if (payloadJson == null) {
-                CXLogger.w(tag, "Skipping loss event with empty payload (auctionId=$auctionId, bidId=${bid.id})")
+                CXLogger.w(tag, "Skipping ${event.eventKey} event with empty payload (auctionId=$auctionId, bidId=${bid.id})")
                 return@launch
             }
 
-            trackerDb.saveLossEvent(auctionId, bid, payloadJson)
-            trackWinLoss(payloadJson, auctionId, bid.id)
-        }
-    }
-
-    override fun sendWin(
-        auctionId: String,
-        bid: Bid
-    ) {
-        scope.launch {
-            val payloadMap = winLossFieldResolver.buildWinLossPayload(
-                auctionId,
-                bid,
-                lossReason = LossReason.BID_WON,
-                isWin = true,
-                loadedBidPrice = bid.price ?: -1f
-            )
-            val payloadJson = payloadMap?.toJsonString()
-            if (payloadJson == null) {
-                CXLogger.w(tag, "Skipping win event with empty payload (auctionId=$auctionId, bidId=${bid.id})")
-                return@launch
+            when (event) {
+                BidLifecycleEvent.RENDER_SUCCESS -> trackerDb.saveWinEvent(auctionId, bid, payloadJson)
+                else -> trackerDb.saveLossEvent(auctionId, bid, payloadJson)
             }
 
-            trackerDb.saveWinEvent(auctionId, bid, payloadJson)
             trackWinLoss(payloadJson, auctionId, bid.id)
         }
     }

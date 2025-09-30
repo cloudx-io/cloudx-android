@@ -27,7 +27,15 @@ internal class WinLossFieldResolver {
         val result = mutableMapOf<String, Any>()
 
         payloadMapping.forEach { (payloadKey, fieldPath) ->
-            val resolvedValue = resolveWinLossField(auctionId, bid, lossReason, payloadKey, fieldPath, bidLifecycleEvent, loadedBidPrice)
+            val resolvedValue = resolveWinLossField(
+                auctionId,
+                bid,
+                lossReason,
+                payloadKey,
+                fieldPath,
+                bidLifecycleEvent,
+                loadedBidPrice
+            )
             if (resolvedValue != null) {
                 result[payloadKey] = resolvedValue
             }
@@ -64,6 +72,10 @@ internal class WinLossFieldResolver {
             }
 
             else -> {
+                if (payloadKey == "notification") {
+                    return bidLifecycleEvent.notificationType
+                }
+
                 TrackingFieldResolver.resolveField(auctionId, fieldPath, bid?.id)
             }
         }

@@ -1,10 +1,10 @@
 package io.cloudx.sdk.internal.tracker.win_loss
 
 /**
- * Win/Loss event types that can be triggered during the ad lifecycle.
+ * Bid lifecycle event types that can be triggered during the ad lifecycle.
  * Each event corresponds to a specific point in the ad serving flow.
  */
-internal enum class WinLossEvent(val eventKey: String) {
+internal enum class BidLifecycleEvent(val eventKey: String) {
     /**
      * Triggered when an ad starts loading
      */

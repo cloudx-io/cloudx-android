@@ -61,22 +61,6 @@ internal class WinLossTrackerImpl(
         }
     }
 
-    override fun markAsLoaded(auctionId: String, bid: Bid) {
-        scope.launch {
-            val lossPayloadMap = winLossFieldResolver.buildWinLossPayload(
-                auctionId = auctionId,
-                bid = bid,
-                lossReason = LossReason.INTERNAL_ERROR,
-                isWin = false,
-                loadedBidPrice = bid.price ?: -1f
-            )
-
-            val lossPayloadJson = lossPayloadMap?.toJsonString()
-
-            trackerDb.saveLoadedBid(auctionId, bid, lossPayloadJson)
-        }
-    }
-
     override fun sendLoss(
         auctionId: String,
         bid: Bid,

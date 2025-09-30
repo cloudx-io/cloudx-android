@@ -65,8 +65,6 @@ internal class AdLoader<T : CXAdapterDelegate>(
                 loadedAd = ad
                 loadedAdIndex = index
                 winnerBidPrice = bidItem.bid.price ?: -1f
-
-                winLossTracker.markAsLoaded(bidResponse.auctionId, bidItem.bid)
                 break
             } else {
                 CXLogger.w(

@@ -89,11 +89,6 @@ internal class WinLossTrackerImpl(
                 return@launch
             }
 
-            val isWin = when (event) {
-                BidLifecycleEvent.RENDER_SUCCESS -> true
-                else -> false
-            }
-
             val effectiveLossReason = when (event) {
                 BidLifecycleEvent.LOAD_START -> LossReason.BID_WON
                 BidLifecycleEvent.LOAD_SUCCESS -> LossReason.BID_WON

@@ -39,6 +39,7 @@ internal suspend fun jsonToConfig(json: String): Result<Config, CloudXError> =
                     appKeyOverride = root.optString("appKeyOverride", null),
                     trackers = root.optJSONArray("tracking")?.toTrackers(),
                     winLossNotificationPayloadConfig = root.optJSONObject("winLossNotificationPayloadConfig")?.toStringMap() ?: emptyMap(),
+                    winLossEventsMapping = root.optJSONObject("winLossEventsMapping")?.toWinLossEventsMapping() ?: emptyMap(),
                     geoHeaders = root.optJSONArray("geoHeaders")?.toGeoHeaders(),
                     keyValuePaths = root.optJSONObject("keyValuePaths")?.let { kvp ->
                         Config.KeyValuePaths(
@@ -226,4 +227,19 @@ private fun JSONObject.toStringMap(): Map<String, String> {
     }
 
     return map
+}
+
+private fun JSONObject.toWinLossEventsMapping(): Map<String, Map<String, String>> {
+    val mapping = mutableMapOf<String, Map<String, String>>()
+    val keys = keys()
+
+    while (keys.hasNext()) {
+        val bidderKey = keys.next()
+        val bidderConfig = optJSONObject(bidderKey)
+        if (bidderConfig != null) {
+            mapping[bidderKey] = bidderConfig.toStringMap()
+        }
+    }
+
+    return mapping
 }

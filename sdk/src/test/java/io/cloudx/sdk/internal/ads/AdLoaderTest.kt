@@ -56,7 +56,6 @@ class AdLoaderTest : CXTest() {
         val bidResponse = createBidResponse(successfulAd)
         val expectedBid = bidResponse.bidItemsByRank.first().bid
         coEvery { mockBidAdSource.requestBid() } returns Result.Success(bidResponse)
-        justRun { mockWinLossTracker.markAsLoaded(any(), any()) }
 
         // When
         val result = adLoader.load()
@@ -65,7 +64,13 @@ class AdLoaderTest : CXTest() {
         assertThat(result).isInstanceOf(Result.Success::class.java)
         assertThat((result as Result.Success).value).isEqualTo(successfulAd)
 
-        verify { mockWinLossTracker.markAsLoaded("auction-123", expectedBid) }
+        verify {
+            mockWinLossTracker.sendEvent(
+                "auction-123",
+                expectedBid,
+                BidLifecycleEvent.LOAD_SUCCESS
+            )
+        }
         verify(exactly = 0) { successfulAd.destroy() }
     }
 
@@ -78,7 +83,6 @@ class AdLoaderTest : CXTest() {
         val winningBid = bidResponse.bidItemsByRank[0].bid
         val losingBid = bidResponse.bidItemsByRank[1].bid
         coEvery { mockBidAdSource.requestBid() } returns Result.Success(bidResponse)
-        justRun { mockWinLossTracker.markAsLoaded(any(), any()) }
         justRun { mockWinLossTracker.sendEvent(any(), any(), any(), any(), any()) }
 
         // When
@@ -88,8 +92,14 @@ class AdLoaderTest : CXTest() {
         assertThat(result).isInstanceOf(Result.Success::class.java)
         assertThat((result as Result.Success).value).isEqualTo(winningAd)
 
-        // Verify winning ad is marked as loaded
-        verify { mockWinLossTracker.markAsLoaded("auction-123", winningBid) }
+        // Verify winning ad gets LOAD_SUCCESS event
+        verify {
+            mockWinLossTracker.sendEvent(
+                "auction-123",
+                winningBid,
+                BidLifecycleEvent.LOAD_SUCCESS
+            )
+        }
 
         // Verify losing ad gets loss notification with winner's price
         verify {

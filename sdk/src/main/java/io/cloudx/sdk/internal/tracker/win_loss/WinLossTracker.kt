@@ -17,8 +17,6 @@ internal interface WinLossTracker {
 
     fun saveBidsAsNew(auctionId: String, bids: List<Bid>)
 
-    fun markAsLoaded(auctionId: String, bid: Bid)
-
     fun sendEvent(
         auctionId: String,
         bid: Bid,

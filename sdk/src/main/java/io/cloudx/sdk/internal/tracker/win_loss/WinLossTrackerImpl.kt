@@ -56,7 +56,7 @@ internal class WinLossTrackerImpl(
                     auctionId = auctionId,
                     bid = bid,
                     lossReason = LossReason.INTERNAL_ERROR,
-                    isWin = false,
+                    bidLifecycleEvent = BidLifecycleEvent.NEW,
                     loadedBidPrice = bid.price ?: -1f
                 )
                 val lossPayloadJson = lossPayloadMap?.toJsonString()
@@ -100,13 +100,14 @@ internal class WinLossTrackerImpl(
                 BidLifecycleEvent.RENDER_SUCCESS -> LossReason.BID_WON
                 BidLifecycleEvent.LOAD_FAIL -> LossReason.INTERNAL_ERROR
                 BidLifecycleEvent.LOSS -> LossReason.LOST_TO_HIGHER_BID
+                BidLifecycleEvent.NEW -> LossReason.INTERNAL_ERROR
             }
 
             val payloadMap = winLossFieldResolver.buildWinLossPayload(
                 auctionId = auctionId,
                 bid = bid,
                 lossReason = effectiveLossReason,
-                isWin = isWin,
+                bidLifecycleEvent = event,
                 loadedBidPrice = when (event) {
                     BidLifecycleEvent.LOAD_SUCCESS -> bid.price ?: -1f
                     BidLifecycleEvent.RENDER_SUCCESS -> bid.price ?: -1f

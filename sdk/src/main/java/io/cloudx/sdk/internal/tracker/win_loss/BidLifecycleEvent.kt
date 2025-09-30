@@ -8,6 +8,7 @@ internal enum class BidLifecycleEvent(
     val eventKey: String,
     val notificationType: String
     ) {
+    NEW("none", "none"),
     /**
      * Triggered when an ad starts loading
      */

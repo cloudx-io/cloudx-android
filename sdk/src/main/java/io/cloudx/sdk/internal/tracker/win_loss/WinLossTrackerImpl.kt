@@ -82,12 +82,6 @@ internal class WinLossTrackerImpl(
                 return@launch
             }
 
-            val eventUrlType = bidderEventsConfig[event.eventKey]
-            if (eventUrlType == null) {
-                CXLogger.d(tag, "Event ${event.eventKey} not configured for bidder '$bidderName', skipping")
-                return@launch
-            }
-
             val isWin = when (event) {
                 BidLifecycleEvent.RENDER_SUCCESS -> true
                 else -> false

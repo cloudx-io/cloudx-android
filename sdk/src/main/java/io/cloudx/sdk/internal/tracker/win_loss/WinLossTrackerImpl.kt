@@ -57,7 +57,7 @@ internal class WinLossTrackerImpl(
                     bid = bid,
                     lossReason = LossReason.INTERNAL_ERROR,
                     bidLifecycleEvent = BidLifecycleEvent.NEW,
-                    loadedBidPrice = bid.price ?: -1f
+                    loadedBidPrice = -1f
                 )
                 val lossPayloadJson = lossPayloadMap?.toJsonString()
 

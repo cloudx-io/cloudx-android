@@ -51,7 +51,7 @@ internal class WinLossTrackerImpl(
                     auctionId = auctionId,
                     bid = bid,
                     lossReason = LossReason.INTERNAL_ERROR,
-                    bidLifecycleEvent = BidLifecycleEvent.NEW,
+                    bidLifecycleEvent = null,
                     loadedBidPrice = -1f
                 )
                 val lossPayloadJson = lossPayloadMap?.toJsonString()
@@ -69,12 +69,9 @@ internal class WinLossTrackerImpl(
     ) {
         scope.launch {
             val effectiveLossReason = when (event) {
-                BidLifecycleEvent.LOAD_START -> LossReason.BID_WON
                 BidLifecycleEvent.LOAD_SUCCESS -> LossReason.BID_WON
                 BidLifecycleEvent.RENDER_SUCCESS -> LossReason.BID_WON
-                BidLifecycleEvent.LOAD_FAIL -> LossReason.INTERNAL_ERROR
                 BidLifecycleEvent.LOSS -> LossReason.LOST_TO_HIGHER_BID
-                BidLifecycleEvent.NEW -> LossReason.INTERNAL_ERROR
             }
 
             val payloadMap = winLossFieldResolver.buildWinLossPayload(
@@ -90,7 +87,7 @@ internal class WinLossTrackerImpl(
             )
             val payloadJson = payloadMap?.toJsonString()
             if (payloadJson == null) {
-                CXLogger.w(tag, "Skipping ${event.eventKey} event with empty payload (auctionId=$auctionId, bidId=${bid.id})")
+                CXLogger.w(tag, "Skipping $event event with empty payload (auctionId=$auctionId, bidId=${bid.id})")
                 return@launch
             }
 

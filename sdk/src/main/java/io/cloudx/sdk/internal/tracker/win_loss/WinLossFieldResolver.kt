@@ -20,7 +20,7 @@ internal class WinLossFieldResolver {
         auctionId: String,
         bid: Bid?,
         lossReason: LossReason,
-        bidLifecycleEvent: BidLifecycleEvent,
+        bidLifecycleEvent: BidLifecycleEvent?,
         loadedBidPrice: Float
     ): Map<String, Any>? {
         val payloadMapping = winLossPayloadMapping ?: return null
@@ -49,21 +49,20 @@ internal class WinLossFieldResolver {
         lossReason: LossReason,
         payloadKey: String,
         fieldPath: String,
-        bidLifecycleEvent: BidLifecycleEvent,
+        bidLifecycleEvent: BidLifecycleEvent?,
         loadedBidPrice: Float
     ): Any? {
         return when (fieldPath) {
-            "sdk.[renderSuccess|loss|loadStart|loadSuccess]" -> {}
             "sdk.lossReason" -> lossReason.description
             "sdk.sdk" -> "sdk"
-            "sdk.[bid.nurl|bid.lurl]" -> {
+            "sdk.[bid.nurl|bid.lurl|bid.burl]" -> {
                 val url = if (true) {
                     bid?.rawJson?.optString("nurl")
                 } else {
                     bid?.rawJson?.optString("lurl")
                 }
 
-                url?.let { replaceUrlTemplates(it, bidLifecycleEvent, lossReason, loadedBidPrice) }
+                url?.let { replaceUrlTemplates(it, lossReason, loadedBidPrice) }
             }
 
             "sdk.loopIndex" -> {
@@ -73,7 +72,7 @@ internal class WinLossFieldResolver {
 
             else -> {
                 if (payloadKey == "notification") {
-                    return bidLifecycleEvent.notificationType
+                    return bidLifecycleEvent?.notificationType
                 }
 
                 TrackingFieldResolver.resolveField(auctionId, fieldPath, bid?.id)
@@ -86,11 +85,10 @@ internal class WinLossFieldResolver {
      *
      * Supported templates:
      * - ${AUCTION_PRICE} -> actual winning bid price or losing bid price
-     * - ${AUCTION_LOSS} -> loss reason code (1, 4)
+     * - ${AUCTION_LOSS} -> loss reason code
      */
     private fun replaceUrlTemplates(
         url: String,
-        bidLifecycleEvent: BidLifecycleEvent,
         lossReason: LossReason,
         loadedBidPrice: Float
     ): String {

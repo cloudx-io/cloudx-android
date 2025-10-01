@@ -53,12 +53,6 @@ internal class AdLoader<T : CXAdapterDelegate>(
         for ((index, bidItem) in bidResponse.bidItemsByRank.withIndex()) {
             ensureActive()
 
-            winLossTracker.sendEvent(
-                bidResponse.auctionId,
-                bidItem.bid,
-                BidLifecycleEvent.LOAD_START
-            )
-
             val ad = createAndLoadAdapter(bidAdLoadTimeoutMillis, bidItem.createBidAd)
 
             if (ad != null) {
@@ -88,8 +82,7 @@ internal class AdLoader<T : CXAdapterDelegate>(
                 winLossTracker.sendEvent(
                     bidResponse.auctionId,
                     bidItem.bid,
-                    BidLifecycleEvent.LOAD_FAIL,
-                    winnerBidPrice
+                    BidLifecycleEvent.LOSS
                 )
             }
         }

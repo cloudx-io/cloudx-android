@@ -6,14 +6,19 @@ import io.cloudx.sdk.internal.db.win_loss.CachedWinLossEvents
 
 internal interface WinLossTrackerDb {
 
-    suspend fun convertLoadedToLoss()
+    suspend fun convertUnfinishedBidsToLoss()
 
     suspend fun getPendingEvents(): List<CachedWinLossEvents>
+
+    suspend fun saveNewBid(
+        auctionId: String,
+        bid: Bid,
+        lossPayload: String?
+    )
 
     suspend fun saveLoadedBid(
         auctionId: String,
         bid: Bid,
-        winPayload: String?,
         lossPayload: String?
     )
 

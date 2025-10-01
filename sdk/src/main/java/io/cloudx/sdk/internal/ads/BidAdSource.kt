@@ -1,24 +1,25 @@
 package io.cloudx.sdk.internal.ads
 
 import com.xor.XorEncryption
-import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.CloudXDestroyable
+import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.CXLogger
-import io.cloudx.sdk.internal.tracker.PlacementLoopIndexTracker
 import io.cloudx.sdk.internal.bid.Bid
 import io.cloudx.sdk.internal.bid.BidApi
 import io.cloudx.sdk.internal.bid.BidRequestProvider
 import io.cloudx.sdk.internal.bid.BidResponse
 import io.cloudx.sdk.internal.cdp.CdpApi
 import io.cloudx.sdk.internal.config.ResolvedEndpoints
+import io.cloudx.sdk.internal.state.SdkKeyValueState
 import io.cloudx.sdk.internal.tracker.EventTracker
 import io.cloudx.sdk.internal.tracker.EventType
+import io.cloudx.sdk.internal.tracker.PlacementLoopIndexTracker
 import io.cloudx.sdk.internal.tracker.TrackingFieldResolver
 import io.cloudx.sdk.internal.tracker.TrackingFieldResolver.SDK_PARAM_RESPONSE_IN_MILLIS
 import io.cloudx.sdk.internal.tracker.metrics.MetricsTracker
 import io.cloudx.sdk.internal.tracker.metrics.MetricsType
-import io.cloudx.sdk.internal.state.SdkKeyValueState
+import io.cloudx.sdk.internal.tracker.win_loss.WinLossTracker
 import io.cloudx.sdk.internal.util.Result
 import java.util.UUID
 import kotlin.system.measureTimeMillis
@@ -51,6 +52,7 @@ internal fun <T : CloudXDestroyable> BidAdSource(
     cdpApi: CdpApi,
     eventTracker: EventTracker,
     metricsTracker: MetricsTracker,
+    winLossTracker: WinLossTracker,
     createBidAd: suspend (CreateBidAdParams) -> T,
 ): BidAdSource<T> =
     BidAdSourceImpl(
@@ -60,6 +62,7 @@ internal fun <T : CloudXDestroyable> BidAdSource(
         cdpApi = cdpApi,
         eventTracking = eventTracker,
         metricsTracker = metricsTracker,
+        winLossTracker = winLossTracker,
         createBidAd = createBidAd
     )
 
@@ -79,6 +82,7 @@ private class BidAdSourceImpl<T : CloudXDestroyable>(
     private val cdpApi: CdpApi,
     private val eventTracking: EventTracker,
     private val metricsTracker: MetricsTracker,
+    private val winLossTracker: WinLossTracker,
     private val createBidAd: suspend (CreateBidAdParams) -> T,
 ) : BidAdSource<T> {
 
@@ -177,6 +181,7 @@ private class BidAdSourceImpl<T : CloudXDestroyable>(
                         "Bid Success — received ${resp.bidItemsByRank.size} bid(s): [$bidDetails]"
                     )
 
+                    winLossTracker.saveBidsAsNew(auctionId, resp.bidItemsByRank.map { it.bid })
                 }
 
                 Result.Success(resp)

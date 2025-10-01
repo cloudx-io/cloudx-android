@@ -28,7 +28,6 @@ internal class Config(
     val placements: Map<String, Placement>,
     val trackers: List<String>?,
     val winLossNotificationPayloadConfig: Map<String, String>,
-    val winLossEventsMapping: Map<String, Map<String, String>>,
     val geoHeaders: List<GeoHeader>?,
     val keyValuePaths: KeyValuePaths?,
     val metrics: MetricsConfig?,

@@ -19,7 +19,6 @@ internal class WinLossTrackerImpl(
 
     private var appKey: String? = null
     private var endpointUrl: String? = null
-    private var eventsMapping: Map<String, Map<String, String>> = emptyMap()
 
     override fun setAppKey(appKey: String) {
         this.appKey = appKey
@@ -31,10 +30,6 @@ internal class WinLossTrackerImpl(
 
     override fun setPayloadMapping(payloadMapping: Map<String, String>) {
         winLossFieldResolver.setPayloadMapping(payloadMapping)
-    }
-
-    override fun setEventsMapping(eventsMapping: Map<String, Map<String, String>>) {
-        this.eventsMapping = eventsMapping
     }
 
     override fun trySendingPendingWinLossEvents() {
@@ -73,22 +68,6 @@ internal class WinLossTrackerImpl(
         winnerBidPrice: Float
     ) {
         scope.launch {
-            val bidderName = bid.adNetwork.networkName.lowercase()
-
-            val bidderEventsConfig = eventsMapping[bidderName] ?: eventsMapping["default"]
-
-            if (bidderEventsConfig == null) {
-                CXLogger.d(tag, "No events config found for bidder '$bidderName', skipping ${event.eventKey} event")
-                return@launch
-            }
-
-            val eventKey = event.eventKey
-            val isEventEnabled = bidderEventsConfig.contains(eventKey)
-            if (!isEventEnabled) {
-                CXLogger.d(tag, "Event '$eventKey' is disabled for bidder '$bidderName', skipping")
-                return@launch
-            }
-
             val effectiveLossReason = when (event) {
                 BidLifecycleEvent.LOAD_START -> LossReason.BID_WON
                 BidLifecycleEvent.LOAD_SUCCESS -> LossReason.BID_WON

@@ -5,6 +5,7 @@ import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.tracker.win_loss.BidLifecycleEvent
+import io.cloudx.sdk.internal.tracker.win_loss.LossReason
 import io.cloudx.sdk.internal.tracker.win_loss.WinLossTracker
 import io.cloudx.sdk.internal.util.Result
 import io.cloudx.sdk.internal.util.toSuccess
@@ -69,7 +70,8 @@ internal class AdLoader<T : CXAdapterDelegate>(
                 winLossTracker.sendEvent(
                     bidResponse.auctionId,
                     bidItem.bid,
-                    BidLifecycleEvent.LOAD_SUCCESS
+                    BidLifecycleEvent.LOAD_SUCCESS,
+                    LossReason.BID_WON
                 )
                 break
             } else {
@@ -82,7 +84,8 @@ internal class AdLoader<T : CXAdapterDelegate>(
                 winLossTracker.sendEvent(
                     bidResponse.auctionId,
                     bidItem.bid,
-                    BidLifecycleEvent.LOSS
+                    BidLifecycleEvent.LOSS,
+                    LossReason.INTERNAL_ERROR
                 )
             }
         }
@@ -94,6 +97,7 @@ internal class AdLoader<T : CXAdapterDelegate>(
                         bidResponse.auctionId,
                         bidItem.bid,
                         BidLifecycleEvent.LOSS,
+                        LossReason.LOST_TO_HIGHER_BID,
                         winnerBidPrice
                     )
                 }

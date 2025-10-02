@@ -19,6 +19,7 @@ internal interface WinLossTracker {
         auctionId: String,
         bid: Bid,
         event: BidLifecycleEvent,
+        lossReason: LossReason,
         winnerBidPrice: Float = -1f
     )
 }

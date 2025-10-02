@@ -17,7 +17,7 @@ import io.cloudx.sdk.internal.db.win_loss.CachedWinLossEvents
         MetricsEvent::class,
         CachedWinLossEvents::class
     ],
-    version = 10,
+    version = 11,
     // Not yet.
     exportSchema = false
 )

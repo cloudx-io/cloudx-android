@@ -10,17 +10,22 @@ internal enum class BidLifecycleEvent(
 ) {
 
     /**
-     * Triggered when an ad successfully loads
+     * When a bid is received (general bid event)
+     */
+    BID_RECEIVED("", "lurl"),
+
+    /**
+     * When an ad successfully loads
      */
     LOAD_SUCCESS("loadSuccess", "nurl"),
 
     /**
-     * Triggered when an ad successfully renders/shows
+     * When an ad successfully renders/shows
      */
     RENDER_SUCCESS("renderSuccess", "burl"),
 
     /**
-     * Triggered when an ad loses (general loss event)
+     * When an ad loses (general loss event)
      */
     LOSS("loss", "lurl")
 }

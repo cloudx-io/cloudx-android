@@ -1,6 +1,5 @@
 package io.cloudx.sdk.internal.ads
 
-import com.xor.XorEncryption
 import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.AdType
@@ -16,6 +15,7 @@ import io.cloudx.sdk.internal.tracker.ClickCounterTracker
 import io.cloudx.sdk.internal.tracker.EventTracker
 import io.cloudx.sdk.internal.tracker.EventType
 import io.cloudx.sdk.internal.tracker.TrackingFieldResolver
+import io.cloudx.sdk.internal.tracker.XorEncryption
 import io.cloudx.sdk.internal.tracker.win_loss.WinLossTracker
 import io.cloudx.sdk.internal.util.ThreadUtils
 import kotlinx.coroutines.launch

@@ -6,10 +6,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import android.widget.Button
 import android.widget.FrameLayout
-import androidx.appcompat.widget.AppCompatButton
-import androidx.appcompat.widget.AppCompatImageView
-import androidx.appcompat.widget.AppCompatTextView
+import android.widget.ImageView
+import android.widget.TextView
 import io.cloudx.sdk.R
 import io.cloudx.sdk.internal.AdType
 
@@ -51,11 +51,11 @@ private fun LayoutInflater.cloudXNativeAdMediumViewTemplate(): CloudXNativeAdVie
 
 private class NativeAdViewTemplate(
     override val rootView: ViewGroup,
-    override val ctaView: AppCompatButton?,
-    override val titleView: AppCompatTextView?,
-    override val descriptionView: AppCompatTextView?,
-    override val iconView: AppCompatImageView?,
-    override val mainImageView: AppCompatImageView?,
+    override val ctaView: Button?,
+    override val titleView: TextView?,
+    override val descriptionView: TextView?,
+    override val iconView: ImageView?,
+    override val mainImageView: ImageView?,
     private val customMediaViewContainer: FrameLayout?
 ) : CloudXNativeAdViewTemplate {
 

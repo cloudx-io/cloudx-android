@@ -96,17 +96,12 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.ktor.client.android)
     implementation(libs.ktor.client.logging)
-    implementation(libs.appcompat)
     implementation(libs.google.advertisingid)
-    implementation(libs.google.location)
-
     implementation(libs.lifecycle.process)
-    implementation(libs.lifecycle.runtime)
 
     // Room.
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
-    annotationProcessor(libs.androidx.room.compiler)
     ksp(libs.androidx.room.compiler)
 
     testImplementation(libs.bundles.test.unit)

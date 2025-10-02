@@ -1,7 +1,6 @@
 package io.cloudx.sdk.internal.crash
 
 import android.content.Context
-import androidx.core.content.edit
 import io.cloudx.sdk.internal.ApplicationContext
 import io.cloudx.sdk.internal.config.Config
 import io.cloudx.sdk.internal.tracker.EventTracker
@@ -79,7 +78,7 @@ internal class CrashReportingService(
             )
         }
 
-        prefs.edit(commit = true) { remove("pending_crash") }
+        prefs.edit().remove("pending_crash").commit()
 
         return pending
     }
@@ -119,7 +118,7 @@ internal class CrashReportingService(
     private fun savePendingCrashReport(report: PendingCrashReport) {
         val json = report.toJson().toString()
         val prefs = context.getSharedPreferences("cloudx_crash_store", Context.MODE_PRIVATE)
-        prefs.edit(commit = true) { putString("pending_crash", json) }
+        prefs.edit().putString("pending_crash", json).commit()
     }
 
     data class PendingCrashReport(

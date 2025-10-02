@@ -13,7 +13,7 @@
         android:layout_weight="1"
         android:padding="6dp">
 
-        <androidx.appcompat.widget.AppCompatImageView
+        <ImageView
             android:id="@+id/main_image"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />

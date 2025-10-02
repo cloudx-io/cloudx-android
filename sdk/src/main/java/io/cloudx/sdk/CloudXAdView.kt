@@ -8,7 +8,6 @@ import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.ImageView
-import androidx.core.view.setPadding
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.ApplicationContext
 import io.cloudx.sdk.internal.CXLogger
@@ -204,7 +203,8 @@ class CloudXAdView internal constructor(
                             PlacementLoopIndexTracker.reset(placementName)
                             destroy()
                         }
-                        setPadding(context.dpToPx(2))
+                        val padding = context.dpToPx(2)
+                        setPadding(padding, padding, padding, padding)
                     }
 
                     val closeBtnSize = context.dpToPx(12)

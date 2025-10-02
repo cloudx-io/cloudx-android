@@ -20,6 +20,17 @@ A powerful Android SDK for maximizing ad revenue through intelligent ad mediatio
 - **Java**: Compatible with Java 8+ projects
 - **Gradle**: 8.0+ with Android Gradle Plugin 8.0+
 
+### Dependencies
+
+The CloudX SDK uses the following key dependencies that may affect compatibility:
+
+- **Ktor**: 2.3.8 (HTTP client library using Android engine)
+- **Kotlinx Coroutines**: 1.7.3
+
+**Note on Version Compatibility:** If your app uses different versions of Ktor or Kotlinx Coroutines, Gradle will 
+typically resolve to the higher version. While we've tested basic compatibility, if you encounter version conflicts 
+or runtime issues, please [report them](https://github.com/cloudx-io/cloudexchange.android.sdk/issues).
+
 ### Required Permissions
 
 Add these permissions to your `AndroidManifest.xml`:
@@ -618,8 +629,8 @@ CloudX.setMinLogLevel(CloudXLogLevel.DEBUG);
 
 ## Support
 
-- **Documentation**: [CloudX Android SDK Docs](https://github.com/cloudx-xenoss/cloudexchange.android.sdk)
-- **Issues**: [GitHub Issues](https://github.com/cloudx-xenoss/cloudexchange.android.sdk/issues)
+- **Documentation**: [CloudX Android SDK Docs](https://github.com/cloudx-io/cloudexchange.android.sdk)
+- **Issues**: [GitHub Issues](https://github.com/cloudx-io/cloudexchange.android.sdk/issues)
 - **Email**: eng@cloudx.io
 
 ## License

@@ -13,13 +13,13 @@ internal interface WinLossTrackerDb {
     suspend fun saveNewBid(
         auctionId: String,
         bid: Bid,
-        lossPayload: String?
+        payload: String?
     )
 
     suspend fun saveLoadEvent(
         auctionId: String,
         bid: Bid,
-        lossPayload: String?
+        payload: String?
     )
 
     suspend fun saveLossEvent(

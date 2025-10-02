@@ -15,12 +15,9 @@ internal class WinLossTrackerDbImpl(
         // LOADED --> LOSS
         val loadedEntries = dao.getAllByState(CachedWinLossEvents.STATE_LOADED)
         loadedEntries.forEach { entry ->
-            val lossPayload = entry.lossPayload
-
             dao.upsert(
                 entry.copy(
                     state = CachedWinLossEvents.STATE_LOSS,
-                    payload = lossPayload,
                     sent = false,
                     updatedAt = now
                 )
@@ -30,12 +27,9 @@ internal class WinLossTrackerDbImpl(
         // NEW --> LOSS
         val newEntries = dao.getAllByState(CachedWinLossEvents.STATE_NEW)
         newEntries.forEach { entry ->
-            val lossPayload = entry.lossPayload
-
             dao.upsert(
                 entry.copy(
                     state = CachedWinLossEvents.STATE_LOSS,
-                    payload = lossPayload,
                     sent = false,
                     updatedAt = now
                 )
@@ -52,7 +46,7 @@ internal class WinLossTrackerDbImpl(
     override suspend fun saveNewBid(
         auctionId: String,
         bid: Bid,
-        lossPayload: String?
+        payload: String?
     ) {
         val dao = db.cachedWinLossEventDao()
         val now = System.currentTimeMillis()
@@ -62,9 +56,7 @@ internal class WinLossTrackerDbImpl(
             auctionId = auctionId,
             bidId = bid.id,
             state = CachedWinLossEvents.STATE_NEW,
-            payload = null,
-            winPayload = null,
-            lossPayload = lossPayload,
+            payload = payload,
             sent = true,
             createdAt = now,
             updatedAt = now
@@ -75,8 +67,8 @@ internal class WinLossTrackerDbImpl(
     override suspend fun saveLoadEvent(
         auctionId: String,
         bid: Bid,
-        lossPayload: String?
-    ) = saveEvent(auctionId, bid, CachedWinLossEvents.STATE_LOADED, lossPayload = lossPayload)
+        payload: String?
+    ) = saveEvent(auctionId, bid, CachedWinLossEvents.STATE_LOADED, payload = payload)
 
     override suspend fun saveLossEvent(
         auctionId: String,
@@ -94,8 +86,7 @@ internal class WinLossTrackerDbImpl(
         auctionId: String,
         bid: Bid,
         state: String,
-        payload: String? = null,
-        lossPayload: String? = null
+        payload: String? = null
     ) {
         val dao = db.cachedWinLossEventDao()
         val existing = dao.findByAuctionAndBid(auctionId, bid.id)
@@ -107,8 +98,6 @@ internal class WinLossTrackerDbImpl(
             bidId = bid.id,
             state = state,
             payload = payload,
-            winPayload = null,
-            lossPayload = lossPayload,
             sent = false,
             createdAt = existing?.createdAt ?: now,
             updatedAt = now

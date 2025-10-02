@@ -10,8 +10,6 @@ data class CachedWinLossEvents(
     val bidId: String,
     val state: String,
     val payload: String?,
-    val winPayload: String?,
-    val lossPayload: String?,
     val sent: Boolean = false,
     val createdAt: Long,
     val updatedAt: Long

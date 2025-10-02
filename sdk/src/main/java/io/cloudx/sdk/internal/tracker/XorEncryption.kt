@@ -3,7 +3,7 @@ package io.cloudx.sdk.internal.tracker
 import android.util.Base64
 import java.nio.ByteBuffer
 
-object XorEncryption {
+internal object XorEncryption {
 
     private val STATIC_SECRET = String(charArrayOf('c','l','o','u','d','x'))
 

@@ -18,6 +18,7 @@ internal class WinLossTrackerDbImpl(
             dao.upsert(
                 entry.copy(
                     state = CachedWinLossEvents.STATE_LOSS,
+                    payload = entry.lossPayload,
                     sent = false,
                     updatedAt = now
                 )
@@ -30,6 +31,7 @@ internal class WinLossTrackerDbImpl(
             dao.upsert(
                 entry.copy(
                     state = CachedWinLossEvents.STATE_LOSS,
+                    payload = entry.lossPayload,
                     sent = false,
                     updatedAt = now
                 )
@@ -39,7 +41,7 @@ internal class WinLossTrackerDbImpl(
 
     override suspend fun getPendingEvents(): List<CachedWinLossEvents> {
         return db.cachedWinLossEventDao().getUnsentEvents(
-            excludeStates = listOf(CachedWinLossEvents.STATE_NEW)
+            excludeStates = listOf(CachedWinLossEvents.STATE_NEW, CachedWinLossEvents.STATE_LOADED)
         )
     }
 
@@ -56,7 +58,8 @@ internal class WinLossTrackerDbImpl(
             auctionId = auctionId,
             bidId = bid.id,
             state = CachedWinLossEvents.STATE_NEW,
-            payload = payload,
+            payload = null,
+            lossPayload = payload,
             sent = true,
             createdAt = now,
             updatedAt = now
@@ -68,7 +71,12 @@ internal class WinLossTrackerDbImpl(
         auctionId: String,
         bid: Bid,
         payload: String?
-    ) = saveEvent(auctionId, bid, CachedWinLossEvents.STATE_LOADED, payload = payload)
+    ) {
+        // For LOAD events, the payload is the load success payload
+        // We need to generate a loss payload for potential conversion
+        // For now, we'll pass null and let the existing lossPayload be preserved
+        saveEvent(auctionId, bid, CachedWinLossEvents.STATE_LOADED, payload = payload)
+    }
 
     override suspend fun saveLossEvent(
         auctionId: String,
@@ -86,7 +94,8 @@ internal class WinLossTrackerDbImpl(
         auctionId: String,
         bid: Bid,
         state: String,
-        payload: String? = null
+        payload: String? = null,
+        lossPayload: String? = null
     ) {
         val dao = db.cachedWinLossEventDao()
         val existing = dao.findByAuctionAndBid(auctionId, bid.id)
@@ -98,6 +107,7 @@ internal class WinLossTrackerDbImpl(
             bidId = bid.id,
             state = state,
             payload = payload,
+            lossPayload = lossPayload ?: existing?.lossPayload,
             sent = false,
             createdAt = existing?.createdAt ?: now,
             updatedAt = now

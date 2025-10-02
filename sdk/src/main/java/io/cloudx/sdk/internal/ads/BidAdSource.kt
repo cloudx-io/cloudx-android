@@ -1,6 +1,5 @@
 package io.cloudx.sdk.internal.ads
 
-import com.xor.XorEncryption
 import io.cloudx.sdk.CloudXDestroyable
 import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.internal.AdNetwork
@@ -17,6 +16,7 @@ import io.cloudx.sdk.internal.tracker.EventType
 import io.cloudx.sdk.internal.tracker.PlacementLoopIndexTracker
 import io.cloudx.sdk.internal.tracker.TrackingFieldResolver
 import io.cloudx.sdk.internal.tracker.TrackingFieldResolver.SDK_PARAM_RESPONSE_IN_MILLIS
+import io.cloudx.sdk.internal.tracker.XorEncryption
 import io.cloudx.sdk.internal.tracker.metrics.MetricsTracker
 import io.cloudx.sdk.internal.tracker.metrics.MetricsType
 import io.cloudx.sdk.internal.tracker.win_loss.WinLossTracker

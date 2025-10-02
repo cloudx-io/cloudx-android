@@ -1,7 +1,6 @@
 package io.cloudx.sdk.internal.initialization
 
 import android.content.Context
-import com.xor.XorEncryption
 import io.cloudx.sdk.BuildConfig
 import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.CloudXErrorCode
@@ -25,6 +24,7 @@ import io.cloudx.sdk.internal.tracker.ClickCounterTracker
 import io.cloudx.sdk.internal.tracker.EventTracker
 import io.cloudx.sdk.internal.tracker.EventType
 import io.cloudx.sdk.internal.tracker.TrackingFieldResolver
+import io.cloudx.sdk.internal.tracker.XorEncryption
 import io.cloudx.sdk.internal.tracker.metrics.MetricsTracker
 import io.cloudx.sdk.internal.tracker.metrics.MetricsType
 import io.cloudx.sdk.internal.tracker.win_loss.WinLossTracker

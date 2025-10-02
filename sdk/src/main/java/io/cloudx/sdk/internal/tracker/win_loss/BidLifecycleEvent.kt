@@ -5,21 +5,22 @@ package io.cloudx.sdk.internal.tracker.win_loss
  * Each event corresponds to a specific point in the ad serving flow.
  */
 internal enum class BidLifecycleEvent(
-    val notificationType: String
+    val notificationType: String,
+    val urlType: String
 ) {
 
     /**
      * Triggered when an ad successfully loads
      */
-    LOAD_SUCCESS("loadSuccess"),
+    LOAD_SUCCESS("loadSuccess", "nurl"),
 
     /**
      * Triggered when an ad successfully renders/shows
      */
-    RENDER_SUCCESS("renderSuccess"),
+    RENDER_SUCCESS("renderSuccess", "burl"),
 
     /**
      * Triggered when an ad loses (general loss event)
      */
-    LOSS("loss")
+    LOSS("loss", "lurl")
 }

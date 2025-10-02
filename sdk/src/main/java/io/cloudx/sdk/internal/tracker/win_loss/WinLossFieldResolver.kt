@@ -52,31 +52,19 @@ internal class WinLossFieldResolver {
         bidLifecycleEvent: BidLifecycleEvent?,
         loadedBidPrice: Float
     ): Any? {
-        return when (fieldPath) {
-            "sdk.lossReason" -> lossReason.description
-            "sdk.sdk" -> "sdk"
-            "sdk.[bid.nurl|bid.lurl|bid.burl]" -> {
-                val url = if (true) {
-                    bid?.rawJson?.optString("nurl")
-                } else {
-                    bid?.rawJson?.optString("lurl")
-                }
-
-                url?.let { replaceUrlTemplates(it, lossReason, loadedBidPrice) }
-            }
-
-            "sdk.loopIndex" -> {
+        return when {
+            fieldPath == "sdk.lossReason" -> lossReason.description
+            fieldPath == "sdk.sdk" -> "sdk"
+            fieldPath == "sdk.loopIndex" -> {
                 val loopIndex = TrackingFieldResolver.resolveField(auctionId, fieldPath) as? String
                 loopIndex?.toIntOrNull()
             }
-
-            else -> {
-                if (payloadKey == "notification") {
-                    return bidLifecycleEvent?.notificationType
-                }
-
-                TrackingFieldResolver.resolveField(auctionId, fieldPath, bid?.id)
+            payloadKey == "notification" -> bidLifecycleEvent?.notificationType
+            payloadKey == "url" -> {
+                val url = bid?.rawJson?.optString(bidLifecycleEvent?.urlType)
+                url?.let { replaceUrlTemplates(it, lossReason, loadedBidPrice) }
             }
+            else -> TrackingFieldResolver.resolveField(auctionId, fieldPath, bid?.id)
         }
     }
 

@@ -34,8 +34,6 @@ internal interface WinLossTrackerDb {
         payload: String
     )
 
-    suspend fun deleteEvent(auctionId: String, bidId: String)
-
     suspend fun markEventAsSent(auctionId: String, bidId: String)
 }
 

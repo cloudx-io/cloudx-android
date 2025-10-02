@@ -105,10 +105,6 @@ internal class WinLossTrackerDbImpl(
         dao.upsert(event)
     }
 
-    override suspend fun deleteEvent(auctionId: String, bidId: String) {
-        db.cachedWinLossEventDao().deleteByAuctionAndBid(auctionId, bidId)
-    }
-
     override suspend fun markEventAsSent(auctionId: String, bidId: String) {
         val dao = db.cachedWinLossEventDao()
         val existing = dao.findByAuctionAndBid(auctionId, bidId)

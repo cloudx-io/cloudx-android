@@ -125,13 +125,24 @@ internal class WinLossTrackerDbImpl(
         val existing = dao.findByAuctionAndBid(auctionId, bidId)
 
         existing?.let { event ->
-            dao.upsert(
-                event.copy(
-                    sent = true,
-                    updatedAt = System.currentTimeMillis()
-                )
+            val updatedEvent = event.copy(
+                sent = true,
+                updatedAt = System.currentTimeMillis()
             )
+
+            dao.upsert(updatedEvent)
+
+            if (shouldDeleteAfterSent(updatedEvent)) {
+                dao.deleteByAuctionAndBid(auctionId, bidId)
+            }
         }
+    }
+
+    private fun shouldDeleteAfterSent(event: CachedWinLossEvents): Boolean {
+        return event.sent && (
+            event.state == CachedWinLossEvents.STATE_WIN ||
+            event.state == CachedWinLossEvents.STATE_LOSS
+        )
     }
 
     private fun composeId(auctionId: String, bidId: String): String = "$auctionId:$bidId"

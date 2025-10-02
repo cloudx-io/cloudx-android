@@ -143,7 +143,7 @@ private fun JSONArray.toPlacements(): Map<String, Config.Placement> {
                 name,
                 bidResponseTimeoutMillis,
                 adLoadTimeoutMillis,
-                refreshRateMillis = jsonPlacement.optInt("bannerRefreshRateMs", 15),
+                refreshRateMillis = jsonPlacement.optInt("bannerRefreshRateMs"),
                 hasCloseButton
             )
 

@@ -96,7 +96,7 @@ internal class WinLossTrackerImpl(
                     trackerDb.saveWinEvent(auctionId, bid, payloadJson)
                 }
                 BidLifecycleEvent.LOAD_SUCCESS -> {
-                    trackerDb.saveLoadedBid(auctionId, bid, payloadJson)
+                    trackerDb.saveLoadEvent(auctionId, bid, payloadJson)
                 }
                 else -> {
                     trackerDb.saveLossEvent(auctionId, bid, payloadJson)
@@ -131,7 +131,7 @@ internal class WinLossTrackerImpl(
         val result = trackerApi.send(key, endpoint, payload)
 
         if (result is Result.Success) {
-            trackerDb.deleteEvent(auctionId, bidId)
+            trackerDb.markEventAsSent(auctionId, bidId)
         }
     }
 

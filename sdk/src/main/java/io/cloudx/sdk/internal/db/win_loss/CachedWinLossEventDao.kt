@@ -28,4 +28,7 @@ internal interface CachedWinLossEventDao {
 
     @Query("DELETE FROM cached_win_loss_events_table WHERE id = :id")
     suspend fun deleteById(id: String)
+
+    @Query("SELECT * FROM cached_win_loss_events_table WHERE sent = 0 AND state NOT IN (:excludeStates)")
+    suspend fun getUnsentEvents(excludeStates: List<String> = listOf("NEW")): List<CachedWinLossEvents>
 }

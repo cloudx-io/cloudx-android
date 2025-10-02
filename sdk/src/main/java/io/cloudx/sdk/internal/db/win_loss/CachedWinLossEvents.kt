@@ -12,6 +12,7 @@ data class CachedWinLossEvents(
     val payload: String?,
     val winPayload: String?,
     val lossPayload: String?,
+    val sent: Boolean = false,
     val createdAt: Long,
     val updatedAt: Long
 ) {

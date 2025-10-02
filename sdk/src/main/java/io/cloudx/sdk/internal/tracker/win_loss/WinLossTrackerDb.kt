@@ -16,7 +16,7 @@ internal interface WinLossTrackerDb {
         lossPayload: String?
     )
 
-    suspend fun saveLoadedBid(
+    suspend fun saveLoadEvent(
         auctionId: String,
         bid: Bid,
         lossPayload: String?
@@ -35,6 +35,8 @@ internal interface WinLossTrackerDb {
     )
 
     suspend fun deleteEvent(auctionId: String, bidId: String)
+
+    suspend fun markEventAsSent(auctionId: String, bidId: String)
 }
 
 internal fun WinLossTrackerDb(): WinLossTrackerDb = WinLossTrackerDbImpl(Database())

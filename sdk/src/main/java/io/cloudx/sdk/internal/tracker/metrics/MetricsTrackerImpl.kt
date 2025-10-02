@@ -1,11 +1,11 @@
 package io.cloudx.sdk.internal.tracker.metrics
 
-import com.xor.XorEncryption
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.config.Config
 import io.cloudx.sdk.internal.db.CloudXDb
 import io.cloudx.sdk.internal.db.metrics.MetricsEvent
 import io.cloudx.sdk.internal.tracker.EventType
+import io.cloudx.sdk.internal.tracker.XorEncryption
 import io.cloudx.sdk.internal.tracker.bulk.EventAM
 import io.cloudx.sdk.internal.tracker.bulk.EventTrackerBulkApi
 import io.cloudx.sdk.internal.util.Result

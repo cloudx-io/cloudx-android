@@ -8,41 +8,34 @@ internal class WinLossTrackerDbImpl(
     private val db: CloudXDb
 ) : WinLossTrackerDb {
 
+    override suspend fun getPendingEvents(): List<CachedWinLossEvents> {
+        return db.cachedWinLossEventDao().getAllUnsent()
+    }
+
+    override suspend fun getUnfinishedBidEvents(): List<CachedWinLossEvents> {
+        return db.cachedWinLossEventDao().getAllSentByStates(
+            listOf(CachedWinLossEvents.STATE_NEW, CachedWinLossEvents.STATE_LOADED)
+        )
+    }
+
     override suspend fun convertUnfinishedBidsToLoss() {
         val dao = db.cachedWinLossEventDao()
         val now = System.currentTimeMillis()
 
-        // LOADED --> LOSS
-        val loadedEntries = dao.getAllByState(CachedWinLossEvents.STATE_LOADED)
-        loadedEntries.forEach { entry ->
-            dao.upsert(
-                entry.copy(
-                    state = CachedWinLossEvents.STATE_LOSS,
-                    payload = entry.lossPayload,
-                    sent = false,
-                    updatedAt = now
-                )
-            )
-        }
-
-        // NEW --> LOSS
-        val newEntries = dao.getAllByState(CachedWinLossEvents.STATE_NEW)
-        newEntries.forEach { entry ->
-            dao.upsert(
-                entry.copy(
-                    state = CachedWinLossEvents.STATE_LOSS,
-                    payload = entry.lossPayload,
-                    sent = false,
-                    updatedAt = now
-                )
-            )
-        }
-    }
-
-    override suspend fun getPendingEvents(): List<CachedWinLossEvents> {
-        return db.cachedWinLossEventDao().getUnsentEvents(
-            excludeStates = listOf(CachedWinLossEvents.STATE_NEW, CachedWinLossEvents.STATE_LOADED)
+        val unfinishedEntries = dao.getAllSentByStates(
+            listOf(CachedWinLossEvents.STATE_NEW, CachedWinLossEvents.STATE_LOADED)
         )
+
+        unfinishedEntries.forEach { entry ->
+            dao.upsert(
+                entry.copy(
+                    state = CachedWinLossEvents.STATE_LOSS,
+                    payload = entry.lossPayload,
+                    sent = false,
+                    updatedAt = now
+                )
+            )
+        }
     }
 
     override suspend fun saveNewBid(
@@ -71,12 +64,7 @@ internal class WinLossTrackerDbImpl(
         auctionId: String,
         bid: Bid,
         payload: String?
-    ) {
-        // For LOAD events, the payload is the load success payload
-        // We need to generate a loss payload for potential conversion
-        // For now, we'll pass null and let the existing lossPayload be preserved
-        saveEvent(auctionId, bid, CachedWinLossEvents.STATE_LOADED, payload = payload)
-    }
+    ) = saveEvent(auctionId, bid, CachedWinLossEvents.STATE_LOADED, payload = payload)
 
     override suspend fun saveLossEvent(
         auctionId: String,

@@ -14,12 +14,6 @@ internal interface CachedWinLossEventDao {
     @Query("SELECT * FROM cached_win_loss_events_table WHERE state = :state")
     suspend fun getAllByState(state: String): List<CachedWinLossEvents>
 
-    @Query("SELECT * FROM cached_win_loss_events_table WHERE state != :state")
-    suspend fun getAllExceptState(state: String): List<CachedWinLossEvents>
-
-    @Query("SELECT * FROM cached_win_loss_events_table WHERE state NOT IN (:states)")
-    suspend fun getAllExceptStates(states: List<String>): List<CachedWinLossEvents>
-
     @Query("SELECT * FROM cached_win_loss_events_table WHERE auctionId = :auctionId AND bidId = :bidId LIMIT 1")
     suspend fun findByAuctionAndBid(auctionId: String, bidId: String): CachedWinLossEvents?
 
@@ -29,6 +23,9 @@ internal interface CachedWinLossEventDao {
     @Query("DELETE FROM cached_win_loss_events_table WHERE id = :id")
     suspend fun deleteById(id: String)
 
-    @Query("SELECT * FROM cached_win_loss_events_table WHERE sent = 0 AND state NOT IN (:excludeStates)")
-    suspend fun getUnsentEvents(excludeStates: List<String> = listOf("NEW")): List<CachedWinLossEvents>
+    @Query("SELECT * FROM cached_win_loss_events_table WHERE sent = 0")
+    suspend fun getAllUnsent(): List<CachedWinLossEvents>
+
+    @Query("SELECT * FROM cached_win_loss_events_table WHERE sent = 1 AND state IN (:states)")
+    suspend fun getAllSentByStates(states: List<String>): List<CachedWinLossEvents>
 }

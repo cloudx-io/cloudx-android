@@ -34,13 +34,20 @@ internal class WinLossTrackerImpl(
 
     override fun trySendingPendingWinLossEvents() {
         scope.launch {
-            trackerDb.convertUnfinishedBidsToLoss()
-
-            val pending = trackerDb.getPendingEvents()
-            if (pending.isEmpty()) {
-                return@launch
+            val pendingEvents = trackerDb.getPendingEvents()
+            if (pendingEvents.isNotEmpty()) {
+                sendCached(pendingEvents)
             }
-            sendCached(pending)
+
+            val unfinishedBids = trackerDb.getUnfinishedBidEvents()
+            if (unfinishedBids.isNotEmpty()) {
+                trackerDb.convertUnfinishedBidsToLoss()
+
+                val newLossEvents = trackerDb.getPendingEvents()
+                if (newLossEvents.isNotEmpty()) {
+                    sendCached(newLossEvents)
+                }
+            }
         }
     }
 

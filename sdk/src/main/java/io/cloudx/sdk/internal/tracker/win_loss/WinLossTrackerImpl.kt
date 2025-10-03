@@ -38,16 +38,6 @@ internal class WinLossTrackerImpl(
             if (pendingEvents.isNotEmpty()) {
                 sendCached(pendingEvents)
             }
-
-            val unfinishedBids = trackerDb.getUnfinishedBidEvents()
-            if (unfinishedBids.isNotEmpty()) {
-                trackerDb.convertUnfinishedBidsToLoss()
-
-                val newLossEvents = trackerDb.getPendingEvents()
-                if (newLossEvents.isNotEmpty()) {
-                    sendCached(newLossEvents)
-                }
-            }
         }
     }
 
@@ -67,42 +57,32 @@ internal class WinLossTrackerImpl(
                 loadedBidPrice = when (event) {
                     BidLifecycleEvent.LOAD_SUCCESS -> bid.price ?: -1f
                     BidLifecycleEvent.RENDER_SUCCESS -> bid.price ?: -1f
-                    else -> winnerBidPrice
+                    BidLifecycleEvent.LOSS -> winnerBidPrice
                 }
             )
             val payloadJson = payloadMap?.toJsonString()
-            if (payloadJson == null) {
+            if (payloadJson.isNullOrEmpty()) {
                 CXLogger.w(tag, "Skipping $event event with empty payload (auctionId=$auctionId, bidId=${bid.id})")
                 return@launch
             }
 
-            when (event) {
-                BidLifecycleEvent.RENDER_SUCCESS -> {
-                    trackerDb.saveWinEvent(auctionId, bid, payloadJson)
-                }
-                BidLifecycleEvent.LOAD_SUCCESS -> {
-                    trackerDb.saveLoadEvent(auctionId, bid, payloadJson)
-                }
-                else -> {
-                    trackerDb.saveLossEvent(auctionId, bid, payloadJson)
-                }
-            }
-            trackWinLoss(payloadJson, auctionId, bid.id)
+            val eventId = trackerDb.saveEvent(auctionId, bid, payloadJson)
+            trackWinLoss(payloadJson, eventId)
         }
     }
 
     private suspend fun sendCached(entries: List<CachedWinLossEvents>) {
         entries.forEach { entry ->
             val payloadJson = entry.payload
-            if (payloadJson.isNullOrEmpty()) {
-                CXLogger.w(tag, "Skipping cached entry due to empty payload (auctionId=${entry.auctionId}, bidId=${entry.bidId}, state=${entry.state})")
+            if (payloadJson.isEmpty()) {
+                CXLogger.w(tag, "Skipping cached entry due to empty payload (eventId=${entry.id})")
                 return@forEach
             }
-            trackWinLoss(payloadJson, entry.auctionId, entry.bidId)
+            trackWinLoss(payloadJson, entry.id)
         }
     }
 
-    private suspend fun trackWinLoss(payloadJson: String, auctionId: String, bidId: String) {
+    private suspend fun trackWinLoss(payloadJson: String, eventId: Long) {
         val endpoint = endpointUrl
         val key = appKey
 
@@ -115,7 +95,7 @@ internal class WinLossTrackerImpl(
         val result = trackerApi.send(key, endpoint, payload)
 
         if (result is Result.Success) {
-            trackerDb.markEventAsSent(auctionId, bidId)
+            trackerDb.deleteEvent(eventId)
         }
     }
 

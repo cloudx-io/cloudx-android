@@ -8,29 +8,13 @@ internal interface WinLossTrackerDb {
 
     suspend fun getPendingEvents(): List<CachedWinLossEvents>
 
-    suspend fun getUnfinishedBidEvents(): List<CachedWinLossEvents>
-
-    suspend fun convertUnfinishedBidsToLoss()
-
-    suspend fun saveLoadEvent(
-        auctionId: String,
-        bid: Bid,
-        payload: String?
-    )
-
-    suspend fun saveLossEvent(
+    suspend fun saveEvent(
         auctionId: String,
         bid: Bid,
         payload: String
-    )
+    ): Long
 
-    suspend fun saveWinEvent(
-        auctionId: String,
-        bid: Bid,
-        payload: String
-    )
-
-    suspend fun markEventAsSent(auctionId: String, bidId: String)
+    suspend fun deleteEvent(eventId: Long)
 }
 
 internal fun WinLossTrackerDb(): WinLossTrackerDb = WinLossTrackerDbImpl(Database())

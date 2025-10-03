@@ -10,11 +10,6 @@ internal enum class BidLifecycleEvent(
 ) {
 
     /**
-     * When a bid is received (general bid event)
-     */
-    BID_RECEIVED("", "lurl"),
-
-    /**
      * When an ad successfully loads
      */
     LOAD_SUCCESS("loadSuccess", "nurl"),

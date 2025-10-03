@@ -38,28 +38,6 @@ internal class WinLossTrackerDbImpl(
         }
     }
 
-    override suspend fun saveNewBid(
-        auctionId: String,
-        bid: Bid,
-        payload: String?
-    ) {
-        val dao = db.cachedWinLossEventDao()
-        val now = System.currentTimeMillis()
-
-        val event = CachedWinLossEvents(
-            id = composeId(auctionId, bid.id),
-            auctionId = auctionId,
-            bidId = bid.id,
-            state = CachedWinLossEvents.STATE_NEW,
-            payload = null,
-            lossPayload = payload,
-            sent = true,
-            createdAt = now,
-            updatedAt = now
-        )
-        dao.upsert(event)
-    }
-
     override suspend fun saveLoadEvent(
         auctionId: String,
         bid: Bid,

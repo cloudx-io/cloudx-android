@@ -16,7 +16,6 @@ data class CachedWinLossEvents(
     val updatedAt: Long
 ) {
     companion object {
-        const val STATE_NEW = "NEW"
         const val STATE_LOADED = "LOADED"
         const val STATE_WIN = "WIN"
         const val STATE_LOSS = "LOSS"

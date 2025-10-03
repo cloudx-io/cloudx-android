@@ -12,12 +12,6 @@ internal interface WinLossTrackerDb {
 
     suspend fun convertUnfinishedBidsToLoss()
 
-    suspend fun saveNewBid(
-        auctionId: String,
-        bid: Bid,
-        payload: String?
-    )
-
     suspend fun saveLoadEvent(
         auctionId: String,
         bid: Bid,

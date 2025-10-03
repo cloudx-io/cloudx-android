@@ -34,36 +34,17 @@ internal class WinLossTrackerImpl(
 
     override fun trySendingPendingWinLossEvents() {
         scope.launch {
-            trackerDb.convertUnfinishedBidsToLoss()
-
-            val pending = trackerDb.getPendingEvents()
-            if (pending.isEmpty()) {
-                return@launch
-            }
-            sendCached(pending)
-        }
-    }
-
-    override fun saveBidsAsNew(auctionId: String, bids: List<Bid>) {
-        scope.launch {
-            bids.forEach { bid ->
-                val lossPayloadMap = winLossFieldResolver.buildWinLossPayload(
-                    auctionId = auctionId,
-                    bid = bid,
-                    lossReason = LossReason.INTERNAL_ERROR,
-                    isWin = false,
-                    loadedBidPrice = bid.price ?: -1f
-                )
-                val lossPayloadJson = lossPayloadMap?.toJsonString()
-
-                trackerDb.saveNewBid(auctionId, bid, lossPayloadJson)
+            val pendingEvents = trackerDb.getPendingEvents()
+            if (pendingEvents.isNotEmpty()) {
+                sendCached(pendingEvents)
             }
         }
     }
 
-    override fun sendLoss(
+    override fun sendEvent(
         auctionId: String,
         bid: Bid,
+        event: BidLifecycleEvent,
         lossReason: LossReason,
         winnerBidPrice: Float
     ) {
@@ -72,55 +53,36 @@ internal class WinLossTrackerImpl(
                 auctionId = auctionId,
                 bid = bid,
                 lossReason = lossReason,
-                isWin = false,
-                loadedBidPrice = winnerBidPrice
+                bidLifecycleEvent = event,
+                loadedBidPrice = when (event) {
+                    BidLifecycleEvent.LOAD_SUCCESS -> bid.price ?: -1f
+                    BidLifecycleEvent.RENDER_SUCCESS -> bid.price ?: -1f
+                    BidLifecycleEvent.LOSS -> winnerBidPrice
+                }
             )
             val payloadJson = payloadMap?.toJsonString()
-            if (payloadJson == null) {
-                CXLogger.w(tag, "Skipping loss event with empty payload (auctionId=$auctionId, bidId=${bid.id})")
+            if (payloadJson.isNullOrEmpty()) {
+                CXLogger.w(tag, "Skipping $event event with empty payload (auctionId=$auctionId, bidId=${bid.id})")
                 return@launch
             }
 
-            trackerDb.saveLossEvent(auctionId, bid, payloadJson)
-            trackWinLoss(payloadJson, auctionId, bid.id)
-        }
-    }
-
-    override fun sendWin(
-        auctionId: String,
-        bid: Bid
-    ) {
-        scope.launch {
-            val payloadMap = winLossFieldResolver.buildWinLossPayload(
-                auctionId,
-                bid,
-                lossReason = LossReason.BID_WON,
-                isWin = true,
-                loadedBidPrice = bid.price ?: -1f
-            )
-            val payloadJson = payloadMap?.toJsonString()
-            if (payloadJson == null) {
-                CXLogger.w(tag, "Skipping win event with empty payload (auctionId=$auctionId, bidId=${bid.id})")
-                return@launch
-            }
-
-            trackerDb.saveWinEvent(auctionId, bid, payloadJson)
-            trackWinLoss(payloadJson, auctionId, bid.id)
+            val eventId = trackerDb.saveEvent(auctionId, bid, payloadJson)
+            trackWinLoss(payloadJson, eventId)
         }
     }
 
     private suspend fun sendCached(entries: List<CachedWinLossEvents>) {
         entries.forEach { entry ->
             val payloadJson = entry.payload
-            if (payloadJson.isNullOrEmpty()) {
-                CXLogger.w(tag, "Skipping cached entry due to empty payload (auctionId=${entry.auctionId}, bidId=${entry.bidId}, state=${entry.state})")
+            if (payloadJson.isEmpty()) {
+                CXLogger.w(tag, "Skipping cached entry due to empty payload (eventId=${entry.id})")
                 return@forEach
             }
-            trackWinLoss(payloadJson, entry.auctionId, entry.bidId)
+            trackWinLoss(payloadJson, entry.id)
         }
     }
 
-    private suspend fun trackWinLoss(payloadJson: String, auctionId: String, bidId: String) {
+    private suspend fun trackWinLoss(payloadJson: String, eventId: Long) {
         val endpoint = endpointUrl
         val key = appKey
 
@@ -133,7 +95,7 @@ internal class WinLossTrackerImpl(
         val result = trackerApi.send(key, endpoint, payload)
 
         if (result is Result.Success) {
-            trackerDb.deleteEvent(auctionId, bidId)
+            trackerDb.deleteEvent(eventId)
         }
     }
 

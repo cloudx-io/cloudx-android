@@ -6,35 +6,15 @@ import io.cloudx.sdk.internal.db.win_loss.CachedWinLossEvents
 
 internal interface WinLossTrackerDb {
 
-    suspend fun convertUnfinishedBidsToLoss()
-
     suspend fun getPendingEvents(): List<CachedWinLossEvents>
 
-    suspend fun saveNewBid(
-        auctionId: String,
-        bid: Bid,
-        lossPayload: String?
-    )
-
-    suspend fun saveLoadedBid(
-        auctionId: String,
-        bid: Bid,
-        lossPayload: String?
-    )
-
-    suspend fun saveLossEvent(
+    suspend fun saveEvent(
         auctionId: String,
         bid: Bid,
         payload: String
-    )
+    ): Long
 
-    suspend fun saveWinEvent(
-        auctionId: String,
-        bid: Bid,
-        payload: String
-    )
-
-    suspend fun deleteEvent(auctionId: String, bidId: String)
+    suspend fun deleteEvent(eventId: Long)
 }
 
 internal fun WinLossTrackerDb(): WinLossTrackerDb = WinLossTrackerDbImpl(Database())

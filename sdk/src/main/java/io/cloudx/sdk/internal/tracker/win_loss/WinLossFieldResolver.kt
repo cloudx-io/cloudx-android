@@ -20,14 +20,22 @@ internal class WinLossFieldResolver {
         auctionId: String,
         bid: Bid?,
         lossReason: LossReason,
-        isWin: Boolean,
+        bidLifecycleEvent: BidLifecycleEvent?,
         loadedBidPrice: Float
     ): Map<String, Any>? {
         val payloadMapping = winLossPayloadMapping ?: return null
         val result = mutableMapOf<String, Any>()
 
         payloadMapping.forEach { (payloadKey, fieldPath) ->
-            val resolvedValue = resolveWinLossField(auctionId, bid, lossReason, fieldPath, isWin, loadedBidPrice)
+            val resolvedValue = resolveWinLossField(
+                auctionId,
+                bid,
+                lossReason,
+                payloadKey,
+                fieldPath,
+                bidLifecycleEvent,
+                loadedBidPrice
+            )
             if (resolvedValue != null) {
                 result[payloadKey] = resolvedValue
             }
@@ -39,34 +47,24 @@ internal class WinLossFieldResolver {
         auctionId: String,
         bid: Bid?,
         lossReason: LossReason,
+        payloadKey: String,
         fieldPath: String,
-        isWin: Boolean,
+        bidLifecycleEvent: BidLifecycleEvent?,
         loadedBidPrice: Float
     ): Any? {
-        return when (fieldPath) {
-            "sdk.win" -> if (isWin) "win" else null
-            "sdk.loss" -> if (!isWin) "loss" else null
-            "sdk.lossReason" -> lossReason.description
-            "sdk.[win|loss]" -> if (isWin) "win" else "loss"
-            "sdk.sdk" -> "sdk"
-            "sdk.[bid.nurl|bid.lurl]" -> {
-                val url = if (isWin) {
-                    bid?.rawJson?.optString("nurl")
-                } else {
-                    bid?.rawJson?.optString("lurl")
-                }
-
-                url?.let { replaceUrlTemplates(it, isWin, lossReason, loadedBidPrice) }
-            }
-
-            "sdk.loopIndex" -> {
+        return when {
+            fieldPath == "sdk.lossReason" -> lossReason.description
+            fieldPath == "sdk.sdk" -> "sdk"
+            fieldPath == "sdk.loopIndex" -> {
                 val loopIndex = TrackingFieldResolver.resolveField(auctionId, fieldPath) as? String
                 loopIndex?.toIntOrNull()
             }
-
-            else -> {
-                TrackingFieldResolver.resolveField(auctionId, fieldPath, bid?.id)
+            payloadKey == "notification" -> bidLifecycleEvent?.notificationType
+            payloadKey == "url" -> {
+                val url = bid?.rawJson?.optString(bidLifecycleEvent?.urlType)
+                url?.let { replaceUrlTemplates(it, lossReason, loadedBidPrice) }
             }
+            else -> TrackingFieldResolver.resolveField(auctionId, fieldPath, bid?.id)
         }
     }
 
@@ -75,11 +73,10 @@ internal class WinLossFieldResolver {
      *
      * Supported templates:
      * - ${AUCTION_PRICE} -> actual winning bid price or losing bid price
-     * - ${AUCTION_LOSS} -> loss reason code (1, 4)
+     * - ${AUCTION_LOSS} -> loss reason code
      */
     private fun replaceUrlTemplates(
         url: String,
-        isWin: Boolean,
         lossReason: LossReason,
         loadedBidPrice: Float
     ): String {

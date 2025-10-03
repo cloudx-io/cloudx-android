@@ -180,8 +180,6 @@ private class BidAdSourceImpl<T : CloudXDestroyable>(
                         logTag,
                         "Bid Success — received ${resp.bidItemsByRank.size} bid(s): [$bidDetails]"
                     )
-
-                    winLossTracker.saveBidsAsNew(auctionId, resp.bidItemsByRank.map { it.bid })
                 }
 
                 Result.Success(resp)

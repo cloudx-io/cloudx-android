@@ -8,7 +8,7 @@ import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.bid.Bid
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
-import io.cloudx.sdk.internal.tracker.win_loss.LossReason
+import io.cloudx.sdk.internal.tracker.win_loss.BidLifecycleEvent
 import io.cloudx.sdk.internal.tracker.win_loss.WinLossTracker
 import io.cloudx.sdk.internal.util.Result
 import io.cloudx.sdk.internal.util.toSuccess
@@ -64,6 +64,15 @@ class AdLoaderTest : CXTest() {
         assertThat(result).isInstanceOf(Result.Success::class.java)
         assertThat((result as Result.Success).value).isEqualTo(successfulAd)
 
+        verify {
+            mockWinLossTracker.sendEvent(
+                "auction-123",
+                expectedBid,
+                BidLifecycleEvent.LOAD_SUCCESS,
+                any(),
+                any()
+            )
+        }
         verify(exactly = 0) { successfulAd.destroy() }
     }
 
@@ -76,7 +85,7 @@ class AdLoaderTest : CXTest() {
         val winningBid = bidResponse.bidItemsByRank[0].bid
         val losingBid = bidResponse.bidItemsByRank[1].bid
         coEvery { mockBidAdSource.requestBid() } returns Result.Success(bidResponse)
-        justRun { mockWinLossTracker.sendLoss(any(), any(), any(), any()) }
+        justRun { mockWinLossTracker.sendEvent(any(), any(), any(), any(), any()) }
 
         // When
         val result = adLoader.load()
@@ -85,12 +94,24 @@ class AdLoaderTest : CXTest() {
         assertThat(result).isInstanceOf(Result.Success::class.java)
         assertThat((result as Result.Success).value).isEqualTo(winningAd)
 
+        // Verify winning ad gets LOAD_SUCCESS event
+        verify {
+            mockWinLossTracker.sendEvent(
+                "auction-123",
+                winningBid,
+                BidLifecycleEvent.LOAD_SUCCESS,
+                any(),
+                any()
+            )
+        }
+
         // Verify losing ad gets loss notification with winner's price
         verify {
-            mockWinLossTracker.sendLoss(
+            mockWinLossTracker.sendEvent(
                 "auction-123",
                 losingBid,
-                LossReason.LOST_TO_HIGHER_BID,
+                BidLifecycleEvent.LOSS,
+                any(),
                 winningBid.price!!
             )
         }
@@ -122,7 +143,7 @@ class AdLoaderTest : CXTest() {
         val expectedBid1 = bidResponse.bidItemsByRank[0].bid
         val expectedBid2 = bidResponse.bidItemsByRank[1].bid
         coEvery { mockBidAdSource.requestBid() } returns Result.Success(bidResponse)
-        justRun { mockWinLossTracker.sendLoss(any(), any(), any(), any()) }
+        justRun { mockWinLossTracker.sendEvent(any(), any(), any(), any()) }
 
         // When
         val result = adLoader.load()
@@ -132,21 +153,23 @@ class AdLoaderTest : CXTest() {
         val error = (result as Result.Failure).value
         assertThat(error.code).isEqualTo(CloudXErrorCode.NO_FILL)
 
-        // Verify sendLoss is called for both failing ads
+        // Verify sendEvent is called for both failing ads
         verify {
-            mockWinLossTracker.sendLoss(
+            mockWinLossTracker.sendEvent(
                 "auction-123",
                 expectedBid1,
-                LossReason.INTERNAL_ERROR,
-                -1f
+                BidLifecycleEvent.LOSS,
+                any(),
+                any()
             )
         }
         verify {
-            mockWinLossTracker.sendLoss(
+            mockWinLossTracker.sendEvent(
                 "auction-123",
                 expectedBid2,
-                LossReason.INTERNAL_ERROR,
-                -1f
+                BidLifecycleEvent.LOSS,
+                any(),
+                any()
             )
         }
 
@@ -188,7 +211,7 @@ class AdLoaderTest : CXTest() {
             }
 
         coEvery { mockBidAdSource.requestBid() } returns bidResponse.toSuccess()
-        justRun { mockWinLossTracker.sendLoss(any(), any(), any(), any()) }
+        justRun { mockWinLossTracker.sendEvent(any(), any(), any(), any(), any()) }
 
         // When
         val result = adLoader.load()
@@ -200,11 +223,12 @@ class AdLoaderTest : CXTest() {
 
         // Verify loss is recorded for the failed ad
         verify {
-            mockWinLossTracker.sendLoss(
+            mockWinLossTracker.sendEvent(
                 "auction-123",
                 bidResponse.bidItemsByRank[0].bid,
-                LossReason.INTERNAL_ERROR,
-                -1f
+                BidLifecycleEvent.LOSS,
+                any(),
+                any()
             )
         }
     }
@@ -218,7 +242,7 @@ class AdLoaderTest : CXTest() {
         val bidResponse = createBidResponse(failingAd)
         val expectedBid = bidResponse.bidItemsByRank.first().bid
         coEvery { mockBidAdSource.requestBid() } returns Result.Success(bidResponse)
-        justRun { mockWinLossTracker.sendLoss(any(), any(), any(), any()) }
+        justRun { mockWinLossTracker.sendEvent(any(), any(), any(), any(), any()) }
 
         // When
         val result = adLoader.load()
@@ -230,11 +254,12 @@ class AdLoaderTest : CXTest() {
 
         // Verify loss is recorded and ad is destroyed
         verify {
-            mockWinLossTracker.sendLoss(
+            mockWinLossTracker.sendEvent(
                 "auction-123",
                 expectedBid,
-                LossReason.INTERNAL_ERROR,
-                -1f
+                BidLifecycleEvent.LOSS,
+                any(),
+                any()
             )
         }
         verify { failingAd.destroy() }

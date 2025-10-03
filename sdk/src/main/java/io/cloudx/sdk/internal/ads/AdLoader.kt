@@ -4,6 +4,7 @@ import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
+import io.cloudx.sdk.internal.tracker.win_loss.BidLifecycleEvent
 import io.cloudx.sdk.internal.tracker.win_loss.LossReason
 import io.cloudx.sdk.internal.tracker.win_loss.WinLossTracker
 import io.cloudx.sdk.internal.util.Result
@@ -65,6 +66,13 @@ internal class AdLoader<T : CXAdapterDelegate>(
                 loadedAd = ad
                 loadedAdIndex = index
                 winnerBidPrice = bidItem.bid.price ?: -1f
+
+                winLossTracker.sendEvent(
+                    bidResponse.auctionId,
+                    bidItem.bid,
+                    BidLifecycleEvent.LOAD_SUCCESS,
+                    LossReason.BID_WON
+                )
                 break
             } else {
                 CXLogger.w(
@@ -73,11 +81,11 @@ internal class AdLoader<T : CXAdapterDelegate>(
                     "Failed: ${bidItem.adNetworkOriginal.networkName} (rank=${bidItem.bid.rank})"
                 )
 
-                winLossTracker.sendLoss(
+                winLossTracker.sendEvent(
                     bidResponse.auctionId,
                     bidItem.bid,
-                    LossReason.INTERNAL_ERROR,
-                    winnerBidPrice
+                    BidLifecycleEvent.LOSS,
+                    LossReason.INTERNAL_ERROR
                 )
             }
         }
@@ -85,9 +93,10 @@ internal class AdLoader<T : CXAdapterDelegate>(
         if (loadedAdIndex != -1) {
             bidResponse.bidItemsByRank.forEachIndexed { index, bidItem ->
                 if (index > loadedAdIndex) {
-                    winLossTracker.sendLoss(
+                    winLossTracker.sendEvent(
                         bidResponse.auctionId,
                         bidItem.bid,
+                        BidLifecycleEvent.LOSS,
                         LossReason.LOST_TO_HIGHER_BID,
                         winnerBidPrice
                     )

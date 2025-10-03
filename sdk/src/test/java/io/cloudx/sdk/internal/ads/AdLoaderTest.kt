@@ -68,7 +68,9 @@ class AdLoaderTest : CXTest() {
             mockWinLossTracker.sendEvent(
                 "auction-123",
                 expectedBid,
-                BidLifecycleEvent.LOAD_SUCCESS
+                BidLifecycleEvent.LOAD_SUCCESS,
+                any(),
+                any()
             )
         }
         verify(exactly = 0) { successfulAd.destroy() }
@@ -97,7 +99,9 @@ class AdLoaderTest : CXTest() {
             mockWinLossTracker.sendEvent(
                 "auction-123",
                 winningBid,
-                BidLifecycleEvent.LOAD_SUCCESS
+                BidLifecycleEvent.LOAD_SUCCESS,
+                any(),
+                any()
             )
         }
 
@@ -107,6 +111,7 @@ class AdLoaderTest : CXTest() {
                 "auction-123",
                 losingBid,
                 BidLifecycleEvent.LOSS,
+                any(),
                 winningBid.price!!
             )
         }
@@ -153,16 +158,18 @@ class AdLoaderTest : CXTest() {
             mockWinLossTracker.sendEvent(
                 "auction-123",
                 expectedBid1,
-                BidLifecycleEvent.LOAD_FAIL,
-                -1f
+                BidLifecycleEvent.LOSS,
+                any(),
+                any()
             )
         }
         verify {
             mockWinLossTracker.sendEvent(
                 "auction-123",
                 expectedBid2,
-                BidLifecycleEvent.LOAD_FAIL,
-                -1f
+                BidLifecycleEvent.LOSS,
+                any(),
+                any()
             )
         }
 
@@ -219,8 +226,9 @@ class AdLoaderTest : CXTest() {
             mockWinLossTracker.sendEvent(
                 "auction-123",
                 bidResponse.bidItemsByRank[0].bid,
-                BidLifecycleEvent.LOAD_FAIL,
-                -1f
+                BidLifecycleEvent.LOSS,
+                any(),
+                any()
             )
         }
     }
@@ -249,8 +257,9 @@ class AdLoaderTest : CXTest() {
             mockWinLossTracker.sendEvent(
                 "auction-123",
                 expectedBid,
-                BidLifecycleEvent.LOAD_FAIL,
-                -1f
+                BidLifecycleEvent.LOSS,
+                any(),
+                any()
             )
         }
         verify { failingAd.destroy() }

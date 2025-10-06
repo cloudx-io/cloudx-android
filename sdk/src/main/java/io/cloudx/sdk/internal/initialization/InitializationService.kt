@@ -11,10 +11,11 @@ import io.cloudx.sdk.internal.config.ConfigRequestProvider
 import io.cloudx.sdk.internal.crash.CrashReportingService
 import io.cloudx.sdk.internal.deviceinfo.DeviceInfoProvider
 import io.cloudx.sdk.internal.geo.GeoApi
+import io.cloudx.sdk.internal.privacy.PrivacyService
+import io.cloudx.sdk.internal.tracker.ErrorReportingService
 import io.cloudx.sdk.internal.tracker.EventTracker
 import io.cloudx.sdk.internal.tracker.metrics.MetricsTracker
 import io.cloudx.sdk.internal.tracker.win_loss.WinLossTracker
-import io.cloudx.sdk.internal.privacy.PrivacyService
 import io.cloudx.sdk.internal.util.Result
 
 /**
@@ -48,6 +49,7 @@ internal fun InitializationService(
     deviceInfoProvider: DeviceInfoProvider = DeviceInfoProvider(),
     geoApi: GeoApi = GeoApi(),
     crashReportingService: CrashReportingService = CrashReportingService(),
+    errorReportingService: ErrorReportingService = ErrorReportingService(),
     appInfoProvider: AppInfoProvider = AppInfoProvider()
 ): InitializationService =
     InitializationServiceImpl(
@@ -62,5 +64,6 @@ internal fun InitializationService(
         deviceInfoProvider,
         geoApi,
         crashReportingService,
+        errorReportingService,
         appInfoProvider
     )

@@ -4,6 +4,7 @@ import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.CXLogger
+import io.cloudx.sdk.internal.tracker.ErrorReportingService
 import io.cloudx.sdk.internal.toAdNetwork
 import io.cloudx.sdk.internal.util.Result
 import io.cloudx.sdk.internal.util.toBundle
@@ -56,6 +57,10 @@ internal suspend fun jsonToConfig(json: String): Result<Config, CloudXError> =
             throw e
         } catch (e: Exception) {
             CXLogger.e(component = "jsonToConfig", message = "Failed to parse config JSON", throwable = e)
+            ErrorReportingService().sendErrorEvent(
+                errorMessage = "Config JSON parsing failed: ${e.message}",
+                errorDetails = e.stackTraceToString()
+            )
             CloudXErrorCode.INVALID_RESPONSE.toFailure(cause = e)
         }
     }

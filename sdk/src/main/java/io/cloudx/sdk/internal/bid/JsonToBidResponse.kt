@@ -6,9 +6,9 @@ import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.toAdNetwork
+import io.cloudx.sdk.internal.tracker.ErrorReportingService
 import io.cloudx.sdk.internal.util.Result
 import io.cloudx.sdk.internal.util.toBundle
-import io.cloudx.sdk.internal.util.toFailure
 import io.cloudx.sdk.toFailure
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -33,6 +33,10 @@ internal suspend fun jsonToBidResponse(json: String): Result<BidResponse, CloudX
             throw e
         } catch (e: Exception) {
             CXLogger.e(tag, "Failed to parse bid response", e)
+            ErrorReportingService().sendErrorEvent(
+                errorMessage = "Bid response JSON parsing failed: ${e.message}",
+                errorDetails = e.stackTraceToString()
+            )
             CloudXErrorCode.INVALID_RESPONSE.toFailure(cause = e)
         }
     }

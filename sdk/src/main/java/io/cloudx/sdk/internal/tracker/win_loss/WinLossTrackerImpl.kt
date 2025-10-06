@@ -3,6 +3,7 @@ package io.cloudx.sdk.internal.tracker.win_loss
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.bid.Bid
 import io.cloudx.sdk.internal.db.win_loss.CachedWinLossEvents
+import io.cloudx.sdk.internal.tracker.ErrorReportingService
 import io.cloudx.sdk.internal.util.Result
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -111,6 +112,10 @@ internal class WinLossTrackerImpl(
             result
         } catch (e: Exception) {
             CXLogger.e(tag, "Failed to parse win/loss payload JSON", e)
+            ErrorReportingService().sendErrorEvent(
+                errorMessage = "Win/Loss payload JSON parsing failed: ${e.message}",
+                errorDetails = e.stackTraceToString()
+            )
             null
         }
     }

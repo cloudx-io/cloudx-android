@@ -21,6 +21,7 @@ import io.cloudx.sdk.internal.geo.GeoInfoHolder
 import io.cloudx.sdk.internal.privacy.PrivacyService
 import io.cloudx.sdk.internal.state.SdkKeyValueState
 import io.cloudx.sdk.internal.tracker.ClickCounterTracker
+import io.cloudx.sdk.internal.tracker.ErrorReportingService
 import io.cloudx.sdk.internal.tracker.EventTracker
 import io.cloudx.sdk.internal.tracker.EventType
 import io.cloudx.sdk.internal.tracker.TrackingFieldResolver
@@ -51,6 +52,7 @@ internal class InitializationServiceImpl(
     private val provideDeviceInfo: DeviceInfoProvider,
     private val geoApi: GeoApi,
     private val crashReportingService: CrashReportingService,
+    private val errorReportingService: ErrorReportingService,
     private val appInfoProvider: AppInfoProvider
 ) : InitializationService {
 
@@ -255,6 +257,7 @@ internal class InitializationServiceImpl(
         if (payload != null && accountId != null) {
             basePayload = payload.replace(eventId, ARG_PLACEHOLDER_EVENT_ID)
             crashReportingService.setBasePayload(basePayload)
+            errorReportingService.setBasePayload(basePayload)
             metricsTracker.setBasicData(cfg.sessionId, accountId, basePayload)
 
             val secret = XorEncryption.generateXorSecret(accountId)

@@ -156,7 +156,7 @@ internal class InitializationServiceImpl(
 
                 val pendingCrash = crashReportingService.getPendingCrashIfAny()
                 pendingCrash?.let {
-                    crashReportingService.sendErrorEvent(it)
+                    crashReportingService.sendCrashEvent(it)
                 }
             }
 

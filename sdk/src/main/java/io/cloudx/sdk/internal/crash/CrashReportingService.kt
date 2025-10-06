@@ -38,16 +38,12 @@ internal class CrashReportingService(
         this.config = config
     }
 
-    fun isSdkRelatedError(throwable: Throwable): Boolean {
-        return throwable.stackTrace.any { it.className.startsWith("io.cloudx.sdk") }
-    }
-
     fun registerSdkCrashHandler() {
         val currentHandler = Thread.getDefaultUncaughtExceptionHandler()
         if (currentHandler is SdkCrashHandler) return  // Only set if not already set by us
         Thread.setDefaultUncaughtExceptionHandler(
             SdkCrashHandler(currentHandler) { thread, throwable ->
-                if (!isSdkRelatedError(throwable)) return@SdkCrashHandler
+                if (!isSdkRelatedCrash(throwable)) return@SdkCrashHandler
                 config?.let {
                     val sessionId = it.sessionId
                     val errorMessage = throwable.message
@@ -83,7 +79,7 @@ internal class CrashReportingService(
         return pending
     }
 
-    fun sendErrorEvent(pendingCrashReport: PendingCrashReport) {
+    fun sendCrashEvent(pendingCrashReport: PendingCrashReport) {
         val eventId = UUID.randomUUID().toString()
 
         var payload = if (pendingCrashReport.basePayload.isEmpty()) {
@@ -119,6 +115,10 @@ internal class CrashReportingService(
         val json = report.toJson().toString()
         val prefs = context.getSharedPreferences("cloudx_crash_store", Context.MODE_PRIVATE)
         prefs.edit().putString("pending_crash", json).commit()
+    }
+
+    private fun isSdkRelatedCrash(throwable: Throwable): Boolean {
+        return throwable.stackTrace.any { it.className.startsWith("io.cloudx.sdk") }
     }
 
     data class PendingCrashReport(

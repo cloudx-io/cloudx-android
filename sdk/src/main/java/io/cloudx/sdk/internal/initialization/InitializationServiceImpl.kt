@@ -154,10 +154,7 @@ internal class InitializationServiceImpl(
 
                 sendInitSDKEvent(cfg, appKey)
 
-                val pendingCrash = crashReportingService.getPendingCrashIfAny()
-                pendingCrash?.let {
-                    crashReportingService.sendCrashEvent(it)
-                }
+                crashReportingService.sendPendingCrashIfAny()
             }
 
             val factories = resolveAdapters(cfg)

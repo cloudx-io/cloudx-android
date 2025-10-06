@@ -61,7 +61,12 @@ internal class CrashReportingService(
         )
     }
 
-    fun getPendingCrashIfAny(): PendingCrashReport? {
+    fun sendPendingCrashIfAny() {
+        val pending = getPendingCrashIfAny() ?: return
+        sendCrashEvent(pending)
+    }
+
+    private fun getPendingCrashIfAny(): PendingCrashReport? {
         val prefs = context.getSharedPreferences("cloudx_crash_store", Context.MODE_PRIVATE)
         val pendingJson = prefs?.getString("pending_crash", null) ?: return null
 
@@ -79,7 +84,7 @@ internal class CrashReportingService(
         return pending
     }
 
-    fun sendCrashEvent(pendingCrashReport: PendingCrashReport) {
+    private fun sendCrashEvent(pendingCrashReport: PendingCrashReport) {
         val eventId = UUID.randomUUID().toString()
 
         var payload = if (pendingCrashReport.basePayload.isEmpty()) {

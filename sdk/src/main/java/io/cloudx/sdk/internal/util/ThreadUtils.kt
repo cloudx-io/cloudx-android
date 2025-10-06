@@ -1,6 +1,7 @@
 package io.cloudx.sdk.internal.util
 
 import io.cloudx.sdk.internal.CXLogger
+import io.cloudx.sdk.internal.tracker.ErrorReportingService
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -66,6 +67,10 @@ object ThreadUtils {
     ): CoroutineScope {
         val componentExceptionHandler = CoroutineExceptionHandler { _, exception ->
             CXLogger.e(tag, "Uncaught coroutine exception", exception)
+            ErrorReportingService().sendErrorEvent(
+                errorMessage = "Uncaught coroutine exception in $tag: ${exception.message}",
+                errorDetails = exception.stackTraceToString()
+            )
         }
         return CoroutineScope(SupervisorJob() + dispatcher + componentExceptionHandler)
     }

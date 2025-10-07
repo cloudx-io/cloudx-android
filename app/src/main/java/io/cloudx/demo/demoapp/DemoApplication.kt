@@ -15,9 +15,6 @@ class DemoApplication : Application() {
         // Enforce logging for the demo app regardless of build variant
         CloudX.setLoggingEnabled(true)
 
-        // Enable Meta test mode for demo app
-        enableMetaAudienceNetworkTestMode(true)
-
         // Initialize CloudX SDK automatically on app startup
         initializeCloudXSdk()
     }

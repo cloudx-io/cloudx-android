@@ -2,6 +2,7 @@ package io.cloudx.demo.demoapp
 
 import android.content.Context
 import androidx.preference.PreferenceManager
+import io.cloudx.adapter.meta.enableMetaAudienceNetworkTestMode
 import io.cloudx.sdk.CloudX
 import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.CloudXInitializationListener
@@ -24,6 +25,9 @@ object CloudXInitializer {
         listener: CloudXInitializationListener? = null
     ) {
         _initState.value = InitializationState.InProgress
+
+        // Enable Meta test mode based on settings
+        enableMetaAudienceNetworkTestMode(settings.metaTestModeEnabled)
 
         context.updateIabTcfGdprAppliesSharedPrefs()
         context.updateGppSharedPrefs()

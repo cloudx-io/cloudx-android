@@ -19,5 +19,6 @@
     <string name="pref_native_medium_placement_name">pref_native_medium_placement_name</string>
 
     <string name="pref_mock_user_targeting_enabled">pref_mock_user_targeting_enabled</string>
+    <string name="pref_meta_test_mode_enabled">pref_meta_test_mode_enabled</string>
 
 </resources>

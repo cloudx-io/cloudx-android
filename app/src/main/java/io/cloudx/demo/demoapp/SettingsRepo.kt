@@ -47,6 +47,9 @@ fun Context.settings(): Settings {
         ageRestricted = prefs.toPrivacyFlag(getString(R.string.pref_age_restricted)),
         mockUserTargetingEnabled = prefs.getBoolean(
             getString(R.string.pref_mock_user_targeting_enabled), resources.getBoolean(R.bool.pref_mock_user_targeting_enabled_def_val)
+        ),
+        metaTestModeEnabled = prefs.getBoolean(
+            getString(R.string.pref_meta_test_mode_enabled), resources.getBoolean(R.bool.pref_meta_test_mode_enabled_def_val)
         )
     )
 }
@@ -89,5 +92,6 @@ data class Settings(
 
     val gdprConsent: Boolean?,
     val ageRestricted: Boolean?,
-    val mockUserTargetingEnabled: Boolean
+    val mockUserTargetingEnabled: Boolean,
+    val metaTestModeEnabled: Boolean
 )

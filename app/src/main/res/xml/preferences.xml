@@ -122,6 +122,16 @@
     </PreferenceCategory>
 
     <PreferenceCategory
+        app:key="pref_debug_category"
+        app:title="Debug">
+
+        <SwitchPreferenceCompat
+            app:key="@string/pref_meta_test_mode_enabled"
+            app:title="@string/hint_meta_test_mode_enabled"
+            app:defaultValue="@bool/pref_meta_test_mode_enabled_def_val" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
         app:key="pref_iab_gpp_category"
         app:title="GPP (IAB Global Privacy Platform)">
 

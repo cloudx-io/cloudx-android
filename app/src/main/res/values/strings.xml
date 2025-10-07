@@ -39,6 +39,7 @@
     <string name="native_tab">Native</string>
     <string name="hint_targeting">Targeting</string>
     <string name="hint_mock_user_targeting_enabled">Mock user targeting enabled</string>
+    <string name="hint_meta_test_mode_enabled">Meta Audience Network test mode</string>
     <string name="hint_iab_tcfv2_gdpr">IAB TCFv2 (GDPR)</string>
     <string name="hint_iab_ccpa">IAB CCPA</string>
     <string name="ask_location_permission">Ask location permission</string>

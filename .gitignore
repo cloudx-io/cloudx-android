@@ -18,3 +18,8 @@
 local.properties
 /jsons_old
 /jsons
+
+# Keystore files for signing
+*.jks
+*.keystore
+keystore.properties

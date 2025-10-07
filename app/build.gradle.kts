@@ -12,7 +12,7 @@ android {
 
     defaultConfig {
         applicationId = namespace
-        versionCode = 2
+        versionCode = 3
         versionName = libs.versions.sdkVersionName.get()
     }
 

@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="pref_app_key_def_val">XmZQ_NVWAwF4j1aHAMWn0</string>
-    <string name="pref_init_url_def_val">https://pro-dev.cloudx.io/sdk</string>
+    <string name="pref_app_key_def_val">OvCr4PMQfN44vPoNF99sv</string>
+    <string name="pref_init_url_def_val">https://pro.cloudx.io/sdk</string>
     <string name="pref_email_def_val">test@user.com</string>
 
-    <string name="pref_banner_placement_name_dev_val">defaultBanner1</string>
-    <string name="pref_mrec_placement_name_dev_val">defaultMrec1</string>
-    <string name="pref_interstitial_placement_name_dev_val">defaultInterstitial1</string>
-    <string name="pref_rewarded_placement_name_dev_val">defaultRewarded1</string>
-    <string name="pref_native_small_placement_name_dev_val">defaultNativeSmall1</string>
-    <string name="pref_native_medium_placement_name_dev_val">defaultNativeMedium1</string>
+    <string name="pref_banner_placement_name_dev_val">DemoBanner</string>
+    <string name="pref_mrec_placement_name_dev_val">DemoMrec</string>
+    <string name="pref_interstitial_placement_name_dev_val">DemoInterstitial</string>
+    <string name="pref_rewarded_placement_name_dev_val">DemoRewarded</string>
+    <string name="pref_native_small_placement_name_dev_val">DemoNativeSmall</string>
+    <string name="pref_native_medium_placement_name_dev_val">DemoNativeMedium</string>
 
     <bool name="pref_mock_user_targeting_enabled_def_val">false</bool>
     <bool name="pref_meta_test_mode_enabled_def_val">true</bool>

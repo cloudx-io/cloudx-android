@@ -5,7 +5,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import io.cloudx.sdk.RoboMockkTest
 import io.cloudx.sdk.internal.appinfo.AppInfoProvider
-import io.cloudx.sdk.internal.crash.CrashReportingService
+import io.cloudx.sdk.internal.tracker.crash.CrashReportingService
 import io.cloudx.sdk.internal.deviceinfo.DeviceInfoProvider
 import io.cloudx.sdk.internal.geo.GeoApi
 import io.cloudx.sdk.internal.tracker.EventTracker

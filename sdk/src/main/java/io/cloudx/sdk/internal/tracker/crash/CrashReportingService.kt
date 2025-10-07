@@ -1,4 +1,4 @@
-package io.cloudx.sdk.internal.crash
+package io.cloudx.sdk.internal.tracker.crash
 
 import android.content.Context
 import io.cloudx.sdk.internal.ApplicationContext

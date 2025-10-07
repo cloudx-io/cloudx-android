@@ -1,4 +1,4 @@
-package io.cloudx.sdk.internal.crash
+package io.cloudx.sdk.internal.tracker.crash
 
 internal class SdkCrashHandler(
     private val originalHandler: Thread.UncaughtExceptionHandler?,

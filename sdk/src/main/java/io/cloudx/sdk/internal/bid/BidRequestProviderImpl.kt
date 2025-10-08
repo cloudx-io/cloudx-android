@@ -349,20 +349,16 @@ private fun JSONObject.putBannerObject(apis: JSONArray, adSizeDp: Pair<Int, Int>
 //        put("api", apis)
 //        put("mimes", SupportedMimeTypes)
 
-        put("format", JSONArray().apply {
-            put(JSONObject().apply {
-                put("w", adSizeDp.first)
-                put("h", adSizeDp.second)
-            })
-            put(JSONObject().apply {
-                put("w", adSizeDp.first)
-                put("h", adSizeDp.second)
-            })
-        })
+//        put("format", JSONArray().apply {
+//            put(JSONObject().apply {
+//                put("w", adSizeDp.first)
+//                put("h", adSizeDp.second)
+//            })
+//        })
 
-//        put("w", adSizeDp.first)
-//        put("h", adSizeDp.second)
-//
+        put("w", adSizeDp.first)
+        put("h", adSizeDp.second)
+
 //        put("pos", pos)
     })
 }

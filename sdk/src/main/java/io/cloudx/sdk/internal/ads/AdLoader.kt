@@ -4,6 +4,7 @@ import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
+import io.cloudx.sdk.internal.tracker.ErrorReportingService
 import io.cloudx.sdk.internal.tracker.win_loss.BidLifecycleEvent
 import io.cloudx.sdk.internal.tracker.win_loss.LossReason
 import io.cloudx.sdk.internal.tracker.win_loss.WinLossTracker
@@ -109,6 +110,10 @@ internal class AdLoader<T : CXAdapterDelegate>(
             throw e
         } catch (e: Exception) {
             logger.e("Failed to create ad", e)
+            ErrorReportingService().sendErrorEvent(
+                errorMessage = "Ad adapter creation failed: ${e.message}",
+                errorDetails = e.stackTraceToString()
+            )
             return null
         }
 
@@ -128,6 +133,10 @@ internal class AdLoader<T : CXAdapterDelegate>(
             throw e
         } catch (e: Exception) {
             logger.e("Load failed", e)
+            ErrorReportingService().sendErrorEvent(
+                errorMessage = "Ad loading failed: ${e.message}",
+                errorDetails = e.stackTraceToString()
+            )
             null
         } finally {
             if (!loaded) ad.destroy()

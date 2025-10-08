@@ -17,7 +17,7 @@ internal class USPrivacyProviderImpl(context: Context) : USPrivacyProvider {
             throw e
         } catch (e: Exception) {
             // In case value wasn't string, handle exception gracefully.
-            CXLogger.e(TAG, "Failed to read US Privacy string", e)
+            CXLogger.e("USPrivacyProvider", "Failed to read US Privacy string", e)
             null
         }
 
@@ -28,7 +28,5 @@ internal class USPrivacyProviderImpl(context: Context) : USPrivacyProvider {
         }
     }
 }
-
-private const val TAG = "USPrivacyProviderImpl"
 
 internal const val IABUSPrivacy_String = "IABUSPrivacy_String"

@@ -16,7 +16,7 @@ internal class WinLossTrackerImpl(
     private val trackerApi: WinLossTrackerApi
 ) : WinLossTracker {
 
-    private val tag = "WinLossTracker"
+    private val logger = CXLogger.forComponent("WinLossTracker")
 
     private var appKey: String? = null
     private var endpointUrl: String? = null
@@ -63,7 +63,7 @@ internal class WinLossTrackerImpl(
             )
             val payloadJson = payloadMap?.toJsonString()
             if (payloadJson.isNullOrEmpty()) {
-                CXLogger.w(tag, "Skipping $event event with empty payload (auctionId=$auctionId, bidId=${bid.id})")
+                logger.w("Skipping $event event with empty payload (auctionId=$auctionId, bidId=${bid.id})")
                 return@launch
             }
 
@@ -76,7 +76,7 @@ internal class WinLossTrackerImpl(
         entries.forEach { entry ->
             val payloadJson = entry.payload
             if (payloadJson.isEmpty()) {
-                CXLogger.w(tag, "Skipping cached entry due to empty payload (eventId=${entry.id})")
+                logger.w("Skipping cached entry due to empty payload (eventId=${entry.id})")
                 return@forEach
             }
             trackWinLoss(payloadJson, entry.id)
@@ -88,7 +88,7 @@ internal class WinLossTrackerImpl(
         val key = appKey
 
         if (endpoint.isNullOrBlank() || key.isNullOrBlank()) {
-            CXLogger.w(tag, "Missing endpoint or app key for win/loss tracking")
+            logger.w("Missing endpoint or app key for win/loss tracking")
             return
         }
 
@@ -111,7 +111,7 @@ internal class WinLossTrackerImpl(
             }
             result
         } catch (e: Exception) {
-            CXLogger.e(tag, "Failed to parse win/loss payload JSON", e)
+            logger.e("Failed to parse win/loss payload JSON", e)
             ErrorReportingService().sendErrorEvent(
                 errorMessage = "Win/Loss payload JSON parsing failed: ${e.message}",
                 errorDetails = e.stackTraceToString()

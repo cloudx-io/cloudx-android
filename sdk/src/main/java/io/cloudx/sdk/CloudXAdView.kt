@@ -33,9 +33,9 @@ class CloudXAdView internal constructor(
     private val adType: AdType,
 ) : FrameLayout(ApplicationContext()), CloudXDestroyable {
 
-    private val TAG = "CloudXAdView"
+    private val logger = CXLogger.forPlacement("CloudXAdView", placementName)
 
-    private val mainScope = ThreadUtils.createMainScope(TAG)
+    private val mainScope = ThreadUtils.createMainScope("CloudXAdView")
     private val initJob: Job
 
     // State management
@@ -87,7 +87,7 @@ class CloudXAdView internal constructor(
 
         if (CXSdk.initState.value is InitializationState.Uninitialized) {
             val error = CloudXErrorCode.NOT_INITIALIZED.toCloudXError()
-            CXLogger.e(TAG, error.effectiveMessage)
+            logger.e(error.effectiveMessage)
             listener?.onAdLoadFailed(error)
         }
     }
@@ -217,17 +217,10 @@ class CloudXAdView internal constructor(
                     bannerContainer.addView(closeButton, closeBtnParams)
                 }
 
-                CXLogger.i(
-                    TAG,
-                    message = "added banner view to the background layer: ${bannerViewToAdd.javaClass.simpleName}"
-                )
+                logger.i("added banner view to the background layer: ${bannerViewToAdd.javaClass.simpleName}")
 
             } catch (e: Exception) {
-                CXLogger.e(
-                    TAG,
-                    "CloudXAdView exception during adding ad view ${bannerViewToAdd.javaClass.simpleName}",
-                    e
-                )
+                logger.e("CloudXAdView exception during adding ad view ${bannerViewToAdd.javaClass.simpleName}", e)
             }
         }
 

@@ -9,6 +9,7 @@ internal class TCFProviderImpl(context: Context) : TCFProvider {
 
     @Suppress("DEPRECATION")
     private val sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context)
+    private val logger = CXLogger.forComponent("TCFProvider")
 
     override suspend fun tcString(): String? {
         val tcfConsent = try {
@@ -17,7 +18,7 @@ internal class TCFProviderImpl(context: Context) : TCFProvider {
             throw e
         } catch (e: Exception) {
             // In case value wasn't string, handle exception gracefully.
-            CXLogger.e(TAG, "Failed to read TCF string", e)
+            logger.e("Failed to read TCF string", e)
             null
         }
 
@@ -49,13 +50,11 @@ internal class TCFProviderImpl(context: Context) : TCFProvider {
             throw e
         } catch (e: Exception) {
             // In case value wasn't int, handle exception gracefully.
-            CXLogger.e(TAG, "Failed to read TCF preference value for key: $key", e)
+            logger.e("Failed to read TCF preference value for key: $key", e)
             null
         }
     }
 }
-
-private const val TAG = "TCFProviderImpl"
 
 internal const val IABTCF_TCString = "IABTCF_TCString"
 internal const val IABTCF_gdprApplies = "IABTCF_gdprApplies"

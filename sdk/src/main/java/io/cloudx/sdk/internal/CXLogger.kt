@@ -128,20 +128,20 @@ object CXLogger {
     }
 
     private fun logToAndroid(level: CloudXLogLevel, tag: String, message: String, throwable: Throwable?) {
-        val finalMessage = if (throwable != null) {
-            "$message\n${Log.getStackTraceString(throwable)}"
-        } else {
-            message
-        }
-
         when (level) {
-            CloudXLogLevel.VERBOSE -> Log.v(tag, finalMessage)
-            CloudXLogLevel.DEBUG -> Log.d(tag, finalMessage)
-            CloudXLogLevel.INFO -> Log.i(tag, finalMessage)
-            CloudXLogLevel.WARN -> Log.w(tag, finalMessage)
-            CloudXLogLevel.ERROR -> Log.e(tag, finalMessage)
+            CloudXLogLevel.VERBOSE -> Log.v(tag, message, throwable)
+            CloudXLogLevel.DEBUG -> Log.d(tag, message, throwable)
+            CloudXLogLevel.INFO -> Log.i(tag, message, throwable)
+            CloudXLogLevel.WARN -> Log.w(tag, message, throwable)
+            CloudXLogLevel.ERROR -> Log.e(tag, message, throwable)
         }
     }
+
+    // Factory methods for scoped loggers
+    fun forComponent(component: String): ComponentLogger = ComponentLogger(component)
+
+    fun forPlacement(component: String, placementName: String): ScopedLogger =
+        ScopedLogger(component, placementName)
 
     data class LogEntry(
         val level: CloudXLogLevel,
@@ -150,4 +150,47 @@ object CXLogger {
         val throwable: Throwable? = null,
         val timestamp: Long
     )
+}
+
+/**
+ * Component-scoped logger - for classes without placement context
+ */
+class ComponentLogger internal constructor(private val component: String) {
+    fun v(message: String, throwable: Throwable? = null) =
+        CXLogger.v(component, message, throwable)
+
+    fun d(message: String, throwable: Throwable? = null) =
+        CXLogger.d(component, message, throwable)
+
+    fun i(message: String, throwable: Throwable? = null) =
+        CXLogger.i(component, message, throwable)
+
+    fun w(message: String, throwable: Throwable? = null) =
+        CXLogger.w(component, message, throwable)
+
+    fun e(message: String, throwable: Throwable? = null) =
+        CXLogger.e(component, message, throwable)
+}
+
+/**
+ * Placement-scoped logger - for classes with placement context
+ */
+class ScopedLogger internal constructor(
+    private val component: String,
+    private val placementName: String
+) {
+    fun v(message: String, throwable: Throwable? = null) =
+        CXLogger.v(component, placementName, message, throwable)
+
+    fun d(message: String, throwable: Throwable? = null) =
+        CXLogger.d(component, placementName, message, throwable)
+
+    fun i(message: String, throwable: Throwable? = null) =
+        CXLogger.i(component, placementName, message, throwable)
+
+    fun w(message: String, throwable: Throwable? = null) =
+        CXLogger.w(component, placementName, message, throwable)
+
+    fun e(message: String, throwable: Throwable? = null) =
+        CXLogger.e(component, placementName, message, throwable)
 }

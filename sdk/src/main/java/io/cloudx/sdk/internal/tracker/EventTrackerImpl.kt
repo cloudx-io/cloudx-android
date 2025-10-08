@@ -15,7 +15,7 @@ internal class EventTrackerImpl(
     private val db: CloudXDb
 ) : EventTracker {
 
-    private val tag = "EventTracker"
+    private val logger = CXLogger.forComponent("EventTracker")
     private var baseEndpoint: String? = null
     private var bulkEndpoint: String? = null
 
@@ -38,12 +38,12 @@ internal class EventTrackerImpl(
         encoded: String, campaignId: String, eventValue: String, eventType: EventType
     ) {
         val eventId = saveToDb(encoded, campaignId, eventValue, eventType)
-        CXLogger.d(tag, "Saved $eventType event to database with ID: $eventId")
+        logger.d("Saved $eventType event to database with ID: $eventId")
 
         val endpointUrl = baseEndpoint
 
         if (endpointUrl.isNullOrBlank()) {
-            CXLogger.e(tag, "No endpoint for $eventType, event will be retried later")
+            logger.e("No endpoint for $eventType, event will be retried later")
             return
         }
 
@@ -51,12 +51,12 @@ internal class EventTrackerImpl(
         val result = trackerApi.send(
             finalUrl, encoded, campaignId, eventValue, eventType.code
         )
-        
+
         if (result is Result.Success) {
-            CXLogger.d(tag, "$eventType sent successfully, removing from database")
+            logger.d("$eventType sent successfully, removing from database")
             db.cachedTrackingEventDao().delete(eventId)
         } else {
-            CXLogger.e(tag, "$eventType failed to send. Will retry later.")
+            logger.e("$eventType failed to send. Will retry later.")
         }
     }
 
@@ -64,10 +64,10 @@ internal class EventTrackerImpl(
         scope.launch {
             val cached = db.cachedTrackingEventDao().getAll()
             if (cached.isEmpty()) {
-                CXLogger.d(tag, "No pending tracking events to send")
+                logger.d("No pending tracking events to send")
                 return@launch
             }
-            CXLogger.d(tag, "Found ${cached.size} pending events to retry")
+            logger.d("Found ${cached.size} pending events to retry")
             sendBulk(cached)
         }
     }

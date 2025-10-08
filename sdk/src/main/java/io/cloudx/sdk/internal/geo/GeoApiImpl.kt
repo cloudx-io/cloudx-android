@@ -16,7 +16,7 @@ internal class GeoApiImpl(
     private val httpClient: HttpClient
 ) : GeoApi {
 
-    private val TAG = "GeoApi"
+    private val logger = CXLogger.forComponent("GeoApi")
 
     override suspend fun fetchGeoHeaders(endpointUrl: String): Result<Map<String, String>, CloudXError> =
         withIOContext {
@@ -28,7 +28,7 @@ internal class GeoApiImpl(
                         headersMap.toSuccess()
                     } else {
                         val message = "No headers found in response"
-                        CXLogger.w(TAG, message)
+                        logger.w(message)
                         CloudXErrorCode.INVALID_RESPONSE.toFailure(message = message)
                     }
                 },

@@ -83,8 +83,6 @@ private fun <B: CloudXAdViewSizeSupport, N> populateBannersByBannerSize(
 private fun instance(className: String) = try {
     Class.forName(className).kotlin.objectInstance
 } catch (e: Exception) {
-    CXLogger.e(TAG, "Failed to load adapter class: $className", e)
+    CXLogger.e("AdapterFactoryResolver", "Failed to load adapter class: $className", e)
     null
 }
-
-private const val TAG = "AdapterFactoryResolverImpl"

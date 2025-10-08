@@ -192,43 +192,43 @@ internal fun createAdapterEventLoggingDecorator(
     adNetwork: AdNetwork,
     type: AdType,
 ): AdEventDecorator {
-    val tag = "${adNetwork}${type}Adapter"
+    val logger = CXLogger.forPlacement("${adNetwork}${type}Adapter", placementName)
     return AdEventDecorator(
         onStartLoad = {
-            CXLogger.d(tag, placementName, "STARTING LOAD")
+            logger.d("STARTING LOAD")
         },
         onLoad = {
-            CXLogger.d(tag, placementName, "LOAD SUCCESS")
+            logger.d("LOAD SUCCESS")
         },
         onShow = {
-            CXLogger.d(tag, placementName, "SHOW")
+            logger.d("SHOW")
         },
         onImpression = {
-            CXLogger.d(tag, placementName, "IMPRESSION")
+            logger.d("IMPRESSION")
         },
         onClick = {
-            CXLogger.d(tag, placementName, "CLICK")
+            logger.d("CLICK")
         },
         onHide = {
-            CXLogger.d(tag, placementName, "HIDE")
+            logger.d("HIDE")
         },
         onSkip = {
-            CXLogger.d(tag, placementName, "SKIP")
+            logger.d("SKIP")
         },
         onComplete = {
-            CXLogger.d(tag, placementName, "COMPLETE")
+            logger.d("COMPLETE")
         },
         onReward = {
-            CXLogger.d(tag, placementName, "REWARD")
+            logger.d("REWARD")
         },
         onTimeout = {
-            CXLogger.w(tag, placementName, "LOAD TIMEOUT")
+            logger.w("LOAD TIMEOUT")
         },
         onError = { error ->
-            CXLogger.e(tag, placementName, "ERROR - ${error.effectiveMessage}")
+            logger.e("ERROR - ${error.effectiveMessage}")
         },
         onDestroy = {
-            CXLogger.d(tag, placementName, "DESTROY")
+            logger.d("DESTROY")
         }
     )
 }

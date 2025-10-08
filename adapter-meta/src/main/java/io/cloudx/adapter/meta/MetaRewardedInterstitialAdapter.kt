@@ -44,20 +44,20 @@ internal object RewardedInterstitialFactory :
 
 internal class MetaRewardedInterstitialAdapter(
     private val contextProvider: ContextProvider,
-    private val placementName: String,
+    placementName: String,
     private val serverExtras: Bundle,
     private val adm: String,
     private var listener: CloudXRewardedInterstitialAdapterListener?
 ) : CloudXRewardedInterstitialAdapter, CloudXAdLoadOperationAvailability by AlwaysReadyToLoadAd {
 
-    private val TAG = "MetaRewardedInterstitialAdapter"
+    private val logger = CXLogger.forPlacement("MetaRewardedInterstitialAdapter", placementName)
     private var ad: RewardedInterstitialAd? = null
 
     override fun load() {
         val metaPlacementId = serverExtras.getMetaPlacementId()
         if (metaPlacementId.isNullOrEmpty()) {
             val message = "Meta placement ID is null or empty"
-            CXLogger.e(TAG, placementName, message)
+            logger.e(message)
             listener?.onError(CloudXErrorCode.ADAPTER_INVALID_SERVER_EXTRAS.toCloudXError(message = message))
             return
         }
@@ -100,11 +100,7 @@ internal class MetaRewardedInterstitialAdapter(
         val metaPlacementId = serverExtras.getMetaPlacementId()
         val ad = this.ad
         if (ad == null || !ad.isAdLoaded) {
-            CXLogger.w(
-                TAG,
-                placementName,
-                "Rewarded Interstitial ad not ready to show for placement: $metaPlacementId (ad not loaded)"
-            )
+            logger.w("Rewarded Interstitial ad not ready to show for placement: $metaPlacementId (ad not loaded)")
             listener?.onError(
                 CloudXErrorCode.ADAPTER_INVALID_LOAD_STATE.toCloudXError(
                     message = "Rewarded Interstitial ad is not loaded"
@@ -115,12 +111,8 @@ internal class MetaRewardedInterstitialAdapter(
 
         // Check if the ad is already expired or invalidated, and do not show ad if that is the case
         if (ad.isAdInvalidated) {
-            CXLogger.w(TAG, placementName, "Rewarded Interstitial ad invalidated for Meta placement: $metaPlacementId")
-            listener?.onError(
-                CloudXErrorCode.ADAPTER_INVALID_LOAD_STATE.toCloudXError(
-                    message = "Rewarded Interstitial ad is invalidated"
-                )
-            )
+            logger.w("Rewarded Interstitial ad invalidated for Meta placement: $metaPlacementId")
+            listener?.onError(CloudXErrorCode.ADAPTER_INVALID_LOAD_STATE.toCloudXError(message = "Rewarded Interstitial ad is invalidated"))
             return
         }
 

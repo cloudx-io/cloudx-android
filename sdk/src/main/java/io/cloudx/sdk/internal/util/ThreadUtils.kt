@@ -28,6 +28,7 @@ import kotlin.coroutines.CoroutineContext
 object ThreadUtils {
 
     private const val TAG = "ThreadUtils"
+    private val logger = CXLogger.forComponent(TAG)
 
     // Single-threaded executor for database operations
     private val databaseExecutor = Executors.newSingleThreadExecutor(
@@ -107,13 +108,13 @@ object ThreadUtils {
                 withContext(context, block)
             }
         } catch (e: TimeoutCancellationException) {
-            CXLogger.w(TAG, "Operation timed out after ${timeoutMs}ms", e)
+            logger.w("Operation timed out after ${timeoutMs}ms", e)
             null
         } catch (e: CancellationException) {
-            CXLogger.d(TAG, "Operation was cancelled")
+            logger.d("Operation was cancelled")
             throw e // Re-throw cancellation to maintain coroutine semantics
         } catch (e: Exception) {
-            CXLogger.e(TAG, "Operation failed with exception", e)
+            logger.e("Operation failed with exception", e)
             null
         }
     }

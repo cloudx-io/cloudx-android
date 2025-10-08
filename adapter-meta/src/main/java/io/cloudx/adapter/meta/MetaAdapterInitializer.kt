@@ -22,13 +22,15 @@ import kotlin.coroutines.resume
 @Keep
 internal object Initializer : CloudXAdapterInitializer {
 
+    private val logger = CXLogger.forComponent("MetaAdapterInitializer")
+
     override suspend fun initialize(
         context: Context,
         serverExtras: Bundle,
         privacy: StateFlow<CloudXPrivacy>
     ): Result<Unit, CloudXError> = withContext(Dispatchers.Main) {
         if (isInitialized) {
-            CXLogger.d(TAG, "Meta SDK already initialized")
+            logger.d("Meta SDK already initialized")
             return@withContext Unit.toSuccess()
         }
 
@@ -37,10 +39,7 @@ internal object Initializer : CloudXAdapterInitializer {
         suspendCancellableCoroutine { continuation ->
             val initListener = AudienceNetworkAds.InitListener { initResult ->
                 if (initResult.isSuccess) {
-                    CXLogger.d(
-                        TAG,
-                        "Meta SDK successfully finished initialization: ${initResult.message}"
-                    )
+                    logger.d("Meta SDK successfully finished initialization: ${initResult.message}")
                     isInitialized = true
 
                     // Sometimes adapters call [Continuation.resume] twice which they shouldn't.
@@ -50,13 +49,10 @@ internal object Initializer : CloudXAdapterInitializer {
                     } catch (e: CancellationException) {
                         throw e
                     } catch (e: Exception) {
-                        CXLogger.w(TAG, "Continuation resumed more than once", e)
+                        logger.w("Continuation resumed more than once", e)
                     }
                 } else {
-                    CXLogger.e(
-                        TAG,
-                        "Meta SDK failed to finish initialization: ${initResult.message}"
-                    )
+                    logger.e("Meta SDK failed to finish initialization: ${initResult.message}")
                     continuation.resume(
                         CloudXErrorCode.ADAPTER_INITIALIZATION_ERROR.toFailure(message = initResult.message)
                     )
@@ -65,13 +61,10 @@ internal object Initializer : CloudXAdapterInitializer {
 
             val metaPlacementIds = serverExtras.getMetaPlacementIds()
             if (metaPlacementIds.isEmpty()) {
-                CXLogger.w(TAG, "No Meta placement IDs found for Meta adapter initialization")
+                logger.w("No Meta placement IDs found for Meta adapter initialization")
             }
 
-            CXLogger.d(
-                TAG,
-                "Initializing Meta Audience Network SDK with placement IDs: $metaPlacementIds"
-            )
+            logger.d("Initializing Meta Audience Network SDK with placement IDs: $metaPlacementIds")
             AudienceNetworkAds.buildInitSettings(context)
                 .withMediationService("CLOUDX")
                 .withPlacementIds(metaPlacementIds)
@@ -82,8 +75,6 @@ internal object Initializer : CloudXAdapterInitializer {
 }
 
 private var isInitialized = false
-
-private const val TAG = "MetaAdapterInitializer"
 
 internal const val AudienceNetworkAdsVersion = BuildConfig.AUDIENCE_SDK_VERSION_NAME
 

@@ -22,12 +22,13 @@ private class GPPProviderImpl(context: Context) : GPPProvider {
 
     @Suppress("DEPRECATION")
     private val sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context)
+    private val logger = CXLogger.forComponent("GPPProvider")
 
     override fun gppString(): String? {
         return try {
             sharedPrefs.getString(IABGPP_GppString, null)?.takeIf { it.isNotBlank() }
         } catch (e: Exception) {
-            CXLogger.e(TAG, "Failed to read GPP string", e)
+            logger.e("Failed to read GPP string", e)
             null
         }
     }
@@ -42,7 +43,7 @@ private class GPPProviderImpl(context: Context) : GPPProvider {
                 ?.sorted()
                 ?.takeIf { it.isNotEmpty() }
         } catch (e: Exception) {
-            CXLogger.e(TAG, "Failed to read or parse GPP SID", e)
+            logger.e("Failed to read or parse GPP SID", e)
             null
         }
     }
@@ -87,7 +88,7 @@ private class GPPProviderImpl(context: Context) : GPPProvider {
                 sharingOptOut = sharingOptOut
             )
         } catch (e: Exception) {
-            CXLogger.e(TAG, "US-CA decode failed", e)
+            logger.e("US-CA decode failed", e)
             null
         }
     }
@@ -112,7 +113,7 @@ private class GPPProviderImpl(context: Context) : GPPProvider {
                 sharingOptOut = sharingOptOutEffective
             )
         } catch (e: Exception) {
-            CXLogger.e(TAG, "US-National decode failed", e)
+            logger.e("US-National decode failed", e)
             null
         }
     }
@@ -145,10 +146,6 @@ private class GPPProviderImpl(context: Context) : GPPProvider {
         return decoded.joinToString("") { byte ->
             (byte.toInt() and 0xFF).toString(2).padStart(8, '0')
         }
-    }
-
-    companion object {
-        private const val TAG = "GPPProviderImpl"
     }
 }
 

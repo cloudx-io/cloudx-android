@@ -17,14 +17,14 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withTimeout
 
 internal class AdLoader<T : CXAdapterDelegate>(
-    private val placementName: String,
+    placementName: String,
     private val placementId: String,
     private val bidAdSource: BidAdSource<T>,
     private val bidAdLoadTimeoutMillis: Long,
     private val connectionStatusService: ConnectionStatusService,
     private val winLossTracker: WinLossTracker
 ) {
-    private val TAG = "AdLoader"
+    private val logger = CXLogger.forPlacement("AdLoader", placementName)
 
     /**
      * Returns a loaded ad or null (no fill / failure)
@@ -57,11 +57,7 @@ internal class AdLoader<T : CXAdapterDelegate>(
             val ad = createAndLoadAdapter(bidAdLoadTimeoutMillis, bidItem.createBidAd)
 
             if (ad != null) {
-                CXLogger.i(
-                    TAG,
-                    placementName,
-                    "Loaded: ${bidItem.adNetworkOriginal.networkName} (rank=${bidItem.bid.rank})"
-                )
+                logger.i("Loaded: ${bidItem.adNetworkOriginal.networkName} (rank=${bidItem.bid.rank})")
 
                 loadedAd = ad
                 loadedAdIndex = index
@@ -75,11 +71,7 @@ internal class AdLoader<T : CXAdapterDelegate>(
                 )
                 break
             } else {
-                CXLogger.w(
-                    TAG,
-                    placementName,
-                    "Failed: ${bidItem.adNetworkOriginal.networkName} (rank=${bidItem.bid.rank})"
-                )
+                logger.w("Failed: ${bidItem.adNetworkOriginal.networkName} (rank=${bidItem.bid.rank})")
 
                 winLossTracker.sendEvent(
                     bidResponse.auctionId,
@@ -116,26 +108,26 @@ internal class AdLoader<T : CXAdapterDelegate>(
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            CXLogger.e(TAG, placementName, "Failed to create ad", e)
+            logger.e("Failed to create ad", e)
             return null
         }
 
         var loaded = false
         return try {
-            CXLogger.d(TAG, placementName, "Loading ad (timeout=${timeoutMs}ms)")
+            logger.d("Loading ad (timeout=${timeoutMs}ms)")
             connectionStatusService.awaitConnection()
             loaded = withTimeout(timeoutMs) {
                 ad.load()
             }
             if (loaded) ad else null
         } catch (e: TimeoutCancellationException) {
-            CXLogger.w(TAG, placementName, "Load timeout ${timeoutMs}ms", e)
+            logger.w("Load timeout ${timeoutMs}ms", e)
             ad.timeout()
             null
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            CXLogger.e(TAG, placementName, "Load failed", e)
+            logger.e("Load failed", e)
             null
         } finally {
             if (!loaded) ad.destroy()

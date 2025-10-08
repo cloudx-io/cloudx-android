@@ -30,6 +30,8 @@ internal class StaticWebView(
     externalLinkHandler: ExternalLinkHandler
 ) : BaseWebView(context) {
 
+    private val logger = CXLogger.forComponent("StaticWebView")
+
     init {
         scrollBarStyle = SCROLLBARS_INSIDE_OVERLAY
         isHorizontalScrollBarEnabled = false
@@ -71,7 +73,7 @@ internal class StaticWebView(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                CXLogger.e(message = e.toString())
+                logger.e(e.toString())
             }
 
             // Aahahah.
@@ -93,6 +95,8 @@ private class WebViewClientImpl(
     private val scope: CoroutineScope,
     private val externalLinkHandler: ExternalLinkHandler
 ) : WebViewClientCompat() {
+
+    private val logger = CXLogger.forComponent("WebViewClientImpl")
 
     private val _isLoaded = MutableStateFlow(false)
     val isLoaded: StateFlow<Boolean> = _isLoaded
@@ -129,7 +133,7 @@ private class WebViewClientImpl(
     ) {
         super.onReceivedError(view, errorCode, description, failingUrl)
         _hasUnrecoverableError.value = true
-        CXLogger.e(TAG, "onReceivedError $description")
+        logger.e("onReceivedError $description")
     }
 
     override fun onRenderProcessGone(
@@ -141,11 +145,7 @@ private class WebViewClientImpl(
         // Basically, then webview will be destroyed externally after this, which, ideally, isn't known here.
         // But who cares, plus deadlines.
         _hasUnrecoverableError.value = true
-        CXLogger.e(TAG, "onRenderProcessGone")
+        logger.e("onRenderProcessGone")
         return true
-    }
-
-    companion object {
-        private const val TAG = "WebViewClientImpl"
     }
 }

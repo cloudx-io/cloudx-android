@@ -41,7 +41,7 @@ internal interface BannerManager : CloudXDestroyable {
 
 private class BannerManagerImpl(
     private val placementId: String,
-    private val placementName: String,
+    placementName: String,
     private val adLoader: AdLoader<BannerAdapterDelegate>,
     bannerVisibility: StateFlow<Boolean>,
     private val refreshSeconds: Int,
@@ -49,8 +49,8 @@ private class BannerManagerImpl(
 ) : BannerManager {
 
     // Core properties
-    private val TAG = "BannerManager"
-    private val scope = ThreadUtils.createMainScope(TAG)
+    private val logger = CXLogger.forPlacement("BannerManager", placementName)
+    private val scope = ThreadUtils.createMainScope("BannerManager")
     override var listener: CloudXAdViewListener? = null
 
     // Timing configuration
@@ -76,7 +76,7 @@ private class BannerManagerImpl(
 
     override fun load() {
         if (bannerRefreshTimer.isManuallyEnabled) {
-            CXLogger.w(TAG, placementName, "Unable to load a new ad. Auto-refresh is enabled.")
+            logger.w("Unable to load a new ad. Auto-refresh is enabled.")
             return
         }
         restartBannerRefresh()
@@ -84,12 +84,12 @@ private class BannerManagerImpl(
 
     // Public auto-refresh control methods
     override fun startAutoRefresh() {
-        CXLogger.i(TAG, placementName, "Starting auto-refresh")
+        logger.i("Starting auto-refresh")
         bannerRefreshTimer.resume()
     }
 
     override fun stopAutoRefresh() {
-        CXLogger.i(TAG, placementName, "Stopping auto-refresh")
+        logger.i("Stopping auto-refresh")
         bannerRefreshTimer.pause()
     }
 
@@ -113,7 +113,7 @@ private class BannerManagerImpl(
                 )
 
                 metricsTracker.trackMethodCall(MetricsType.Method.BannerRefresh)
-                CXLogger.d(TAG, placementName, "Banner refresh scheduled in ${refreshSeconds}s")
+                logger.d("Banner refresh scheduled in ${refreshSeconds}s")
                 bannerRefreshTimer.awaitTimeout(refreshDelayMillis)
             }
         }
@@ -136,7 +136,7 @@ private class BannerManagerImpl(
             return
         }
 
-        CXLogger.d(TAG, placementName, "Loading backup banner")
+        logger.d("Loading backup banner")
         backupBannerLoadJob = scope.launch {
             /**
              * Each returned banner from this method should be already attached to the BannerContainer in CloudXAdView.
@@ -156,16 +156,12 @@ private class BannerManagerImpl(
     }
 
     private fun preserveBackupBanner(banner: BannerAdapterDelegate) {
-        CXLogger.d(TAG, placementName, "Backup banner loaded and ready")
+        logger.d("Backup banner loaded and ready")
 
         backupBannerErrorHandlerJob?.cancel()
         backupBannerErrorHandlerJob = scope.launch {
             val error = banner.lastErrorEvent.first { it != null }
-            CXLogger.w(
-                TAG,
-                placementName,
-                "Backup banner error detected: $error - destroying and reloading"
-            )
+            logger.w("Backup banner error detected: $error - destroying and reloading")
             destroyBackupBanner()
             loadBackupBannerIfAbsent()
         }
@@ -176,7 +172,7 @@ private class BannerManagerImpl(
 
         with(backupBanner) {
             value?.onSuccess {
-                CXLogger.d(TAG, placementName, "Destroying backup banner")
+                logger.d("Destroying backup banner")
                 it.destroy()
             }
             value = null
@@ -185,7 +181,7 @@ private class BannerManagerImpl(
 
     // Current banner management methods
     private fun showNewBanner(banner: BannerAdapterDelegate) {
-        CXLogger.d(TAG, placementName, "Displaying new banner")
+        logger.d("Displaying new banner")
         listener?.onAdDisplayed(banner)
 
         currentBanner = banner
@@ -194,17 +190,13 @@ private class BannerManagerImpl(
         currentBannerEventHandlerJob = scope.launch {
             launch {
                 banner.event.filter { it == BannerAdapterDelegateEvent.Click }.collect {
-                    CXLogger.i(TAG, placementName, "Banner clicked by user")
+                    logger.i("Banner clicked by user")
                     listener?.onAdClicked(banner)
                 }
             }
             launch {
                 val error = banner.lastErrorEvent.first { it != null }
-                CXLogger.w(
-                    TAG,
-                    placementName,
-                    "Banner error detected: $error - restarting refresh cycle"
-                )
+                logger.w("Banner error detected: $error - restarting refresh cycle")
                 error?.let { listener?.onAdDisplayFailed(it) }
                 hideAndDestroyCurrentBanner()
                 restartBannerRefresh()
@@ -214,7 +206,7 @@ private class BannerManagerImpl(
 
     private fun hideAndDestroyCurrentBanner() {
         currentBanner?.let {
-            CXLogger.d(TAG, placementName, "Hiding current banner")
+            logger.d("Hiding current banner")
             listener?.onAdHidden(it)
         }
         destroyCurrentBanner()
@@ -224,7 +216,7 @@ private class BannerManagerImpl(
         currentBannerEventHandlerJob?.cancel()
 
         currentBanner?.let {
-            CXLogger.d(TAG, placementName, "Destroying current banner")
+            logger.d("Destroying current banner")
             it.destroy()
         }
         currentBanner = null

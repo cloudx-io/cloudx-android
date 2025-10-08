@@ -13,7 +13,7 @@ internal class AppInfoProviderImpl(
     private val appContext: Context
 ) : AppInfoProvider {
 
-    private val tag = "AppInfoProviderImpl"
+    private val logger = CXLogger.forComponent("AppInfoProvider")
 
     private var appInfo: AppInfo? = null
 
@@ -38,7 +38,7 @@ internal class AppInfoProviderImpl(
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            CXLogger.w(tag, "Failed to retrieve app info", e)
+            logger.w("Failed to retrieve app info", e)
             AppInfo("", "", "")
         }
 

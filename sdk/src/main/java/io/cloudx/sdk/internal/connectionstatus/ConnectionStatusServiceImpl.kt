@@ -17,6 +17,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 
+private val connectionStatusLogger = CXLogger.forComponent("ConnectionStatusService")
+
 internal class ConnectionStatusServiceImpl(context: Context) : ConnectionStatusService {
 
     override val currentConnectionInfoEvent: Flow<ConnectionInfo?> = flow {
@@ -60,7 +62,7 @@ private fun Context.modernConnectionInfo(): ConnectionInfo? = try {
         )
     }
 } catch (e: Exception) {
-    CXLogger.e("modernConnectionInfo", e.toString(), e)
+    connectionStatusLogger.e(e.toString(), e)
     null
 }
 
@@ -77,7 +79,7 @@ private fun Context.preApi29ConnectionInfo(): ConnectionInfo? = try {
         )
     }
 } catch (e: Exception) {
-    CXLogger.e("preApi29ConnectionInfo", e.toString(), e)
+    connectionStatusLogger.e(e.toString(), e)
     null
 }
 

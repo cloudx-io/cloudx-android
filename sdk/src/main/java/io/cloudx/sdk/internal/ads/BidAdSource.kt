@@ -86,7 +86,7 @@ private class BidAdSourceImpl<T : CloudXDestroyable>(
     private val createBidAd: suspend (CreateBidAdParams) -> T,
 ) : BidAdSource<T> {
 
-    private val logTag = "BidAdSourceImpl"
+    private val logger = CXLogger.forComponent("BidAdSourceImpl")
 
     override suspend fun requestBid(): Result<BidAdSourceResponse<T>, CloudXError> {
         val auctionId = UUID.randomUUID().toString()
@@ -94,43 +94,37 @@ private class BidAdSourceImpl<T : CloudXDestroyable>(
 
         val currentLoopIndex = PlacementLoopIndexTracker.getCount(bidRequestParams.placementName)
 
-        CXLogger.d(logTag, "")
-        CXLogger.d(logTag, "======== loop-index=$currentLoopIndex")
-        CXLogger.d(logTag, "")
+        logger.d("")
+        logger.d("======== loop-index=$currentLoopIndex")
+        logger.d("")
 // User Params
         val userParams = SdkKeyValueState.userKeyValues
-        CXLogger.d(logTag, "user params: $userParams")
+        logger.d("user params: $userParams")
 
         val appParams = SdkKeyValueState.appKeyValues
-        CXLogger.d(logTag, "app params: $appParams")
+        logger.d("app params: $appParams")
 
         val isCdpDisabled = ResolvedEndpoints.cdpEndpoint.isBlank()
 
         val enrichedPayload = if (isCdpDisabled) {
-            CXLogger.d(logTag, "Skipping enrichment.")
+            logger.d("Skipping enrichment.")
             bidRequestParamsJson
         } else {
-            CXLogger.d(logTag, "Making a call to CDP")
+            logger.d("Making a call to CDP")
             when (val enrichResult = cdpApi.enrich(bidRequestParamsJson)) {
                 is Result.Success -> {
-                    CXLogger.d(logTag, "Received enriched data from CDP")
+                    logger.d("Received enriched data from CDP")
                     enrichResult.value
                 }
 
                 is Result.Failure -> {
-                    CXLogger.e(
-                        logTag,
-                        "CDP enrichment failed: ${enrichResult.value.effectiveMessage}. Using original payload."
-                    )
+                    logger.e("CDP enrichment failed: ${enrichResult.value.effectiveMessage}. Using original payload.")
                     bidRequestParamsJson
                 }
             }
         }
 
-        CXLogger.d(
-            logTag,
-            "Sending BidRequest [loop-index=$currentLoopIndex] for placementId: ${bidRequestParams.placementId}"
-        )
+        logger.d("Sending BidRequest [loop-index=$currentLoopIndex] for placementId: ${bidRequestParams.placementId}")
 
         val result: Result<BidResponse, CloudXError>
         val bidRequestLatencyMillis = measureTimeMillis {
@@ -168,7 +162,7 @@ private class BidAdSourceImpl<T : CloudXDestroyable>(
                 val resp = result.value.toBidAdSourceResponse(bidRequestParams, createBidAd, auctionId)
 
                 if (resp.bidItemsByRank.isEmpty()) {
-                    CXLogger.d(logTag, "NO_BID")
+                    logger.d("NO_BID")
                 } else {
                     val bidDetails =
                         resp.bidItemsByRank.joinToString(separator = ",\n") {
@@ -176,10 +170,7 @@ private class BidAdSourceImpl<T : CloudXDestroyable>(
                             val cpm = bid.priceRaw ?: "0.0"
                             "\"bidder\": \"${it.adNetworkOriginal.networkName}\", cpm: $cpm, rank: ${bid.rank}"
                         }
-                    CXLogger.d(
-                        logTag,
-                        "Bid Success — received ${resp.bidItemsByRank.size} bid(s): [$bidDetails]"
-                    )
+                    logger.d("Bid Success — received ${resp.bidItemsByRank.size} bid(s): [$bidDetails]")
                 }
 
                 Result.Success(resp)

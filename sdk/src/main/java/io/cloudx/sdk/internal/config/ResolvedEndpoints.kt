@@ -12,6 +12,8 @@ import kotlin.random.Random
  */
 
 internal object ResolvedEndpoints {
+    private val logger = CXLogger.forComponent("ResolvedEndpoints")
+
     lateinit var auctionEndpoint: String
     lateinit var cdpEndpoint: String
     lateinit var geoEndpoint: String
@@ -23,9 +25,9 @@ internal object ResolvedEndpoints {
         geoEndpoint = config.geoDataEndpointUrl ?: ""
 
         // AB test configs
-        CXLogger.d("Endpoints", "================")
+        logger.d("================")
         val randomValue = random.nextDouble()
-        CXLogger.d("Endpoints", "Generated random value: $randomValue")
+        logger.d("Generated random value: $randomValue")
 
         val tests = listOfNotNull(
             config.auctionEndpointUrl.test?.firstOrNull { it.value.isNotEmpty() }?.let {
@@ -37,7 +39,7 @@ internal object ResolvedEndpoints {
         )
 
         if (tests.isEmpty()) {
-            CXLogger.d("Endpoints", "No valid test variants found, using defaults")
+            logger.d("No valid test variants found, using defaults")
             assignDefaults(config)
             return
         }
@@ -91,16 +93,10 @@ internal object ResolvedEndpoints {
     }
 
     private fun logEndpoints() {
-        CXLogger.d("Endpoints", "Resolved Endpoints:")
-        CXLogger.d(
-            "Endpoints",
-            "auction: ${auctionEndpoint.take(30)}${if (auctionEndpoint.length > 30) "..." else ""}"
-        )
-        CXLogger.d(
-            "Endpoints",
-            "cdp: ${cdpEndpoint.take(30)}${if (cdpEndpoint.length > 30) "..." else ""}"
-        )
-        CXLogger.d("Endpoints", "================")
+        logger.d("Resolved Endpoints:")
+        logger.d("auction: ${auctionEndpoint.take(30)}${if (auctionEndpoint.length > 30) "..." else ""}")
+        logger.d("cdp: ${cdpEndpoint.take(30)}${if (cdpEndpoint.length > 30) "..." else ""}")
+        logger.d("================")
     }
 
     private data class TestCase(

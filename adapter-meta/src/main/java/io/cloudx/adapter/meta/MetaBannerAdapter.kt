@@ -53,7 +53,7 @@ internal object BannerFactory : CloudXAdViewAdapterFactory,
 
 internal class MetaBannerAdapter(
     private val contextProvider: ContextProvider,
-    private val placementName: String,
+    placementName: String,
     private val adViewContainer: CloudXAdViewAdapterContainer,
     private val serverExtras: Bundle,
     private val adm: String,
@@ -61,19 +61,19 @@ internal class MetaBannerAdapter(
     private var listener: CloudXAdViewAdapterListener?
 ) : CloudXAdViewAdapter {
 
-    private val TAG = "MetaBannerAdapter"
+    private val logger = CXLogger.forPlacement("MetaBannerAdapter", placementName)
     private var adView: AdView? = null
 
     override fun load() {
         val metaPlacementId = serverExtras.getMetaPlacementId()
         if (metaPlacementId.isNullOrEmpty()) {
             val message = "Meta placement ID is null or empty"
-            CXLogger.e(TAG, placementName, message)
+            logger.e(message)
             listener?.onError(CloudXErrorCode.ADAPTER_INVALID_SERVER_EXTRAS.toCloudXError(message = message))
             return
         }
 
-        CXLogger.d(TAG, placementName, "Loading banner ad for Meta placement: $metaPlacementId")
+        logger.d("Loading banner ad for Meta placement: $metaPlacementId")
         val adView = AdView(
             contextProvider.getContext(),
             metaPlacementId,
@@ -83,11 +83,7 @@ internal class MetaBannerAdapter(
 
         with(adView) {
             adViewContainer.onAdd(this)
-            CXLogger.d(
-                TAG,
-                placementName,
-                "Starting to load banner ad for Meta placement: $metaPlacementId"
-            )
+            logger.d("Starting to load banner ad for Meta placement: $metaPlacementId")
 
             loadAd(
                 buildLoadAdConfig()
@@ -100,7 +96,7 @@ internal class MetaBannerAdapter(
 
     override fun destroy() {
         val metaPlacementId = serverExtras.getMetaPlacementId()
-        CXLogger.d(TAG, placementName, "Destroying banner ad for Meta placement: $metaPlacementId")
+        logger.d("Destroying banner ad for Meta placement: $metaPlacementId")
         adView?.let {
             it.destroy()
             adViewContainer.onRemove(it)
@@ -114,34 +110,22 @@ internal class MetaBannerAdapter(
         listener: CloudXAdViewAdapterListener?
     ) = object : AdListener {
         override fun onError(ad: Ad?, adError: AdError?) {
-            CXLogger.e(
-                TAG,
-                placementName,
-                "Banner ad error for Meta placement $metaPlacementId with error: ${adError?.errorMessage} (${adError?.errorCode})"
-            )
+            logger.e("Banner ad error for Meta placement $metaPlacementId with error: ${adError?.errorMessage} (${adError?.errorCode})")
             listener?.onError(adError.toCloudXError())
         }
 
         override fun onAdLoaded(ad: Ad?) {
-            CXLogger.d(
-                TAG,
-                placementName,
-                "Banner ad loaded for Meta placement: $metaPlacementId"
-            )
+            logger.d("Banner ad loaded for Meta placement: $metaPlacementId")
             listener?.onLoad()
         }
 
         override fun onAdClicked(ad: Ad?) {
-            CXLogger.d(TAG, placementName, "Banner ad clicked for Meta placement: $metaPlacementId")
+            logger.d("Banner ad clicked for Meta placement: $metaPlacementId")
             listener?.onClick()
         }
 
         override fun onLoggingImpression(ad: Ad?) {
-            CXLogger.d(
-                TAG,
-                placementName,
-                "Banner ad impression logged for Meta placement: $metaPlacementId"
-            )
+            logger.d("Banner ad impression logged for Meta placement: $metaPlacementId")
             listener?.onShow()
             listener?.onImpression()
         }

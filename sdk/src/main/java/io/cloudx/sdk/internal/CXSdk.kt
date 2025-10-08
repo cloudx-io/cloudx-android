@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
 
 internal object CXSdk {
-    private const val TAG = "CXSdk"
+    private val logger = CXLogger.forComponent("CXSdk")
     private val scope = MainScope()
     private var initJob: Job? = null
     private val _initState =
@@ -101,7 +101,7 @@ internal object CXSdk {
         listener: CloudXInitializationListener?,
         initializationService: InitializationService?
     ) {
-        CXLogger.i(TAG, "CloudX SDK initialization succeeded")
+        logger.i("CloudX SDK initialization succeeded")
         initializationService?.let {
             _initState.value = InitializationState.Initialized(it)
         }
@@ -115,7 +115,7 @@ internal object CXSdk {
         error: CloudXError
     ) {
         val str = "CloudX SDK initialization failed: ${error.message}"
-        CXLogger.e(TAG, str, error.cause)
+        logger.e(str, error.cause)
         _initState.value = InitializationState.Uninitialized
         ThreadUtils.GlobalMainScope.launch {
             listener?.onInitializationFailed(error)

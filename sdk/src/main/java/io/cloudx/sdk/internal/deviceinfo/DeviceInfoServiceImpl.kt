@@ -16,7 +16,7 @@ internal class DeviceInfoServiceImpl(
     private val appContext: Context
 ) : DeviceInfoProvider {
 
-    private val tag = "DeviceInfoServiceImpl"
+    private val logger = CXLogger.forComponent("DeviceInfoService")
 
     private val isTablet: Boolean by lazy {
         appContext.resources.getBoolean(R.bool.isTablet)
@@ -32,7 +32,7 @@ internal class DeviceInfoServiceImpl(
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            CXLogger.e(tag, "Failed to get mobile carrier", e)
+            logger.e("Failed to get mobile carrier", e)
             ""
         }
 

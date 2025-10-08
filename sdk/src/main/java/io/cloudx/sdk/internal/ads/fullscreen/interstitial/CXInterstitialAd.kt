@@ -15,10 +15,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 internal class CXInterstitialAd(
-    private val placementName: String,
+    placementName: String,
 ) : CloudXInterstitialAd {
 
-    private val TAG = "CXInterstitialAd"
+    private val logger = CXLogger.forPlacement("CXInterstitialAd", placementName)
     private val initJob: Job
     private var interstitial: CloudXInterstitialAd? = null
 
@@ -58,7 +58,7 @@ internal class CXInterstitialAd(
 
         if (CXSdk.initState.value is InitializationState.Uninitialized) {
             val error = CloudXErrorCode.NOT_INITIALIZED.toCloudXError()
-            CXLogger.e(TAG, error.effectiveMessage)
+            logger.e(error.effectiveMessage)
             listener?.onAdLoadFailed(error)
         }
     }
@@ -71,7 +71,7 @@ internal class CXInterstitialAd(
 
         if (CXSdk.initState.value is InitializationState.Uninitialized) {
             val error = CloudXErrorCode.NOT_INITIALIZED.toCloudXError()
-            CXLogger.e(TAG, error.effectiveMessage)
+            logger.e(error.effectiveMessage)
             listener?.onAdDisplayFailed(error)
         }
     }

@@ -4,8 +4,8 @@ import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.CXLogger
-import io.cloudx.sdk.internal.tracker.ErrorReportingService
 import io.cloudx.sdk.internal.toAdNetwork
+import io.cloudx.sdk.internal.tracker.ErrorReportingService
 import io.cloudx.sdk.internal.util.Result
 import io.cloudx.sdk.internal.util.toBundle
 import io.cloudx.sdk.toFailure
@@ -127,8 +127,8 @@ private fun JSONArray.toPlacements(): Map<String, Config.Placement> {
 
         val id = jsonPlacement.getString("id")
         val name = jsonPlacement.getString("name")
-        val bidResponseTimeoutMillis = jsonPlacement.getInt("bidResponseTimeoutMs")
-        val adLoadTimeoutMillis = jsonPlacement.getInt("adLoadTimeoutMs")
+        val bidResponseTimeoutMillis = 10_000
+        val adLoadTimeoutMillis = 10_000
         val placementType = jsonPlacement.getString("type")
         val hasCloseButton = jsonPlacement.opt("hasCloseButton") as? Boolean ?: false
 

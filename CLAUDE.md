@@ -35,8 +35,11 @@ CloudX Android SDK is an ad mediation SDK that maximizes ad revenue through inte
 # Install debug build to connected device
 ./gradlew :app:installDebug
 
-# Build release APK
+# Build release APK (for direct installation)
 ./gradlew :app:assembleRelease
+
+# Build release AAB (for Google Play Store)
+./gradlew :app:bundleRelease
 ```
 
 ### Publishing

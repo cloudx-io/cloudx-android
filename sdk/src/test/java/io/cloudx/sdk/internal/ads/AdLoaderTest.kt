@@ -315,7 +315,8 @@ class AdLoaderTest : CXTest() {
             auctionId = "auction-123",
             adWidth = 320,
             adHeight = 50,
-            rawJson = JSONObject()
+            rawJson = JSONObject(),
+            bidFloor = null
         )
     }
 }

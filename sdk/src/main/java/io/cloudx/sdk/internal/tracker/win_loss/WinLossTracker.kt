@@ -62,7 +62,7 @@ internal class WinLossTracker(
         bid: Bid,
         event: BidLifecycleEvent,
         lossReason: LossReason,
-        winnerBidPrice: Float = -1f
+        auctionMinToWin: Float = -1f
     ) {
         scope.launch {
             val payloadMap = winLossFieldResolver.buildWinLossPayload(
@@ -73,8 +73,9 @@ internal class WinLossTracker(
                 loadedBidPrice = when (event) {
                     BidLifecycleEvent.LOAD_SUCCESS -> bid.price ?: -1f
                     BidLifecycleEvent.RENDER_SUCCESS -> bid.price ?: -1f
-                    BidLifecycleEvent.LOSS -> winnerBidPrice
-                }
+                    BidLifecycleEvent.LOSS -> auctionMinToWin
+                },
+                auctionMinToWin = auctionMinToWin
             )
             val payloadJson = payloadMap?.toJsonString()
             if (payloadJson.isNullOrEmpty()) {

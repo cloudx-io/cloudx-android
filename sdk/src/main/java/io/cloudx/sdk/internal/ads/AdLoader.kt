@@ -28,6 +28,10 @@ internal class AdLoader<T : CXAdapterDelegate>(
 ) {
     private val logger = CXLogger.forPlacement("AdLoader", placementName)
 
+    companion object {
+        private const val ONE_CENT = 0.01f
+    }
+
     /**
      * Returns a loaded ad or null (no fill / failure)
      */
@@ -51,7 +55,7 @@ internal class AdLoader<T : CXAdapterDelegate>(
 
         var loadedAd: T? = null
         var loadedAdIndex = -1
-        var winnerBidPrice = -1f
+        var winningBidPrice = -1f
 
         for ((index, bidItem) in bidResponse.bidItemsByRank.withIndex()) {
             ensureActive()
@@ -63,13 +67,25 @@ internal class AdLoader<T : CXAdapterDelegate>(
 
                 loadedAd = ad
                 loadedAdIndex = index
-                winnerBidPrice = bidItem.bid.price ?: -1f
+                winningBidPrice = bidItem.bid.price ?: -1f
+
+                // NURL: AUCTION_MIN_TO_WIN calculation
+                // - Multiple bidders: 2nd highest bid + $0.01
+                // - Solo bid with floor: floor price
+                // - Solo bid without floor: $0.01
+                val auctionMinToWin = if (index + 1 < bidResponse.bidItemsByRank.size) {
+                    val secondHighestBid = bidResponse.bidItemsByRank[index + 1].bid.price ?: 0f
+                    secondHighestBid + ONE_CENT
+                } else {
+                    bidItem.bid.bidFloor ?: ONE_CENT
+                }
 
                 winLossTracker.sendEvent(
                     bidResponse.auctionId,
                     bidItem.bid,
                     BidLifecycleEvent.LOAD_SUCCESS,
-                    LossReason.BID_WON
+                    LossReason.BID_WON,
+                    auctionMinToWin
                 )
                 break
             } else {
@@ -92,7 +108,7 @@ internal class AdLoader<T : CXAdapterDelegate>(
                         bidItem.bid,
                         BidLifecycleEvent.LOSS,
                         LossReason.LOST_TO_HIGHER_BID,
-                        winnerBidPrice
+                        winningBidPrice
                     )
                 }
             }

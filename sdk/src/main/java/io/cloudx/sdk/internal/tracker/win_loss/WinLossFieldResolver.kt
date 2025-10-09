@@ -10,6 +10,7 @@ internal class WinLossFieldResolver {
     companion object {
         private const val PLACEHOLDER_AUCTION_PRICE = "\${AUCTION_PRICE}"
         private const val PLACEHOLDER_AUCTION_LOSS = "\${AUCTION_LOSS}"
+        private const val PLACEHOLDER_AUCTION_MIN_TO_WIN = "\${AUCTION_MIN_TO_WIN}"
     }
 
     fun setPayloadMapping(payloadMapping: Map<String, String>) {
@@ -21,7 +22,8 @@ internal class WinLossFieldResolver {
         bid: Bid?,
         lossReason: LossReason,
         bidLifecycleEvent: BidLifecycleEvent?,
-        loadedBidPrice: Float
+        loadedBidPrice: Float,
+        auctionMinToWin: Float = -1f
     ): Map<String, Any>? {
         val payloadMapping = winLossPayloadMapping ?: return null
         val result = mutableMapOf<String, Any>()
@@ -34,7 +36,8 @@ internal class WinLossFieldResolver {
                 payloadKey,
                 fieldPath,
                 bidLifecycleEvent,
-                loadedBidPrice
+                loadedBidPrice,
+                auctionMinToWin
             )
             if (resolvedValue != null) {
                 result[payloadKey] = resolvedValue
@@ -50,7 +53,8 @@ internal class WinLossFieldResolver {
         payloadKey: String,
         fieldPath: String,
         bidLifecycleEvent: BidLifecycleEvent?,
-        loadedBidPrice: Float
+        loadedBidPrice: Float,
+        auctionMinToWin: Float
     ): Any? {
         return when {
             fieldPath == "sdk.lossReason" -> lossReason.description
@@ -62,7 +66,7 @@ internal class WinLossFieldResolver {
             payloadKey == "notificationType" -> bidLifecycleEvent?.notificationType
             payloadKey == "url" -> {
                 val url = bid?.rawJson?.optString(bidLifecycleEvent?.urlType)
-                url?.let { replaceUrlTemplates(it, lossReason, loadedBidPrice) }
+                url?.let { replaceUrlTemplates(it, lossReason, loadedBidPrice, auctionMinToWin) }
             }
             else -> TrackingFieldResolver.resolveField(auctionId, fieldPath, bid?.id)
         }
@@ -74,11 +78,13 @@ internal class WinLossFieldResolver {
      * Supported templates:
      * - ${AUCTION_PRICE} -> actual winning bid price or losing bid price
      * - ${AUCTION_LOSS} -> loss reason code
+     * - ${AUCTION_MIN_TO_WIN} -> minimum price to win the auction
      */
     private fun replaceUrlTemplates(
         url: String,
         lossReason: LossReason,
-        loadedBidPrice: Float
+        loadedBidPrice: Float,
+        auctionMinToWin: Float
     ): String {
         var processedUrl = url
 
@@ -88,6 +94,10 @@ internal class WinLossFieldResolver {
 
         if (processedUrl.contains(PLACEHOLDER_AUCTION_LOSS)) {
             processedUrl = processedUrl.replace(PLACEHOLDER_AUCTION_LOSS, lossReason.code.toString())
+        }
+
+        if (processedUrl.contains(PLACEHOLDER_AUCTION_MIN_TO_WIN)) {
+            processedUrl = processedUrl.replace(PLACEHOLDER_AUCTION_MIN_TO_WIN, auctionMinToWin.toString())
         }
 
         return processedUrl

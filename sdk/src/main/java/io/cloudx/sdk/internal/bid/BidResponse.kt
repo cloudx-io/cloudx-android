@@ -33,4 +33,5 @@ internal data class Bid(
     val adWidth: Int?,
     val adHeight: Int?,
     val rawJson: JSONObject,
+    val bidFloor: Float?,
 )

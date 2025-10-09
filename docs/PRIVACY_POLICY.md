@@ -26,7 +26,6 @@ The App is designed for internal testing and demonstration purposes. The App may
 - SDK functionality logs
 
 ### 2.3 User-Provided Information
-- Email address (optional, for testing user targeting features)
 - Test configuration settings
 
 ## 3. How We Use Information
@@ -61,7 +60,7 @@ You can reset or opt out of personalized advertising through your device setting
 You can control location permissions through your device settings.
 
 ### Data Deletion
-As this is a testing application, you can request deletion of any data by contacting us at [Your Contact Email].
+As this is a testing application, you can request deletion of any data by contacting us at mobile@cloudx.io.
 
 ## 6. Data Retention
 

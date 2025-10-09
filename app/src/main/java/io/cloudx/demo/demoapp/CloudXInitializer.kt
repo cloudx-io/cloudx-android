@@ -41,9 +41,9 @@ object CloudXInitializer {
             }
         )
 
-        val userEmail = settings.userEmail
-        val hashedUserId = if (userEmail.isNotBlank()) {
-            normalizeAndHash(userEmail, "sha256").also {
+        val userId = settings.userId
+        val hashedUserId = if (userId.isNotBlank()) {
+            normalizeAndHash(userId, "sha256").also {
                 CXLogger.i(logTag, "Using hashed user ID: $it")
             }
         } else {

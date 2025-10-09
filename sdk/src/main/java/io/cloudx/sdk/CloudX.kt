@@ -111,12 +111,12 @@ object CloudX {
     }
 
     /**
-     * Publisher is responsible for normalization and hashing of a user email
+     * Publisher is responsible for normalization and hashing of a user id
      */
     @JvmStatic
-    fun setHashedUserId(hashedEmail: String) {
+    fun setHashedUserId(hashedUserId: String) {
         CXSdk.initializationService?.metricsTracker?.trackMethodCall(MetricsType.Method.SetHashedUserId)
-        SdkKeyValueState.hashedUserId = hashedEmail
+        SdkKeyValueState.hashedUserId = hashedUserId
     }
 
 

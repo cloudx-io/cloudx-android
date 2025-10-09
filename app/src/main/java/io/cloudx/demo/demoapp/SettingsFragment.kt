@@ -16,24 +16,24 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
         gppTestLogic()
         updatePlacementsFromPreferences()
-        updateUserEmail()
+        updateUserId()
     }
 
-    fun updateUserEmail() {
+    fun updateUserId() {
         val context = preferenceManager.context
 
-        val emailKey = getString(R.string.pref_user_email)
+        val userIdKey = getString(R.string.pref_user_id)
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
 
-        val emailPref = findPreference<EditTextPreference>(emailKey)
-        val emailRaw = prefs.getString(emailKey, null)
+        val userIdPref = findPreference<EditTextPreference>(userIdKey)
+        val userIdRaw = prefs.getString(userIdKey, null)
 
-        if (!emailRaw.isNullOrBlank()) {
-            emailPref?.text = emailRaw
-            emailPref?.isVisible = true
+        if (!userIdRaw.isNullOrBlank()) {
+            userIdPref?.text = userIdRaw
+            userIdPref?.isVisible = true
         } else {
-            emailPref?.text = null
-            emailPref?.isVisible = false
+            userIdPref?.text = null
+            userIdPref?.isVisible = false
         }
     }
 
@@ -48,7 +48,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
         allowAllPref?.setOnPreferenceClickListener {
             // 🔓 User allows personalized ads, sharing, and sale of personal info
-            // ➡️ GPP-compliant bid requests can include personal data (IFA, hashed email, etc.)
+            // ➡️ GPP-compliant bid requests can include personal data (IFA, hashed user id, etc.)
             val gppString = "DBABBg~BUoAAAJA.QA"
             val sid = "8"
 
@@ -66,7 +66,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
         disallowAllPref?.setOnPreferenceClickListener {
             // 🔒 User does NOT allow targeting, sharing, or sale of personal info
-            // ➡️ SDK must remove IFA, hashed email, geo, and any PII from bid requests and tracking
+            // ➡️ SDK must remove IFA, hashed user id, geo, and any PII from bid requests and tracking
             val gppString = "DBABBg~BUVVVVVA.QA"
             val sid = "8"
 

@@ -11,7 +11,7 @@ fun Context.settings(): Settings {
     return Settings(
         appKey = prefs.getString(getString(R.string.pref_app_key), getString(R.string.pref_app_key_def_val))!!,
         initUrl = prefs.getString(getString(R.string.pref_init_url), getString(R.string.pref_init_url_def_val))!!,
-        userEmail = prefs.getString(getString(R.string.pref_user_email), getString(R.string.pref_email_def_val))!!,
+        userId = prefs.getString(getString(R.string.pref_user_id), getString(R.string.pref_user_id_def_val))!!,
 
         bannerPlacementNames = safeGetStringSet(
             getString(R.string.pref_banner_placement_name),
@@ -81,7 +81,7 @@ internal fun String.toPrivacyFlag(): Boolean? = when (this) {
 data class Settings(
     val appKey: String,
     val initUrl: String,
-    val userEmail: String,
+    val userId: String,
 
     val bannerPlacementNames: ArrayList<String>,
     val mrecPlacementNames: ArrayList<String>,

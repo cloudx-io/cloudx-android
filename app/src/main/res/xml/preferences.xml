@@ -14,10 +14,10 @@
         app:defaultValue="@string/pref_init_url_def_val" />
 
     <EditTextPreference
-        app:defaultValue="@string/pref_email_def_val"
+        app:defaultValue="@string/pref_user_id_def_val"
         app:isPreferenceVisible="false"
-        app:key="@string/pref_user_email"
-        app:title="@string/hint_email"
+        app:key="@string/pref_user_id"
+        app:title="@string/hint_user_id"
         app:useSimpleSummaryProvider="true" />
 
     <PreferenceCategory

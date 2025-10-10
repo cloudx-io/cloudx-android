@@ -251,7 +251,7 @@ internal class InitializationService(
             appId = cfg.appId ?: ""
         )
         val bidRequestProvider = BidRequestProvider(
-            emptyMap()
+            bidRequestExtrasProviders = emptyMap()
         )
         val bidRequestParamsJson = bidRequestProvider.invoke(bidRequestParams, eventId)
         TrackingFieldResolver.setRequestData(eventId, bidRequestParamsJson)

@@ -3,27 +3,196 @@ package io.cloudx.sdk.internal.ads
 import io.cloudx.sdk.CloudXInterstitialAd
 import io.cloudx.sdk.CloudXRewardedInterstitialAd
 import io.cloudx.sdk.internal.AdType
+import io.cloudx.sdk.internal.CXLogger
+import io.cloudx.sdk.internal.adapter.BannerFactoryMiscParams
 import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
 import io.cloudx.sdk.internal.ads.banner.BannerManager
+import io.cloudx.sdk.internal.ads.fullscreen.interstitial.InterstitialManager
+import io.cloudx.sdk.internal.ads.fullscreen.rewarded.RewardedInterstitialManager
+import io.cloudx.sdk.internal.bid.BidApi
+import io.cloudx.sdk.internal.cdp.CdpApi
 import io.cloudx.sdk.internal.config.Config
+import io.cloudx.sdk.internal.config.ResolvedEndpoints
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
+import io.cloudx.sdk.internal.initialization.BidAdNetworkFactories
+import io.cloudx.sdk.internal.size
 import io.cloudx.sdk.internal.tracker.EventTracker
 import io.cloudx.sdk.internal.tracker.metrics.MetricsTracker
 import io.cloudx.sdk.internal.tracker.win_loss.WinLossTracker
-import io.cloudx.sdk.internal.initialization.BidAdNetworkFactories
 import kotlinx.coroutines.flow.StateFlow
 
-internal interface AdFactory {
-    // Banner and Native Ad creation
+internal class AdFactory(
+    private val appKey: String,
+    private val config: Config,
+    private val factories: BidAdNetworkFactories,
+    private val metricsTracker: MetricsTracker,
+    private val eventTracker: EventTracker,
+    private val winLossTracker: WinLossTracker,
+    private val connectionStatusService: ConnectionStatusService,
+) {
+
+    private val TAG = "AdFactory"
+
+    // ===== Banner and Native Ad Creation =====
+
     // TODO. Refactor.
     //  For now, to speed things up, I'll use this API to create both Banner and Native Ads.
-    fun createBannerManager(params: CreateBannerParams): BannerManager?
+    fun createBannerManager(params: CreateBannerParams): BannerManager? {
+        val placementName = params.placementName
+        val adType = params.adType
 
-    // Interstitial Ad creation
-    fun createInterstitial(params: CreateAdParams): CloudXInterstitialAd?
+        // Validating placement exists for the key and ad type passed here.
+        val placement = config.placements[placementName]
+        if (placement == null || placement.toAdType() != adType) {
+            logCantFindPlacement(placementName, adType, placement)
+            return null
+        }
 
-    // Rewarded Ad creation
-    fun createRewarded(params: CreateAdParams): CloudXRewardedInterstitialAd?
+        val refreshRateMillis = when (placement) {
+            is Config.Placement.Banner -> placement.refreshRateMillis
+            is Config.Placement.Native -> placement.refreshRateMillis
+            else -> 0
+        }
+
+        val bidFactories = when (placement) {
+            is Config.Placement.MREC -> factories.mrecBanners
+            is Config.Placement.Banner -> factories.stdBanners
+            is Config.Placement.Native -> factories.nativeAds
+            else -> emptyMap()
+        }
+
+        val miscParams = BannerFactoryMiscParams(
+            enforceCloudXImpressionVerification = true,
+            adType = adType,
+            adViewSize = adType.size()
+        )
+
+        val hasCloseButton = when (placement) {
+            is Config.Placement.MREC -> placement.hasCloseButton
+            is Config.Placement.Banner -> placement.hasCloseButton
+            is Config.Placement.Native -> placement.hasCloseButton
+            else -> false
+        }
+
+        return BannerManager(
+            placementId = placement.id,
+            placementName = placement.name,
+            adViewContainer = params.adViewAdapterContainer,
+            bannerVisibility = params.bannerVisibility,
+            refreshSeconds = (refreshRateMillis / 1000),
+            adType = adType,
+            bidFactories = bidFactories,
+            bidRequestExtrasProviders = factories.bidRequestExtrasProviders,
+            bidAdLoadTimeoutMillis = placement.adLoadTimeoutMillis.toLong(),
+            miscParams = miscParams,
+            bidApi = createBidApi(placement.bidResponseTimeoutMillis),
+            cdpApi = createCdpApi(),
+            eventTracker = eventTracker,
+            metricsTracker = metricsTracker,
+            winLossTracker = winLossTracker,
+            connectionStatusService = connectionStatusService,
+            accountId = config.accountId ?: "",
+            appKey = appKey,
+            appId = config.appId ?: ""
+        )
+    }
+
+    // ===== Interstitial Ad Creation =====
+
+    fun createInterstitial(params: CreateAdParams): CloudXInterstitialAd? {
+        val placementName = params.placementName
+        val placement = config.placements[placementName] as? Config.Placement.Interstitial
+        if (placement == null) {
+            logCantFindPlacement(placementName, AdType.Interstitial, config.placements[placementName])
+            return null
+        }
+        val bidApi = createBidApi(placement.bidResponseTimeoutMillis)
+
+        return InterstitialManager(
+            placementId = placement.id,
+            placementName = placement.name,
+            bidFactories = factories.interstitials,
+            bidRequestExtrasProviders = factories.bidRequestExtrasProviders,
+            bidAdLoadTimeoutMillis = placement.adLoadTimeoutMillis.toLong(),
+            bidApi = bidApi,
+            cdpApi = createCdpApi(),
+            eventTracker = eventTracker,
+            metricsTracker = metricsTracker,
+            winLossTracker = winLossTracker,
+            connectionStatusService = connectionStatusService,
+            accountId = config.accountId ?: "",
+            appKey = appKey,
+            appId =  config.appId ?: ""
+        )
+    }
+
+    // ===== Rewarded Ad Creation =====
+
+    fun createRewarded(params: CreateAdParams): CloudXRewardedInterstitialAd? {
+        val placementName = params.placementName
+        val placement = config.placements[placementName] as? Config.Placement.Rewarded
+        if (placement == null) {
+            logCantFindPlacement(placementName, AdType.Rewarded, config.placements[placementName])
+            return null
+        }
+        val bidApi = createBidApi(placement.bidResponseTimeoutMillis)
+
+        return RewardedInterstitialManager(
+            placementId = placement.id,
+            placementName = placement.name,
+            bidFactories = factories.rewardedInterstitials,
+            bidRequestExtrasProviders = factories.bidRequestExtrasProviders,
+            bidAdLoadTimeoutMillis = placement.adLoadTimeoutMillis.toLong(),
+            bidApi = bidApi,
+            cdpApi = createCdpApi(),
+            eventTracker = eventTracker,
+            metricsTracker = metricsTracker,
+            winLossTracker = winLossTracker,
+            connectionStatusService = connectionStatusService,
+            accountId = config.accountId ?: "",
+            appKey = appKey,
+            appId = config.appId ?: ""
+        )
+    }
+
+    // ===== Private Helper Methods =====
+
+    private fun createBidApi(timeoutMillis: Int) = BidApi(
+        ResolvedEndpoints.auctionEndpoint,
+        timeoutMillis.toLong()
+    )
+
+    private fun createCdpApi() = CdpApi(ResolvedEndpoints.cdpEndpoint)
+
+    private fun logCantFindPlacement(
+        placementName: String,
+        requestedAdType: AdType,
+        foundPlacement: Config.Placement?
+    ) {
+        val availablePlacements = config.placements.keys.joinToString(", ")
+
+        val errorMessage = when {
+            foundPlacement == null -> {
+                "Placement '$placementName' not found in SDK configuration. " +
+                "Available placements: [$availablePlacements]. " +
+                "Please check your placement name or contact your account manager."
+            }
+            foundPlacement.toAdType() != requestedAdType -> {
+                val actualAdType = foundPlacement.toAdType()
+                "Placement '$placementName' exists but has wrong ad type. " +
+                "Requested: ${requestedAdType.javaClass.simpleName}, " +
+                "Actual: ${actualAdType?.javaClass?.simpleName ?: "Unknown"}. " +
+                "Please use the correct ad creation method for this placement type."
+            }
+            else -> {
+                "Unknown placement validation error for '$placementName'"
+            }
+        }
+
+        CXLogger.e(TAG, placementName, errorMessage)
+    }
+
+    // ===== Parameter Classes =====
 
     open class CreateAdParams(val placementName: String)
 
@@ -35,21 +204,15 @@ internal interface AdFactory {
     ) : CreateAdParams(placementName)
 }
 
-internal fun AdFactory(
-    appKey: String,
-    config: Config,
-    factories: BidAdNetworkFactories,
-    metricsTracker: MetricsTracker,
-    eventTracker: EventTracker,
-    winLossTracker: WinLossTracker,
-    connectionStatusService: ConnectionStatusService,
-): AdFactory =
-    AdFactoryImpl(
-        appKey = appKey,
-        config = config,
-        factories = factories,
-        metricsTracker = metricsTracker,
-        eventTracker = eventTracker,
-        winLossTracker,
-        connectionStatusService = connectionStatusService,
-    )
+private fun Config.Placement.toAdType(): AdType? = when (this) {
+    is Config.Placement.MREC -> AdType.Banner.MREC
+    is Config.Placement.Banner -> AdType.Banner.Standard
+    is Config.Placement.Interstitial -> AdType.Interstitial
+    is Config.Placement.Rewarded -> AdType.Rewarded
+
+    is Config.Placement.Native -> when (this.templateType) {
+        Config.Placement.Native.TemplateType.Medium -> AdType.Native.Medium
+        Config.Placement.Native.TemplateType.Small -> AdType.Native.Small
+        is Config.Placement.Native.TemplateType.Unknown -> null
+    }
+}

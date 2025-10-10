@@ -4,18 +4,40 @@ import io.cloudx.sdk.internal.appinfo.AppInfoProvider
 import io.cloudx.sdk.internal.deviceinfo.DeviceInfoProvider
 import io.cloudx.sdk.internal.gaid.GAIDProvider
 
-internal fun interface ConfigRequestProvider {
-
-    suspend operator fun invoke(): ConfigRequest
-}
-
-internal fun ConfigRequestProvider(): ConfigRequestProvider = LazySingleInstance
-
+// Lazy singleton
 private val LazySingleInstance by lazy {
-    ConfigRequestProviderImpl(
+    ConfigRequestProvider(
         io.cloudx.sdk.BuildConfig.SDK_VERSION_NAME,
         AppInfoProvider(),
         DeviceInfoProvider(),
         GAIDProvider()
     )
+}
+
+// Factory function
+internal fun ConfigRequestProvider(): ConfigRequestProvider = LazySingleInstance
+
+// Main class
+internal open class ConfigRequestProvider(
+    private val sdkVersion: String,
+    private val provideAppInfo: AppInfoProvider,
+    private val provideDeviceInfo: DeviceInfoProvider,
+    private val provideGAID: GAIDProvider
+) {
+
+    open suspend operator fun invoke(): ConfigRequest {
+        val deviceInfo = provideDeviceInfo()
+        val gaidData = provideGAID()
+
+        return ConfigRequest(
+            bundle = provideAppInfo().packageName,
+            os = deviceInfo.os,
+            osVersion = deviceInfo.osVersion,
+            deviceModel = deviceInfo.model,
+            deviceManufacturer = deviceInfo.manufacturer,
+            sdkVersion = sdkVersion,
+            gaid = gaidData.gaid,
+            dnt = gaidData.isLimitAdTrackingEnabled
+        )
+    }
 }

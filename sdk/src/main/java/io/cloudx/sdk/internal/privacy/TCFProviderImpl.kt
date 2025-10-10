@@ -1,14 +1,15 @@
 package io.cloudx.sdk.internal.privacy
 
 import android.content.Context
-import android.preference.PreferenceManager
+import android.content.SharedPreferences
 import io.cloudx.sdk.internal.CXLogger
+import io.cloudx.sdk.internal.util.createIabSharedPreferences
 import kotlin.coroutines.cancellation.CancellationException
 
-internal class TCFProviderImpl(context: Context) : TCFProvider {
+internal class TCFProviderImpl(
+    private val sharedPrefs: SharedPreferences
+) : TCFProvider {
 
-    @Suppress("DEPRECATION")
-    private val sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context)
     private val logger = CXLogger.forComponent("TCFProvider")
 
     override suspend fun tcString(): String? {
@@ -52,6 +53,16 @@ internal class TCFProviderImpl(context: Context) : TCFProvider {
             // In case value wasn't int, handle exception gracefully.
             logger.e("Failed to read TCF preference value for key: $key", e)
             null
+        }
+    }
+
+    companion object {
+        /**
+         * Creates a TCFProviderImpl using the default shared preferences.
+         * This is the IAB TCF standard location for consent strings.
+         */
+        fun create(context: Context): TCFProviderImpl {
+            return TCFProviderImpl(context.createIabSharedPreferences())
         }
     }
 }

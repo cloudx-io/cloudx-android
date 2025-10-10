@@ -146,6 +146,11 @@ The repository is organized into several modules:
 - IAB TCF strings are read from `SharedPreferences` (IABTCF_TCString, IABUSPrivacy_String, IABGPP_HDR_GppString)
 - Privacy signals are included in bid requests → `sdk/internal/bid/BidRequestProviderImpl.kt`
 - Privacy service manages consent state → `sdk/internal/privacy/PrivacyService.kt`
+- **SharedPreferences for IAB Compliance:**
+  - Privacy providers (`TCFProviderImpl`, `USPrivacyProviderImpl`, `GPPProviderImpl`) use dependency injection
+  - Factory methods use `Context.createIabSharedPreferences()` from `sdk/internal/util/Utils.kt`
+  - Creates SharedPreferences with name: `"${packageName}_preferences"` (IAB standard location)
+  - This avoids namespace collisions with host app and follows IAB CMP guidelines
 
 ### Tracking & Analytics
 - **Win/Loss Tracking:** `WinLossTracker` sends win/loss events for bid lifecycle
@@ -178,11 +183,16 @@ The repository is organized into several modules:
 
 ### Unit Tests
 - Located in `sdk/src/test/java/io/cloudx/sdk/`
-- Test framework: JUnit with MockK and Robolectric
+- Test framework: JUnit with MockK (pure unit tests, no Robolectric)
+- **All tests must extend `CXTest`** - Base class that:
+  - Disables logging (`CXLogger.isEnabled = false`) to prevent unmocked `android.util.Log` calls
+  - Applies MockKRule for proper MockK setup
+  - Provides consistent test setup across the codebase
 - Key test files:
-  - `CXTest.kt`, `MockkTest.kt`, `RoboMockkTest.kt` - Base test utilities
+  - `CXTest.kt` - Base test class (all tests must extend this)
   - `internal/ads/AdLoaderTest.kt` - Ad loading logic tests
-  - `internal/privacy/USPrivacyProviderImplTest.kt` - Privacy tests
+  - `internal/privacy/TCFProviderImplTest.kt` - IAB TCF privacy tests
+  - `internal/privacy/USPrivacyProviderImplTest.kt` - CCPA privacy tests
 
 ### Running Tests
 ```bash
@@ -192,12 +202,20 @@ The repository is organized into several modules:
 # SDK tests only
 ./gradlew :sdk:test
 
-# Specific test class
-./gradlew :sdk:test --tests "io.cloudx.sdk.internal.ads.AdLoaderTest"
+# Specific test class (note: no --tests flag with gradle wrapper)
+./gradlew :sdk:testDebugUnitTest
 
 # With debug output
 ./gradlew :sdk:test --info
 ```
+
+### Test Dependencies
+- **junit** - JUnit 4 test framework
+- **mockk** - Mocking library for Kotlin
+- **truth** - Assertion library
+- **kotlinx-coroutines-test** - Testing utilities for coroutines
+- **ktor-client-mock** - Mock HTTP client for testing
+- **slf4j-nop** - No-op SLF4J implementation (silences Ktor logging warnings)
 
 ## Code Patterns & Conventions
 
@@ -223,6 +241,23 @@ The repository is organized into several modules:
 - Ad creation and initialization callbacks run on main thread (enforced via `ThreadUtils.GlobalMainScope`)
 - Internal operations use coroutines with proper dispatchers
 - State management uses `StateFlow` for reactive state
+
+### Dependency Injection
+- Use constructor injection for testability (especially for Android framework dependencies)
+- Provide companion object factory methods for production use
+- Example pattern (from privacy providers):
+  ```kotlin
+  internal class TCFProviderImpl(
+      private val sharedPrefs: SharedPreferences  // Injected for testing
+  ) : TCFProvider {
+      companion object {
+          fun create(context: Context): TCFProviderImpl {
+              return TCFProviderImpl(context.createIabSharedPreferences())
+          }
+      }
+  }
+  ```
+- This allows easy mocking in tests while maintaining clean production code
 
 ### Naming Conventions
 - Public API: `CloudX` prefix (e.g., `CloudXAdView`, `CloudXError`)

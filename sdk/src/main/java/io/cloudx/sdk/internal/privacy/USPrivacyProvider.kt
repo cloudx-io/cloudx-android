@@ -19,5 +19,5 @@ internal interface USPrivacyProvider {
 internal fun USPrivacyProvider(): USPrivacyProvider = LazySingleInstance
 
 private val LazySingleInstance by lazy {
-    USPrivacyProviderImpl(ApplicationContext())
+    USPrivacyProviderImpl.create(ApplicationContext())
 }

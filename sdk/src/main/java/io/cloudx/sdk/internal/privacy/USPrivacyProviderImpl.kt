@@ -1,14 +1,14 @@
 package io.cloudx.sdk.internal.privacy
 
 import android.content.Context
-import android.preference.PreferenceManager
+import android.content.SharedPreferences
 import io.cloudx.sdk.internal.CXLogger
+import io.cloudx.sdk.internal.util.createIabSharedPreferences
 import kotlin.coroutines.cancellation.CancellationException
 
-internal class USPrivacyProviderImpl(context: Context) : USPrivacyProvider {
-
-    @Suppress("DEPRECATION")
-    private val sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context)
+internal class USPrivacyProviderImpl(
+    private val sharedPrefs: SharedPreferences
+) : USPrivacyProvider {
 
     override suspend fun usPrivacyString(): String? {
         val usPrivacy = try {
@@ -25,6 +25,16 @@ internal class USPrivacyProviderImpl(context: Context) : USPrivacyProvider {
             null
         } else {
             usPrivacy
+        }
+    }
+
+    companion object {
+        /**
+         * Creates a USPrivacyProviderImpl using the default shared preferences.
+         * This is the IAB US Privacy standard location for privacy strings.
+         */
+        fun create(context: Context): USPrivacyProviderImpl {
+            return USPrivacyProviderImpl(context.createIabSharedPreferences())
         }
     }
 }

@@ -1,25 +1,22 @@
 package io.cloudx.sdk.internal.privacy
 
 import android.content.SharedPreferences
-import android.preference.PreferenceManager
-import io.cloudx.sdk.RoboMockkTest
-import io.cloudx.sdk.internal.ApplicationContext
+import io.cloudx.sdk.CXTest
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
+import org.junit.Before
 import org.junit.Test
 
-class USPrivacyProviderImplTest : RoboMockkTest() {
+class USPrivacyProviderImplTest : CXTest() {
 
     private lateinit var sharedPrefs: SharedPreferences
     private lateinit var subject: USPrivacyProviderImpl
 
-    override fun before() {
-        super.before()
-        val ctx = ApplicationContext()
-
-        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(ctx)
-        sharedPrefs.edit().clear()
-
-        subject = USPrivacyProviderImpl(ctx)
+    @Before
+    fun before() {
+        sharedPrefs = mockk(relaxed = true)
+        subject = USPrivacyProviderImpl(sharedPrefs)
     }
 
     @Test
@@ -27,10 +24,10 @@ class USPrivacyProviderImplTest : RoboMockkTest() {
         val usPrivacyString1 = "1YYY"
         val usPrivacyString2 = "1---"
 
-        sharedPrefs.edit().putString(IABUSPrivacy_String, usPrivacyString1).commit()
+        every { sharedPrefs.getString(IABUSPrivacy_String, null) } returns usPrivacyString1
         val result1 = subject.usPrivacyString()
 
-        sharedPrefs.edit().putString(IABUSPrivacy_String, usPrivacyString2).commit()
+        every { sharedPrefs.getString(IABUSPrivacy_String, null) } returns usPrivacyString2
         val result2 = subject.usPrivacyString()
 
         assert(result1 == usPrivacyString1 && result2 == usPrivacyString2)
@@ -38,27 +35,28 @@ class USPrivacyProviderImplTest : RoboMockkTest() {
 
     @Test
     fun shouldReturnNullWhenSharedPrefsFieldNotSet() = runTest {
+        every { sharedPrefs.getString(IABUSPrivacy_String, null) } returns null
         val result = subject.usPrivacyString()
         assert(result == null)
     }
 
     @Test
     fun shouldReturnNullWhenSharedPrefsFieldIsBlank() = runTest {
-        sharedPrefs.edit().putString(IABUSPrivacy_String, "     ").commit()
+        every { sharedPrefs.getString(IABUSPrivacy_String, null) } returns "     "
         val result = subject.usPrivacyString()
         assert(result == null)
     }
 
     @Test
     fun shouldReturnNullWhenSharedPrefsFieldIsEmpty() = runTest {
-        sharedPrefs.edit().putString(IABUSPrivacy_String, "").commit()
+        every { sharedPrefs.getString(IABUSPrivacy_String, null) } returns ""
         val result = subject.usPrivacyString()
         assert(result == null)
     }
 
     @Test
     fun shouldReturnNullWhenSharedPrefsFieldIsOfDifferentType() = runTest {
-        sharedPrefs.edit().putInt(IABUSPrivacy_String, 5).commit()
+        every { sharedPrefs.getString(IABUSPrivacy_String, null) } throws ClassCastException("Not a string")
         val result = subject.usPrivacyString()
         assert(result == null)
     }

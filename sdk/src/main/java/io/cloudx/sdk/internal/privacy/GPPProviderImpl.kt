@@ -1,10 +1,11 @@
 package io.cloudx.sdk.internal.privacy
 
 import android.content.Context
-import android.preference.PreferenceManager
+import android.content.SharedPreferences
 import android.util.Base64
 import io.cloudx.sdk.internal.ApplicationContext
 import io.cloudx.sdk.internal.CXLogger
+import io.cloudx.sdk.internal.util.createIabSharedPreferences
 
 internal interface GPPProvider {
     fun gppString(): String?
@@ -15,13 +16,13 @@ internal interface GPPProvider {
 internal fun GPPProvider(): GPPProvider = LazySingleInstance
 
 private val LazySingleInstance by lazy {
-    GPPProviderImpl(ApplicationContext())
+    GPPProviderImpl.create(ApplicationContext())
 }
 
-private class GPPProviderImpl(context: Context) : GPPProvider {
+private class GPPProviderImpl(
+    private val sharedPrefs: SharedPreferences
+) : GPPProvider {
 
-    @Suppress("DEPRECATION")
-    private val sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context)
     private val logger = CXLogger.forComponent("GPPProvider")
 
     override fun gppString(): String? {
@@ -145,6 +146,16 @@ private class GPPProviderImpl(context: Context) : GPPProvider {
         val decoded = Base64.decode(encoded + pad, Base64.URL_SAFE or Base64.NO_WRAP)
         return decoded.joinToString("") { byte ->
             (byte.toInt() and 0xFF).toString(2).padStart(8, '0')
+        }
+    }
+
+    companion object {
+        /**
+         * Creates a GPPProviderImpl using the default shared preferences.
+         * This is the IAB GPP standard location for privacy strings.
+         */
+        fun create(context: Context): GPPProviderImpl {
+            return GPPProviderImpl(context.createIabSharedPreferences())
         }
     }
 }

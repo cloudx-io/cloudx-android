@@ -29,5 +29,5 @@ internal interface TCFProvider {
 internal fun TCFProvider(): TCFProvider = LazySingleInstance
 
 private val LazySingleInstance by lazy {
-    TCFProviderImpl(ApplicationContext())
+    TCFProviderImpl.create(ApplicationContext())
 }

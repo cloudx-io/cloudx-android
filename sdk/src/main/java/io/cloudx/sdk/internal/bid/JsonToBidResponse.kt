@@ -150,7 +150,7 @@ private fun JSONObject.getAdapterExtras(): Bundle {
     val key = "adapter_extras"
     val adapterExtras = if (cloudX.has(key)) cloudX.getJSONObject(key) else null
 
-    return adapterExtras?.toBundle() ?: Bundle.EMPTY
+    return adapterExtras?.toBundle() ?: Bundle()
 }
 
 private const val PREBID = "prebid"

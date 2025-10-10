@@ -1,6 +1,6 @@
 package io.cloudx.sdk.internal.bid
 
-import io.cloudx.sdk.RoboMockkTest
+import io.cloudx.sdk.CXTest
 import io.cloudx.sdk.internal.util.Result
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -16,56 +16,7 @@ import org.junit.Test
  * - No-floor scenarios are normalized to null (bidFloor = 0, negative, null, or missing)
  * - Edge cases are handled (missing participants array, rank mismatches)
  */
-class JsonToBidResponseFloorTest : RoboMockkTest() {
-
-    private fun createBidResponseJson(
-        bidFloorValue: String = "2.5",
-        includeBidFloor: Boolean = true,
-        participantRank: Int = 1,
-        bidRank: Int = 1
-    ): String {
-        val bidFloorField = if (includeBidFloor) {
-            """"bidFloor": $bidFloorValue,"""
-        } else {
-            ""
-        }
-
-        return """
-        {
-            "id": "auction123",
-            "seatbid": [{
-                "bid": [{
-                    "id": "bid1",
-                    "adm": "adm1",
-                    "price": 5.0,
-                    "w": 320,
-                    "h": 50,
-                    "ext": {
-                        "prebid": {
-                            "meta": {
-                                "adaptercode": "cloudx"
-                            }
-                        },
-                        "cloudx": {
-                            "rank": $bidRank
-                        }
-                    }
-                }]
-            }],
-            "ext": {
-                "cloudx": {
-                    "auction": {
-                        "participants": [{
-                            "rank": $participantRank,
-                            $bidFloorField
-                            "bidder": "cloudx"
-                        }]
-                    }
-                }
-            }
-        }
-        """.trimIndent()
-    }
+class JsonToBidResponseFloorTest : CXTest() {
 
     @Test
     fun `parse bidFloor from participants - valid floor`() = runTest {
@@ -268,4 +219,54 @@ class JsonToBidResponseFloorTest : RoboMockkTest() {
 
         assertNull(bidResponse.seatBid[0].bid[0].bidFloor)
     }
+
+    private fun createBidResponseJson(
+        bidFloorValue: String = "2.5",
+        includeBidFloor: Boolean = true,
+        participantRank: Int = 1,
+        bidRank: Int = 1
+    ): String {
+        val bidFloorField = if (includeBidFloor) {
+            """"bidFloor": $bidFloorValue,"""
+        } else {
+            ""
+        }
+
+        return """
+        {
+            "id": "auction123",
+            "seatbid": [{
+                "bid": [{
+                    "id": "bid1",
+                    "adm": "adm1",
+                    "price": 5.0,
+                    "w": 320,
+                    "h": 50,
+                    "ext": {
+                        "prebid": {
+                            "meta": {
+                                "adaptercode": "cloudx"
+                            }
+                        },
+                        "cloudx": {
+                            "rank": $bidRank
+                        }
+                    }
+                }]
+            }],
+            "ext": {
+                "cloudx": {
+                    "auction": {
+                        "participants": [{
+                            "rank": $participantRank,
+                            $bidFloorField
+                            "bidder": "cloudx"
+                        }]
+                    }
+                }
+            }
+        }
+        """.trimIndent()
+    }
+
 }

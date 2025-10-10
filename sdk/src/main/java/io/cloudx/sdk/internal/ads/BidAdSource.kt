@@ -24,48 +24,6 @@ import io.cloudx.sdk.internal.util.Result
 import java.util.UUID
 import kotlin.system.measureTimeMillis
 
-internal interface BidAdSource<T : CloudXDestroyable> {
-
-    /**
-     * @return the bid or null if no bid
-     */
-    suspend fun requestBid(): Result<BidAdSourceResponse<T>, CloudXError>
-}
-
-internal data class BidAdSourceResponse<T : CloudXDestroyable>(
-    val bidItemsByRank: List<Item<T>>,
-    val auctionId: String
-) {
-
-    data class Item<T>(
-        val bid: Bid,
-        val adNetwork: AdNetwork,
-        val adNetworkOriginal: AdNetwork, // todo: only used for demo
-        val createBidAd: suspend () -> T,
-    )
-}
-
-internal fun <T : CloudXDestroyable> BidAdSource(
-    provideBidRequest: BidRequestProvider,
-    bidRequestParams: BidRequestProvider.Params,
-    requestBid: BidApi,
-    cdpApi: CdpApi,
-    eventTracker: EventTracker,
-    metricsTracker: MetricsTracker,
-    winLossTracker: WinLossTracker,
-    createBidAd: suspend (CreateBidAdParams) -> T,
-): BidAdSource<T> =
-    BidAdSourceImpl(
-        provideBidRequest = provideBidRequest,
-        bidRequestParams = bidRequestParams,
-        requestBid = requestBid,
-        cdpApi = cdpApi,
-        eventTracking = eventTracker,
-        metricsTracker = metricsTracker,
-        winLossTracker = winLossTracker,
-        createBidAd = createBidAd
-    )
-
 internal class CreateBidAdParams(
     val placementName: String,
     val placementId: String,
@@ -75,20 +33,20 @@ internal class CreateBidAdParams(
     val auctionId: String
 )
 
-private class BidAdSourceImpl<T : CloudXDestroyable>(
+internal class BidAdSource<T : CloudXDestroyable>(
     private val provideBidRequest: BidRequestProvider,
     private val bidRequestParams: BidRequestProvider.Params,
     private val requestBid: BidApi,
     private val cdpApi: CdpApi,
-    private val eventTracking: EventTracker,
+    private val eventTracker: EventTracker,
     private val metricsTracker: MetricsTracker,
     private val winLossTracker: WinLossTracker,
     private val createBidAd: suspend (CreateBidAdParams) -> T,
-) : BidAdSource<T> {
+) {
 
-    private val logger = CXLogger.forComponent("BidAdSourceImpl")
+    private val logger = CXLogger.forComponent("BidAdSource")
 
-    override suspend fun requestBid(): Result<BidAdSourceResponse<T>, CloudXError> {
+    suspend fun requestBid(): Result<BidAdSourceResponse<T>, CloudXError> {
         val auctionId = UUID.randomUUID().toString()
         val bidRequestParamsJson = provideBidRequest.invoke(bidRequestParams, auctionId)
 
@@ -154,7 +112,7 @@ private class BidAdSourceImpl<T : CloudXDestroyable>(
             val secret = XorEncryption.generateXorSecret(accountId)
             val campaignId = XorEncryption.generateCampaignIdBase64(accountId)
             val impressionId = XorEncryption.encrypt(payload, secret)
-            eventTracking.send(impressionId, campaignId, "1", EventType.BID_REQUEST)
+            eventTracker.send(impressionId, campaignId, "1", EventType.BID_REQUEST)
         }
 
         return when (result) {

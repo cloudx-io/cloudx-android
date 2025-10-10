@@ -32,26 +32,19 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
-internal interface BannerManager : CloudXDestroyable {
-    var listener: CloudXAdViewListener?
-    fun load()
-    fun startAutoRefresh()
-    fun stopAutoRefresh()
-}
-
-private class BannerManagerImpl(
+internal class BannerManager(
     private val placementId: String,
     placementName: String,
     private val adLoader: AdLoader<BannerAdapterDelegate>,
     bannerVisibility: StateFlow<Boolean>,
     private val refreshSeconds: Int,
     private val metricsTracker: MetricsTracker,
-) : BannerManager {
+) : CloudXDestroyable {
 
     // Core properties
     private val logger = CXLogger.forPlacement("BannerManager", placementName)
     private val scope = ThreadUtils.createMainScope("BannerManager")
-    override var listener: CloudXAdViewListener? = null
+    var listener: CloudXAdViewListener? = null
 
     // Timing configuration
     private val refreshDelayMillis = TimeUnit.SECONDS.toMillis(refreshSeconds.toLong())
@@ -74,7 +67,7 @@ private class BannerManagerImpl(
         restartBannerRefresh()
     }
 
-    override fun load() {
+    fun load() {
         if (bannerRefreshTimer.isManuallyEnabled) {
             logger.w("Unable to load a new ad. Auto-refresh is enabled.")
             return
@@ -83,12 +76,12 @@ private class BannerManagerImpl(
     }
 
     // Public auto-refresh control methods
-    override fun startAutoRefresh() {
+    fun startAutoRefresh() {
         logger.i("Starting auto-refresh")
         bannerRefreshTimer.resume()
     }
 
-    override fun stopAutoRefresh() {
+    fun stopAutoRefresh() {
         logger.i("Stopping auto-refresh")
         bannerRefreshTimer.pause()
     }
@@ -290,7 +283,7 @@ internal fun BannerManager(
         winLossTracker = winLossTracker
     )
 
-    return BannerManagerImpl(
+    return BannerManager(
         placementId = placementId,
         placementName = placementName,
         adLoader = adLoader,

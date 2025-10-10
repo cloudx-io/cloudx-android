@@ -8,11 +8,11 @@ import androidx.core.content.ContextCompat
 import io.cloudx.sdk.internal.util.pxToDp
 
 // Main class
-internal open class ScreenService(
+internal class ScreenService(
     private val context: Context
 ) {
 
-    open suspend operator fun invoke(): ScreenData {
+    suspend operator fun invoke(): ScreenData {
         val windowManager = ContextCompat.getSystemService(context, WindowManager::class.java)!!
 
         return with(windowManager) {

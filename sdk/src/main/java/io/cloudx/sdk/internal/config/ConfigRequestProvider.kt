@@ -18,14 +18,14 @@ private val LazySingleInstance by lazy {
 internal fun ConfigRequestProvider(): ConfigRequestProvider = LazySingleInstance
 
 // Main class
-internal open class ConfigRequestProvider(
+internal class ConfigRequestProvider(
     private val sdkVersion: String,
     private val provideAppInfo: AppInfoProvider,
     private val provideDeviceInfo: DeviceInfoProvider,
     private val provideGAID: GAIDProvider
 ) {
 
-    open suspend operator fun invoke(): ConfigRequest {
+    suspend operator fun invoke(): ConfigRequest {
         val deviceInfo = provideDeviceInfo()
         val gaidData = provideGAID()
 

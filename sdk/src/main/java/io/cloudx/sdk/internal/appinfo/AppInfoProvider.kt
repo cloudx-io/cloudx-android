@@ -21,7 +21,7 @@ private val LazySingleInstance by lazy {
 internal fun AppInfoProvider(): AppInfoProvider = LazySingleInstance
 
 // Main class
-internal open class AppInfoProvider(
+internal class AppInfoProvider(
     private val appContext: Context
 ) {
 
@@ -30,7 +30,7 @@ internal open class AppInfoProvider(
     private var appInfo: AppInfo? = null
 
     // Possible race-conditions: appInfo might get updated a few times in the worst case scenario.
-    open suspend operator fun invoke(): AppInfo {
+    suspend operator fun invoke(): AppInfo {
         val appInfo = this.appInfo
         if (appInfo != null) {
             return appInfo

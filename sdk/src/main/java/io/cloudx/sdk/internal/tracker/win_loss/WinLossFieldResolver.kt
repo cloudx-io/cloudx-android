@@ -59,7 +59,7 @@ internal class WinLossFieldResolver {
                 val loopIndex = TrackingFieldResolver.resolveField(auctionId, fieldPath) as? String
                 loopIndex?.toIntOrNull()
             }
-            payloadKey == "notification" -> bidLifecycleEvent?.notificationType
+            payloadKey == "notificationType" -> bidLifecycleEvent?.notificationType
             payloadKey == "url" -> {
                 val url = bid?.rawJson?.optString(bidLifecycleEvent?.urlType)
                 url?.let { replaceUrlTemplates(it, lossReason, loadedBidPrice) }

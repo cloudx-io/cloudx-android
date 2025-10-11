@@ -23,7 +23,8 @@ internal class AdLoader<T : CXAdapterDelegate>(
     private val bidAdSource: BidAdSource<T>,
     private val bidAdLoadTimeoutMillis: Long,
     private val connectionStatusService: ConnectionStatusService,
-    private val winLossTracker: WinLossTracker
+    private val winLossTracker: WinLossTracker,
+    private val errorReportingService: ErrorReportingService = ErrorReportingService()
 ) {
     private val logger = CXLogger.forPlacement("AdLoader", placementName)
 
@@ -110,7 +111,7 @@ internal class AdLoader<T : CXAdapterDelegate>(
             throw e
         } catch (e: Exception) {
             logger.e("Failed to create ad", e)
-            ErrorReportingService().sendErrorEvent(
+            errorReportingService.sendErrorEvent(
                 errorMessage = "Ad adapter creation failed: ${e.message}",
                 errorDetails = e.stackTraceToString()
             )
@@ -133,7 +134,7 @@ internal class AdLoader<T : CXAdapterDelegate>(
             throw e
         } catch (e: Exception) {
             logger.e("Load failed", e)
-            ErrorReportingService().sendErrorEvent(
+            errorReportingService.sendErrorEvent(
                 errorMessage = "Ad loading failed: ${e.message}",
                 errorDetails = e.stackTraceToString()
             )

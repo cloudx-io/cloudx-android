@@ -90,6 +90,7 @@ junit = "junit:junit:4.13.2"
 truth = "com.google.truth:truth:1.4.5"
 mockk = "io.mockk:mockk:1.13.17"
 slf4j = "org.slf4j:slf4j-nop:1.7.36"
+json = "org.json:json:20250517"
 
 # === Ad Network SDKs ===
 metaAudienceNetwork = { group = "com.facebook.android", name = "audience-network-sdk", version.ref = "metaAudienceNetworkVersion" }
@@ -100,7 +101,7 @@ mintegral-newinterstitial = { group = "com.mbridge.msdk.oversea", name = "newint
 mintegral-mbbanner = { group = "com.mbridge.msdk.oversea", name = "mbbanner", version.ref = "mintegral" }
 
 [bundles]
-test-unit = ["junit", "truth", "kotlinx-coroutines-test", "ktor-client-mock", "mockk", "slf4j"]
+test-unit = ["junit", "truth", "kotlinx-coroutines-test", "ktor-client-mock", "mockk", "slf4j", "json"]
 
 mintegral = [
     "mintegral-reward",

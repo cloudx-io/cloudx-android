@@ -8,6 +8,7 @@ import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.bid.Bid
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
+import io.cloudx.sdk.internal.tracker.ErrorReportingService
 import io.cloudx.sdk.internal.tracker.win_loss.BidLifecycleEvent
 import io.cloudx.sdk.internal.tracker.win_loss.WinLossTracker
 import io.cloudx.sdk.internal.util.Result
@@ -29,6 +30,7 @@ class AdLoaderTest : CXTest() {
     private lateinit var mockBidAdSource: BidAdSource<CXAdapterDelegate>
     private lateinit var mockConnectionStatusService: ConnectionStatusService
     private lateinit var mockWinLossTracker: WinLossTracker
+    private lateinit var mockErrorReportingService: ErrorReportingService
     private lateinit var adLoader: AdLoader<CXAdapterDelegate>
 
     @Before
@@ -36,8 +38,10 @@ class AdLoaderTest : CXTest() {
         mockBidAdSource = mockk()
         mockConnectionStatusService = mockk()
         mockWinLossTracker = mockk()
+        mockErrorReportingService = mockk()
 
         coJustRun { mockConnectionStatusService.awaitConnection() }
+        justRun { mockErrorReportingService.sendErrorEvent(any(), any()) }
 
         adLoader = AdLoader(
             placementName = "test-placement",
@@ -45,7 +49,8 @@ class AdLoaderTest : CXTest() {
             bidAdSource = mockBidAdSource,
             bidAdLoadTimeoutMillis = 5000L,
             connectionStatusService = mockConnectionStatusService,
-            winLossTracker = mockWinLossTracker
+            winLossTracker = mockWinLossTracker,
+            errorReportingService = mockErrorReportingService
         )
     }
 
@@ -56,6 +61,7 @@ class AdLoaderTest : CXTest() {
         val bidResponse = createBidResponse(successfulAd)
         val expectedBid = bidResponse.bidItemsByRank.first().bid
         coEvery { mockBidAdSource.requestBid() } returns Result.Success(bidResponse)
+        justRun { mockWinLossTracker.sendEvent(any(), any(), any(), any(), any()) }
 
         // When
         val result = adLoader.load()
@@ -303,7 +309,7 @@ class AdLoaderTest : CXTest() {
             priceRaw = price.toString(),
             adNetwork = AdNetwork.CloudX,
             rank = rank,
-            adapterExtras = Bundle(),
+            adapterExtras = mockk(relaxed = true),
             dealId = "deal-$rank",
             creativeId = "creative-$rank",
             auctionId = "auction-123",

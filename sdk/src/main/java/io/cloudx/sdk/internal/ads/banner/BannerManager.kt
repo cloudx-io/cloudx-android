@@ -16,6 +16,7 @@ import io.cloudx.sdk.internal.bid.BidRequestProvider
 import io.cloudx.sdk.internal.cdp.CdpApi
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.tracker.EventTracker
+import io.cloudx.sdk.internal.tracker.SessionMetricsTracker
 import io.cloudx.sdk.internal.tracker.metrics.MetricsTracker
 import io.cloudx.sdk.internal.tracker.metrics.MetricsType
 import io.cloudx.sdk.internal.tracker.win_loss.WinLossTracker
@@ -34,7 +35,8 @@ import java.util.concurrent.TimeUnit
 
 internal class BannerManager(
     private val placementId: String,
-    placementName: String,
+    private val placementName: String,
+    private val adType: AdType,
     private val adLoader: AdLoader<BannerAdapterDelegate>,
     bannerVisibility: StateFlow<Boolean>,
     private val refreshSeconds: Int,
@@ -176,6 +178,7 @@ internal class BannerManager(
     private fun showNewBanner(banner: BannerAdapterDelegate) {
         logger.d("Displaying new banner")
         listener?.onAdDisplayed(banner)
+        SessionMetricsTracker.recordImpression(placementName, adType)
 
         currentBanner = banner
 
@@ -223,6 +226,7 @@ internal class BannerManager(
         bannerRefreshTimer.destroy()
 
         destroyBackupBanner()
+        SessionMetricsTracker.resetPlacement(placementName)
     }
 }
 
@@ -286,6 +290,7 @@ internal fun BannerManager(
     return BannerManager(
         placementId = placementId,
         placementName = placementName,
+        adType = adType,
         adLoader = adLoader,
         bannerVisibility = bannerVisibility,
         refreshSeconds = refreshSeconds,

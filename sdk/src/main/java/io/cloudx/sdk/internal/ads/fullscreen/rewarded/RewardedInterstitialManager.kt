@@ -4,6 +4,7 @@ import io.cloudx.sdk.CloudXAdRevenueListener
 import io.cloudx.sdk.CloudXRewardedInterstitialAd
 import io.cloudx.sdk.CloudXRewardedInterstitialListener
 import io.cloudx.sdk.internal.AdNetwork
+import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.adapter.CloudXAdapterBidRequestExtrasProvider
 import io.cloudx.sdk.internal.adapter.CloudXRewardedInterstitialAdapterFactory
 import io.cloudx.sdk.internal.ads.AdLoader
@@ -26,6 +27,7 @@ private class RewardedInterstitialManager(
         tag = "RewardedInterstitialManager",
         placementName = placementName,
         placementId = placementId,
+        adType = AdType.Rewarded,
         adLoader = adLoader,
         tryHandleCurrentEvent = { cloudXAd ->
             when (this) {

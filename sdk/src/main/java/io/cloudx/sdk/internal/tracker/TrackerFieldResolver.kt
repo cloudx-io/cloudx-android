@@ -16,6 +16,13 @@ internal object TrackingFieldResolver {
     private const val SDK_PARAM_ABTEST_GROUP = "sdk.testGroupName"
     private const val SDK_PARAM_LOOP_INDEX = "sdk.loopIndex"
     private const val SDK_PARAM_IFA = "sdk.ifa"
+    private const val SDK_PARAM_SESSION_DEPTH = "sdk.sessionDepth"
+    private const val SDK_PARAM_SESSION_DEPTH_BANNER = "sdk.sessionDepthBanner"
+    private const val SDK_PARAM_SESSION_DEPTH_MEDIUM_RECTANGLE = "sdk.sessionDepthMediumRectangle"
+    private const val SDK_PARAM_SESSION_DEPTH_FULL = "sdk.sessionDepthFull"
+    private const val SDK_PARAM_SESSION_DEPTH_NATIVE = "sdk.sessionDepthNative"
+    private const val SDK_PARAM_SESSION_DEPTH_REWARDED = "sdk.sessionDepthRewarded"
+    private const val SDK_PARAM_SESSION_DURATION = "sdk.sessionDurationSeconds"
 
     private var tracking: List<String>? = null
     private val requestDataMap = ConcurrentHashMap<String, JSONObject>()
@@ -23,6 +30,7 @@ internal object TrackingFieldResolver {
     private var configDataMap: JSONObject? = null
     private val sdkMap = ConcurrentHashMap<String, MutableMap<String, String>>()
     private var auctionedLoopIndex = ConcurrentHashMap<String, Int>()
+    private val sessionMetricsMap = ConcurrentHashMap<String, SessionMetrics>()
 
     private var sessionId: String? = null
     private var sdkVersion: String? = null
@@ -70,6 +78,10 @@ internal object TrackingFieldResolver {
         auctionedLoopIndex[auctionId] = loopIndex
     }
 
+    fun setSessionMetrics(auctionId: String, metrics: SessionMetrics) {
+        sessionMetricsMap[auctionId] = metrics
+    }
+
     fun getAccountId(): String? {
         return accountId
     }
@@ -93,6 +105,7 @@ internal object TrackingFieldResolver {
         responseDataMap.clear()
         sdkMap.clear()
         auctionedLoopIndex.clear()
+        sessionMetricsMap.clear()
     }
 
     private fun Any?.resolveNestedField(path: String): Any? {
@@ -184,6 +197,13 @@ internal object TrackingFieldResolver {
                     SDK_PARAM_SDK_VERSION -> sdkVersion
                     SDK_PARAM_DEVICE_TYPE -> deviceType
                     SDK_PARAM_LOOP_INDEX -> auctionedLoopIndex[auctionId]?.toString()
+                    SDK_PARAM_SESSION_DEPTH -> sessionMetricsMap[auctionId]?.depth?.toString()
+                    SDK_PARAM_SESSION_DEPTH_BANNER -> sessionMetricsMap[auctionId]?.bannerDepth?.toString()
+                    SDK_PARAM_SESSION_DEPTH_MEDIUM_RECTANGLE -> sessionMetricsMap[auctionId]?.mediumRectangleDepth?.toString()
+                    SDK_PARAM_SESSION_DEPTH_FULL -> sessionMetricsMap[auctionId]?.fullDepth?.toString()
+                    SDK_PARAM_SESSION_DEPTH_NATIVE -> sessionMetricsMap[auctionId]?.nativeDepth?.toString()
+                    SDK_PARAM_SESSION_DEPTH_REWARDED -> sessionMetricsMap[auctionId]?.rewardedDepth?.toString()
+                    SDK_PARAM_SESSION_DURATION -> sessionMetricsMap[auctionId]?.durationSeconds?.toString()
                     SDK_PARAM_IFA -> handleIfaField(auctionId)
                     SDK_PARAM_ABTEST_GROUP -> abTestGroup
                     else -> sdkMap[auctionId]?.get(field)

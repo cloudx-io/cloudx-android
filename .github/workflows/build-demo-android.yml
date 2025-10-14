@@ -27,11 +27,6 @@ jobs:
         run: chmod +x gradlew
       - name: Run Unit Tests
         run: ./gradlew :sdk:test
-      - name: 📋 Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v2
-        if: always()
-        with:
-          files: sdk/build/test-results/**/*.xml
       - name: 📊 Upload Test Reports
         uses: actions/upload-artifact@v4
         if: always()
@@ -40,6 +35,31 @@ jobs:
           path: |
             sdk/build/reports/tests/
             sdk/build/test-results/
+      - name: 📋 Generate Test Summary
+        if: always()
+        run: |
+          echo "## Test Results" >> $GITHUB_STEP_SUMMARY
+          if [ -f sdk/build/test-results/test/TEST-*.xml ]; then
+            TOTAL=$(grep -o 'tests="[0-9]*"' sdk/build/test-results/test/TEST-*.xml | head -1 | grep -o '[0-9]*')
+            FAILURES=$(grep -o 'failures="[0-9]*"' sdk/build/test-results/test/TEST-*.xml | head -1 | grep -o '[0-9]*')
+            ERRORS=$(grep -o 'errors="[0-9]*"' sdk/build/test-results/test/TEST-*.xml | head -1 | grep -o '[0-9]*')
+            SKIPPED=$(grep -o 'skipped="[0-9]*"' sdk/build/test-results/test/TEST-*.xml | head -1 | grep -o '[0-9]*')
+            PASSED=$((TOTAL - FAILURES - ERRORS - SKIPPED))
+
+            if [ $((FAILURES + ERRORS)) -eq 0 ]; then
+              echo "✅ All tests passed!" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "❌ Some tests failed!" >> $GITHUB_STEP_SUMMARY
+            fi
+
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "- **Total:** $TOTAL" >> $GITHUB_STEP_SUMMARY
+            echo "- **Passed:** ✅ $PASSED" >> $GITHUB_STEP_SUMMARY
+            echo "- **Failed:** ❌ $((FAILURES + ERRORS))" >> $GITHUB_STEP_SUMMARY
+            echo "- **Skipped:** ⏭️ $SKIPPED" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ No test results found" >> $GITHUB_STEP_SUMMARY
+          fi
       - name: Extract version from libs.versions.toml
         id: extract-version
         run: |

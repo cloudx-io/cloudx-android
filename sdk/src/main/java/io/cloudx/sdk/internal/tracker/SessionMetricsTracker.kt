@@ -43,7 +43,7 @@ internal object SessionMetricsTracker {
     private var sessionStartElapsedRealtime: Long? = null
     private var lastActivityElapsedRealtime: Long? = null
     private var globalCount: Int = 0
-    private val formatCounts = IntArray(SessionAdFormat.values().size)
+    private val formatCounts = IntArray(SessionAdFormat.entries.size)
     private val placementCounts = mutableMapOf<String, Int>()
 
     @Synchronized

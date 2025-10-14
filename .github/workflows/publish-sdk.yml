@@ -50,6 +50,21 @@ jobs:
       - name: 🧪 Run SDK Tests
         run: ./gradlew :sdk:test
 
+      - name: 📋 Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: sdk/build/test-results/**/*.xml
+
+      - name: 📊 Upload Test Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-reports-${{ github.run_number }}
+          path: |
+            sdk/build/reports/tests/
+            sdk/build/test-results/
+
       - name: 🕵️ Log Maven Central and GPG Secrets (partially)
         run: |
           echo "🔐 mavenCentralUsername: ${ORG_GRADLE_PROJECT_mavenCentralUsername:0:4}"

@@ -28,6 +28,8 @@ jobs:
           cache: gradle
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
+      - name: Run Unit Tests
+        run: ./gradlew :sdk:test
       - name: Extract version from libs.versions.toml
         id: extract-version
         run: |

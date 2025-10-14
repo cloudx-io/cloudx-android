@@ -47,11 +47,8 @@ jobs:
         run: chmod +x ./gradlew
 
       # Additional SDK checks can be added here
-      - name: 🧪 Run SDK Tests (placeholder)
-        run: |
-          echo "🧪 Running SDK-specific tests and checks..."
-          # ./gradlew :sdk:test
-          # Add other SDK-specific validation steps here
+      - name: 🧪 Run SDK Tests
+        run: ./gradlew :sdk:test
 
       - name: 🕵️ Log Maven Central and GPG Secrets (partially)
         run: |

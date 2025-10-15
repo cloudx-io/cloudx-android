@@ -22,7 +22,6 @@ import io.cloudx.sdk.internal.toBidRequestString
 import io.cloudx.sdk.internal.tracker.PlacementLoopIndexTracker
 import io.cloudx.sdk.internal.tracker.SessionMetrics
 import io.cloudx.sdk.internal.tracker.SessionMetricsTracker
-import io.cloudx.sdk.internal.tracker.TrackingFieldResolver
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -50,7 +49,6 @@ internal class BidRequestProvider(
 
             val piiRemove = privacyService.shouldClearPersonalData()
             val sessionMetrics = SessionMetricsTracker.getMetrics()
-            TrackingFieldResolver.setSessionMetrics(auctionId, sessionMetrics)
             val requestJson = JSONObject().apply {
 
                 put("id", auctionId)

@@ -4,6 +4,7 @@ import io.cloudx.sdk.CloudXAdRevenueListener
 import io.cloudx.sdk.CloudXInterstitialAd
 import io.cloudx.sdk.CloudXInterstitialListener
 import io.cloudx.sdk.internal.AdNetwork
+import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.adapter.CloudXAdapterBidRequestExtrasProvider
 import io.cloudx.sdk.internal.adapter.CloudXInterstitialAdapterFactory
 import io.cloudx.sdk.internal.ads.AdLoader
@@ -26,6 +27,7 @@ private class InterstitialManagerImpl(
         tag = "InterstitialManager",
         placementName = placementName,
         placementId = placementId,
+        adType = AdType.Interstitial,
         adLoader = adLoader,
         tryHandleCurrentEvent = {
             when (this) {

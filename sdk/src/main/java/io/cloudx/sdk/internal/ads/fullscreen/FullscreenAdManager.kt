@@ -4,8 +4,10 @@ import io.cloudx.sdk.CloudXAd
 import io.cloudx.sdk.CloudXAdListener
 import io.cloudx.sdk.CloudXAdRevenueListener
 import io.cloudx.sdk.CloudXFullscreenAd
+import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.ads.AdLoader
+import io.cloudx.sdk.internal.tracker.SessionMetricsTracker
 import io.cloudx.sdk.internal.util.ThreadUtils
 import io.cloudx.sdk.toCloudXError
 import kotlinx.coroutines.CancellationException
@@ -21,8 +23,9 @@ internal class FullscreenAdManager<
         Delegate : FullscreenAdAdapterDelegate<DelegateEvent>,
         DelegateEvent>(
     private val tag: String,
-    placementName: String,
+    private val placementName: String,
     private val placementId: String,
+    private val adType: AdType,
     private val adLoader: AdLoader<Delegate>,
     // Listens to the current ad events and returns FullscreenAdEvent if similar.
     private val tryHandleCurrentEvent: DelegateEvent.(cloudXAd: CloudXAd) -> FullscreenAdEvent?,
@@ -165,6 +168,7 @@ internal class FullscreenAdManager<
                 ad.event.collect {
                     when (it.tryHandleCurrentEvent(ad)) {
                         FullscreenAdEvent.Show -> {
+                            SessionMetricsTracker.recordImpression(placementName, adType)
                             listener?.onAdDisplayed(ad)
                         }
 
@@ -200,6 +204,7 @@ internal class FullscreenAdManager<
     override fun destroy() {
         destroyLastLoadedAd()
         scope.cancel()
+        SessionMetricsTracker.resetPlacement(placementName)
     }
 }
 

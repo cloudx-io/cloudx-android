@@ -53,7 +53,6 @@ internal class WinLossFieldResolver {
         loadedBidPrice: Float
     ): Any? {
         return when {
-            fieldPath == "sdk.lossReason" -> lossReason.description
             fieldPath == "sdk.sdk" -> "sdk"
             fieldPath == "sdk.loopIndex" -> {
                 val loopIndex = TrackingFieldResolver.resolveField(auctionId, fieldPath) as? String
@@ -65,6 +64,9 @@ internal class WinLossFieldResolver {
             }
             payloadKey == "error" -> {
                 // TODO
+            }
+            payloadKey == "lossReasonCode" -> {
+                lossReason.code
             }
             else -> TrackingFieldResolver.resolveField(auctionId, fieldPath, bid?.id)
         }

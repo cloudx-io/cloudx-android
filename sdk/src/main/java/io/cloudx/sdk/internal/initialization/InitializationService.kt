@@ -25,6 +25,7 @@ import io.cloudx.sdk.internal.tracker.ClickCounterTracker
 import io.cloudx.sdk.internal.tracker.ErrorReportingService
 import io.cloudx.sdk.internal.tracker.EventTracker
 import io.cloudx.sdk.internal.tracker.EventType
+import io.cloudx.sdk.internal.tracker.SessionMetricsTracker
 import io.cloudx.sdk.internal.tracker.TrackingFieldResolver
 import io.cloudx.sdk.internal.tracker.XorEncryption
 import io.cloudx.sdk.internal.tracker.metrics.MetricsTracker
@@ -128,6 +129,7 @@ internal class InitializationService(
             SdkKeyValueState.setKeyValuePaths(cfg.keyValuePaths)
 
             metricsTracker.start(cfg)
+            SessionMetricsTracker.resetAll()
 
             val geoDataResult: Result<Map<String, String>, CloudXError>
             val geoRequestMillis = measureTimeMillis {
@@ -187,6 +189,7 @@ internal class InitializationService(
         adFactory = null
         metricsTracker.stop()
         TrackingFieldResolver.clear()
+        SessionMetricsTracker.resetAll()
     }
 
     // TODO. Replace with LazyAdapterResolver

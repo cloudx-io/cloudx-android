@@ -20,6 +20,8 @@ import io.cloudx.sdk.internal.screen.ScreenService
 import io.cloudx.sdk.internal.state.SdkKeyValueState
 import io.cloudx.sdk.internal.toBidRequestString
 import io.cloudx.sdk.internal.tracker.PlacementLoopIndexTracker
+import io.cloudx.sdk.internal.tracker.SessionMetrics
+import io.cloudx.sdk.internal.tracker.SessionMetricsTracker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -46,6 +48,7 @@ internal class BidRequestProvider(
         withContext(Dispatchers.IO) {
 
             val piiRemove = privacyService.shouldClearPersonalData()
+            val sessionMetrics = SessionMetricsTracker.getMetrics()
             val requestJson = JSONObject().apply {
 
                 put("id", auctionId)
@@ -156,6 +159,7 @@ internal class BidRequestProvider(
                                 })
                             })
                         })
+                        putSessionMetrics(sessionMetrics)
                     })
                 })
 
@@ -253,6 +257,27 @@ internal suspend fun JSONObject.putBidRequestAdapterExtras(
             })
         }
     })
+}
+
+private fun JSONObject.putSessionMetrics(metrics: SessionMetrics) {
+    put("metric", JSONArray().apply {
+        addMetric("session_depth", metrics.depth)
+        addMetric("session_depth_banner", metrics.bannerDepth)
+        addMetric("session_depth_medium_rectangle", metrics.mediumRectangleDepth)
+        addMetric("session_depth_full", metrics.fullDepth)
+        addMetric("session_depth_native", metrics.nativeDepth)
+        addMetric("session_depth_rewarded", metrics.rewardedDepth)
+        addMetric("session_duration", metrics.durationSeconds)
+    })
+}
+
+private fun JSONArray.addMetric(type: String, value: Float) {
+    val metricObject = JSONObject().apply {
+        put("type", type)
+        put("value", value.toDouble())
+        put("vendor", "EXCHANGE")
+    }
+    put(metricObject)
 }
 
 fun JSONObject.putAtDynamicPath(path: String, value: Any) {

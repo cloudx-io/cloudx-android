@@ -1,6 +1,7 @@
 package io.cloudx.sdk.internal.bid
 
 import android.content.Context
+import android.os.Build
 import io.cloudx.sdk.BuildConfig
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.AdType
@@ -52,7 +53,29 @@ internal class BidRequestProvider(
             val requestJson = JSONObject().apply {
 
                 put("id", auctionId)
-                put("test", 1) // TODO: Remove hardcoded test mode
+                
+                // Test mode logic (matches iOS implementation):
+                // 1. Force test mode (runtime override for demo/test apps)
+                // 2. Emulator detection (always test mode on emulator)
+                // 3. Build configuration (DEBUG=test:1, RELEASE=omit)
+                val shouldIncludeTestFlag = when {
+                    SdkKeyValueState.forceTestMode -> {
+                        // Explicitly enabled via SDK API
+                        true
+                    }
+                    isEmulator() -> {
+                        // Emulator always gets test mode
+                        true
+                    }
+                    else -> {
+                        // Real device: DEBUG=test, RELEASE=production
+                        BuildConfig.DEBUG
+                    }
+                }
+                
+                if (shouldIncludeTestFlag) {
+                    put("test", 1)
+                }
 
                 put("app", JSONObject().apply {
                     val appInfo = provideAppInfo()
@@ -559,4 +582,19 @@ private val ExcludedOrtbBannerTypes = JSONArray().apply {
     put(1)
     // IFRAME
     put(4)
+}
+
+/**
+ * Detects if the app is running on an Android emulator.
+ * Uses multiple heuristics to ensure reliable detection across different emulator types.
+ */
+private fun isEmulator(): Boolean {
+    return (Build.FINGERPRINT.startsWith("generic")
+            || Build.FINGERPRINT.startsWith("unknown")
+            || Build.MODEL.contains("google_sdk")
+            || Build.MODEL.contains("Emulator")
+            || Build.MODEL.contains("Android SDK built for x86")
+            || Build.MANUFACTURER.contains("Genymotion")
+            || (Build.BRAND.startsWith("generic") && Build.DEVICE.startsWith("generic"))
+            || "google_sdk" == Build.PRODUCT)
 }

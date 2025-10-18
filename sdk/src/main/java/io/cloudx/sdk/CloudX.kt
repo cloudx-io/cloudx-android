@@ -103,6 +103,17 @@ object CloudX {
     }
 
     /**
+     * Force test mode for bid requests. When enabled, all bid requests will include test:1
+     * regardless of build configuration. Useful for demo/test apps in release builds.
+     * 
+     * @param enabled true to force test mode, false to use automatic detection (default)
+     */
+    @JvmStatic
+    fun setTestMode(enabled: Boolean) {
+        SdkKeyValueState.forceTestMode = enabled
+    }
+
+    /**
      * Set privacy data which is then will be used in ad loading process.
      */
     @JvmStatic

@@ -5,6 +5,12 @@ import io.cloudx.sdk.internal.config.Config
 internal object SdkKeyValueState {
 
     var hashedUserId: String? = null
+    
+    /**
+     * Force test mode flag. When true, all bid requests include test:1 regardless of build config.
+     * Used by demo/test apps to enable test mode in release builds.
+     */
+    var forceTestMode: Boolean = false
 
     val userKeyValues: MutableMap<String, String> = mutableMapOf()
     val appKeyValues: MutableMap<String, String> = mutableMapOf()

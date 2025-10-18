@@ -1,6 +1,9 @@
 [versions]
 # === SDK Configuration ===
 sdkVersionName = "0.0.1.42"
+# -LOCAL suffix prevents Gradle from checking remote repos, forcing mavenLocal() resolution.
+# Publish with: ./gradlew publishToMavenLocal -Pversion=0.0.1.42-LOCAL
+sdkVersionNameLocal = "0.0.1.42-LOCAL"
 mavenGroupId = "io.cloudx"
 sdkPackageName = "io.cloudx.sdk"
 adapterPackageName = "io.cloudx.adapter"

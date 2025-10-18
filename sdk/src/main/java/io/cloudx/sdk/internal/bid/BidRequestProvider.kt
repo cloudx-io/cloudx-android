@@ -6,6 +6,8 @@ import io.cloudx.sdk.BuildConfig
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.ApplicationContext
+import io.cloudx.sdk.internal.CXLogger
+import io.cloudx.sdk.internal.ComponentLogger
 import io.cloudx.sdk.internal.adapter.CloudXAdapterBidRequestExtrasProvider
 import io.cloudx.sdk.internal.ads.native.NativeAdSpecs
 import io.cloudx.sdk.internal.appinfo.AppInfoProvider
@@ -35,6 +37,7 @@ import java.util.UUID
 internal class BidRequestProvider(
     private val context: Context = ApplicationContext(),
     private val sdkVersion: String = BuildConfig.SDK_VERSION_NAME,
+    private val logger: ComponentLogger = CXLogger.forComponent("BidRequestProvider"),
     private val provideAppInfo: AppInfoProvider = AppInfoProvider(),
     private val provideDeviceInfo: DeviceInfoProvider = DeviceInfoProvider(),
     private val provideScreenData: ScreenService = ScreenService(ApplicationContext()),
@@ -54,27 +57,20 @@ internal class BidRequestProvider(
 
                 put("id", auctionId)
                 
-                // Test mode logic (matches iOS implementation):
-                // 1. Force test mode (runtime override for demo/test apps)
-                // 2. Emulator detection (always test mode on emulator)
-                // 3. Build configuration (DEBUG=test:1, RELEASE=omit)
-                val shouldIncludeTestFlag = when {
-                    SdkKeyValueState.forceTestMode -> {
-                        // Explicitly enabled via SDK API
-                        true
-                    }
-                    isEmulator() -> {
-                        // Emulator always gets test mode
-                        true
-                    }
-                    else -> {
-                        // Real device: DEBUG=test, RELEASE=production
-                        BuildConfig.DEBUG
-                    }
-                }
+                // OpenRTB test flag: signals to ad servers this is a test request.
+                // Two triggers: CloudX.setTestMode(true) for release builds, or BuildConfig.DEBUG for dev builds.
+                // Without test:1, most ad networks return no fill (production traffic protection).
+                logger.d("=== TEST FLAG DECISION START ===")
+                logger.d("forceTestMode=${SdkKeyValueState.forceTestMode}, BuildConfig.DEBUG=${BuildConfig.DEBUG}")
                 
+                val shouldIncludeTestFlag = SdkKeyValueState.forceTestMode || BuildConfig.DEBUG
+                
+                logger.d("=== FINAL TEST FLAG=$shouldIncludeTestFlag ===")
                 if (shouldIncludeTestFlag) {
                     put("test", 1)
+                    logger.d("Added 'test': 1 to bid request")
+                } else {
+                    logger.d("NOT adding 'test' flag")
                 }
 
                 put("app", JSONObject().apply {
@@ -589,12 +585,26 @@ private val ExcludedOrtbBannerTypes = JSONArray().apply {
  * Uses multiple heuristics to ensure reliable detection across different emulator types.
  */
 private fun isEmulator(): Boolean {
-    return (Build.FINGERPRINT.startsWith("generic")
+    val logger = CXLogger.forComponent("BidRequestProvider")
+    logger.d("=== EMULATOR DETECTION ===")
+    logger.d("Build.FINGERPRINT: ${Build.FINGERPRINT}")
+    logger.d("Build.MODEL: ${Build.MODEL}")
+    logger.d("Build.MANUFACTURER: ${Build.MANUFACTURER}")
+    logger.d("Build.BRAND: ${Build.BRAND}")
+    logger.d("Build.DEVICE: ${Build.DEVICE}")
+    logger.d("Build.PRODUCT: ${Build.PRODUCT}")
+    
+    val result = (Build.FINGERPRINT.startsWith("generic")
             || Build.FINGERPRINT.startsWith("unknown")
             || Build.MODEL.contains("google_sdk")
             || Build.MODEL.contains("Emulator")
             || Build.MODEL.contains("Android SDK built for x86")
             || Build.MANUFACTURER.contains("Genymotion")
             || (Build.BRAND.startsWith("generic") && Build.DEVICE.startsWith("generic"))
-            || "google_sdk" == Build.PRODUCT)
+            || "google_sdk" == Build.PRODUCT
+            || Build.HARDWARE.contains("ranchu")
+            || Build.HARDWARE.contains("goldfish"))
+    
+    logger.d("isEmulator result: $result")
+    return result
 }

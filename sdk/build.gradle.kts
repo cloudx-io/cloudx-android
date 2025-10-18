@@ -49,7 +49,11 @@ android {
         testInstrumentationRunner = libs.versions.testInstrumentationRunner.get()
         consumerProguardFiles("consumer-rules.pro")
 
-        buildConfigField("String", "SDK_VERSION_NAME", "\"${libs.versions.sdkVersionName.get()}\"")
+        // Use version from -Pversion property if provided, otherwise use default from catalog
+        // This allows: ./gradlew publishToMavenLocal -Pversion=0.0.1.42-LOCAL for local dev
+        // And preserves: ./gradlew publish (from CI) to use the proper release version
+        val buildVersion = project.findProperty("version") as String? ?: libs.versions.sdkVersionName.get()
+        buildConfigField("String", "SDK_VERSION_NAME", "\"$buildVersion\"")
         buildConfigField("long", "SDK_BUILD_TIMESTAMP", "${System.currentTimeMillis()}")
 
         val configEndpoint = property("cloudx.endpoint.config")

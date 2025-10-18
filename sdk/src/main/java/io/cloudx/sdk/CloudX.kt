@@ -103,10 +103,13 @@ object CloudX {
     }
 
     /**
-     * Force test mode for bid requests. When enabled, all bid requests will include test:1
-     * regardless of build configuration. Useful for demo/test apps in release builds.
+     * Override test mode for bid requests (OpenRTB test:1 field).
      * 
-     * @param enabled true to force test mode, false to use automatic detection (default)
+     * Why this exists: Demo apps often build in release mode (BuildConfig.DEBUG=false), 
+     * which normally omits test:1, causing ad networks to return no fill. This lets you 
+     * force test mode in release builds so demo apps actually show ads.
+     * 
+     * @param enabled true to force test:1 in all bid requests, false for automatic (DEBUG builds only)
      */
     @JvmStatic
     fun setTestMode(enabled: Boolean) {

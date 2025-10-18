@@ -6,6 +6,8 @@ import io.cloudx.sdk.BuildConfig
 import io.cloudx.sdk.internal.AdNetwork
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.ApplicationContext
+import io.cloudx.sdk.internal.CXLogger
+import io.cloudx.sdk.internal.ComponentLogger
 import io.cloudx.sdk.internal.adapter.CloudXAdapterBidRequestExtrasProvider
 import io.cloudx.sdk.internal.ads.native.NativeAdSpecs
 import io.cloudx.sdk.internal.appinfo.AppInfoProvider
@@ -35,6 +37,7 @@ import java.util.UUID
 internal class BidRequestProvider(
     private val context: Context = ApplicationContext(),
     private val sdkVersion: String = BuildConfig.SDK_VERSION_NAME,
+    private val logger: ComponentLogger = CXLogger.forComponent("BidRequestProvider"),
     private val provideAppInfo: AppInfoProvider = AppInfoProvider(),
     private val provideDeviceInfo: DeviceInfoProvider = DeviceInfoProvider(),
     private val provideScreenData: ScreenService = ScreenService(ApplicationContext()),
@@ -54,26 +57,8 @@ internal class BidRequestProvider(
 
                 put("id", auctionId)
                 
-                // Test mode logic (matches iOS implementation):
-                // 1. Force test mode (runtime override for demo/test apps)
-                // 2. Emulator detection (always test mode on emulator)
-                // 3. Build configuration (DEBUG=test:1, RELEASE=omit)
-                val shouldIncludeTestFlag = when {
-                    SdkKeyValueState.forceTestMode -> {
-                        // Explicitly enabled via SDK API
-                        true
-                    }
-                    isEmulator() -> {
-                        // Emulator always gets test mode
-                        true
-                    }
-                    else -> {
-                        // Real device: DEBUG=test, RELEASE=production
-                        BuildConfig.DEBUG
-                    }
-                }
-                
-                if (shouldIncludeTestFlag) {
+                // Test mode: setTestMode(true) or DEBUG builds
+                if (SdkKeyValueState.forceTestMode || BuildConfig.DEBUG) {
                     put("test", 1)
                 }
 
@@ -582,19 +567,4 @@ private val ExcludedOrtbBannerTypes = JSONArray().apply {
     put(1)
     // IFRAME
     put(4)
-}
-
-/**
- * Detects if the app is running on an Android emulator.
- * Uses multiple heuristics to ensure reliable detection across different emulator types.
- */
-private fun isEmulator(): Boolean {
-    return (Build.FINGERPRINT.startsWith("generic")
-            || Build.FINGERPRINT.startsWith("unknown")
-            || Build.MODEL.contains("google_sdk")
-            || Build.MODEL.contains("Emulator")
-            || Build.MODEL.contains("Android SDK built for x86")
-            || Build.MANUFACTURER.contains("Genymotion")
-            || (Build.BRAND.startsWith("generic") && Build.DEVICE.startsWith("generic"))
-            || "google_sdk" == Build.PRODUCT)
 }

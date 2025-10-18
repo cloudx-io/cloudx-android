@@ -8,7 +8,7 @@ plugins {
 mavenPublishing {
     // Use the new Central Publisher Portal (S01)
     publishToMavenCentral(automaticRelease = true)
-    signAllPublications()
+    // signAllPublications() // Disabled for local development - enable only for releases
     coordinates(libs.versions.mavenGroupId.get(), "sdk", project.findProperty("version") as String? ?: libs.versions.sdkVersionName.get())
 
     pom {

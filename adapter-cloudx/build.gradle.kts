@@ -66,7 +66,7 @@ dependencies {
 
 mavenPublishing {
     publishToMavenCentral(automaticRelease = true)
-    signAllPublications()
+    // signAllPublications() // Disabled for local development - enable only for releases
     coordinates(libs.versions.mavenGroupId.get(), "adapter-cloudx", project.findProperty("version") as String? ?: "0.0.1.01")
 
     pom {

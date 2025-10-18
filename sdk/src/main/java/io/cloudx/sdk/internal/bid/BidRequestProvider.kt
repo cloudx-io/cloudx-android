@@ -52,6 +52,7 @@ internal class BidRequestProvider(
             val requestJson = JSONObject().apply {
 
                 put("id", auctionId)
+                put("test", 1) // TODO: Remove hardcoded test mode
 
                 put("app", JSONObject().apply {
                     val appInfo = provideAppInfo()

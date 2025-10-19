@@ -12,7 +12,7 @@ mavenPublishing {
     
     // IMPORTANT: Version Resolution for Maven Local Development
     // =========================================================
-    // For local Flutter development, you MUST publish with an explicit version flag:
+    // For local development, you MUST publish with an explicit version flag:
     //   ./gradlew clean publishToMavenLocal -Pversion=0.0.1.42-LOCAL -x test --no-build-cache
     //
     // Why?
@@ -24,14 +24,8 @@ mavenPublishing {
     // After publishing, verify correct version with:
     //   ls -lah ~/.m2/repository/io/cloudx/sdk/0.0.1.42-LOCAL/
     //
-    // To completely reset Maven Local (nuclear option):
+    // To completely reset Maven Local:
     //   rm -rf ~/.m2/repository/io/cloudx
-    //
-    // Then in Flutter project:
-    //   cd cloudx-flutter/cloudx_flutter_demo_app
-    //   flutter clean
-    //   cd android && ./gradlew clean --no-build-cache && cd ..
-    //   flutter run -d <device>
     coordinates(libs.versions.mavenGroupId.get(), "sdk", project.findProperty("version") as String? ?: libs.versions.sdkVersionName.get())
 
     pom {

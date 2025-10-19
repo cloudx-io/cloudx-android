@@ -63,7 +63,7 @@ internal fun BidRewardedInterstitialSource(
             placementName = placementName,
             placementId = placementId,
             adNetwork = network,
-            externalPlacementId = null,
+            externalPlacementId = params.getString("placement_id"),
             price = price,
         ) { listener ->
             // TODO. IMPORTANT. Explicit Result cast isn't "cool", even though there's try catch somewhere.

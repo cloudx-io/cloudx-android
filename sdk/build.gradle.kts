@@ -9,6 +9,29 @@ mavenPublishing {
     // Use the new Central Publisher Portal (S01)
     publishToMavenCentral(automaticRelease = true)
     // signAllPublications() // Disabled for local development - enable only for releases
+    
+    // IMPORTANT: Version Resolution for Maven Local Development
+    // =========================================================
+    // For local Flutter development, you MUST publish with an explicit version flag:
+    //   ./gradlew clean publishToMavenLocal -Pversion=0.0.1.42-LOCAL -x test --no-build-cache
+    //
+    // Why?
+    // - Without -Pversion flag, Gradle uses the fallback from libs.versions.toml
+    // - Sometimes the fallback fails silently and Gradle uses "unspecified" as version
+    // - This creates artifacts at ~/.m2/repository/io/cloudx/{module}/unspecified/
+    // - Flutter will fail to resolve these "unspecified" versions
+    //
+    // After publishing, verify correct version with:
+    //   ls -lah ~/.m2/repository/io/cloudx/sdk/0.0.1.42-LOCAL/
+    //
+    // To completely reset Maven Local (nuclear option):
+    //   rm -rf ~/.m2/repository/io/cloudx
+    //
+    // Then in Flutter project:
+    //   cd cloudx-flutter/cloudx_flutter_demo_app
+    //   flutter clean
+    //   cd android && ./gradlew clean --no-build-cache && cd ..
+    //   flutter run -d <device>
     coordinates(libs.versions.mavenGroupId.get(), "sdk", project.findProperty("version") as String? ?: libs.versions.sdkVersionName.get())
 
     pom {

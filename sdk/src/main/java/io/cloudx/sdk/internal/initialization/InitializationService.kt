@@ -15,7 +15,6 @@ import io.cloudx.sdk.internal.config.ConfigApi
 import io.cloudx.sdk.internal.config.ConfigRequestProvider
 import io.cloudx.sdk.internal.config.ResolvedEndpoints
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
-import io.cloudx.sdk.internal.tracker.crash.CrashReportingService
 import io.cloudx.sdk.internal.deviceinfo.DeviceInfoProvider
 import io.cloudx.sdk.internal.geo.GeoApi
 import io.cloudx.sdk.internal.geo.GeoInfoHolder
@@ -28,6 +27,7 @@ import io.cloudx.sdk.internal.tracker.EventType
 import io.cloudx.sdk.internal.tracker.SessionMetricsTracker
 import io.cloudx.sdk.internal.tracker.TrackingFieldResolver
 import io.cloudx.sdk.internal.tracker.XorEncryption
+import io.cloudx.sdk.internal.tracker.crash.CrashReportingService
 import io.cloudx.sdk.internal.tracker.metrics.MetricsTracker
 import io.cloudx.sdk.internal.tracker.metrics.MetricsType
 import io.cloudx.sdk.internal.tracker.win_loss.WinLossTracker
@@ -111,7 +111,7 @@ internal class InitializationService(
             TrackingFieldResolver.setSessionConstData(
                 sessionId = cfg.sessionId,
                 sdkVersion = BuildConfig.SDK_VERSION_NAME,
-                deviceType = if (provideDeviceInfo().isTablet) "tablet" else "phone",
+                deviceTypeName = if (provideDeviceInfo().isTablet) "tablet" else "phone",
                 deviceTypeCode = if (provideDeviceInfo().isTablet) 5 else 4,
                 abTestGroup = ResolvedEndpoints.testGroupName,
                 appBundle = appInfoProvider().packageName

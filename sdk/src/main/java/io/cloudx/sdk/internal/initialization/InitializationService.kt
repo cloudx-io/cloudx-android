@@ -112,6 +112,7 @@ internal class InitializationService(
                 sessionId = cfg.sessionId,
                 sdkVersion = BuildConfig.SDK_VERSION_NAME,
                 deviceType = if (provideDeviceInfo().isTablet) "tablet" else "phone",
+                deviceTypeCode = if (provideDeviceInfo().isTablet) 5 else 4,
                 abTestGroup = ResolvedEndpoints.testGroupName,
                 appBundle = appInfoProvider().packageName
             )

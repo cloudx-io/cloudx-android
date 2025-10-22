@@ -111,7 +111,7 @@ internal class InitializationService(
             TrackingFieldResolver.setSessionConstData(
                 sessionId = cfg.sessionId,
                 sdkVersion = BuildConfig.SDK_VERSION_NAME,
-                deviceType = if (provideDeviceInfo().isTablet) "tablet" else "mobile",
+                deviceType = if (provideDeviceInfo().isTablet) "tablet" else "phone",
                 abTestGroup = ResolvedEndpoints.testGroupName,
                 appBundle = appInfoProvider().packageName
             )

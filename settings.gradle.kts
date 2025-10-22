@@ -14,6 +14,16 @@ dependencyResolutionManagement {
         mavenCentral()
         mavenLocal()
         maven(url = uri("https://dl-maven-android.mintegral.com/repository/mbridge_android_sdk_oversea"))
+
+        // GitHub Packages for internal builds
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/cloudx-io/cloudexchange.android.sdk")
+            credentials {
+                username = providers.gradleProperty("gpr.user").orNull ?: System.getenv("GITHUB_ACTOR")
+                password = providers.gradleProperty("gpr.token").orNull ?: System.getenv("GITHUB_TOKEN")
+            }
+        }
     }
 }
 

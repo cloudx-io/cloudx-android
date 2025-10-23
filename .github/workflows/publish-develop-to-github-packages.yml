@@ -1,9 +1,18 @@
+# Publish Develop to GitHub Packages
+#
+# This workflow publishes SDK and adapter AARs to GitHub Packages for internal use.
+# It runs after the CI workflow passes on the develop branch.
+#
+# Published artifacts can be consumed by other internal apps for testing.
+# Version format: X.Y.Z-dev.BUILD+SHA (e.g., 0.1.0-dev.123+a1b2c3d)
+
 name: 📦 Publish Develop to GitHub Packages
 
 on:
-  push:
-    branches:
-      - develop
+  workflow_run:
+    workflows: ["CI - Build and Test"]  # Wait for CI to pass
+    types: [completed]
+    branches: [develop]
 
 env:
   ANDROID_HOME: /Users/administrator/Library/Android/sdk
@@ -12,10 +21,15 @@ jobs:
   publish-develop:
     runs-on: self-hosted
     name: 📦 Publish SDK + Adapters to GitHub Packages (develop)
+    # Only run if CI passed
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
     steps:
+      # Check out the code
       - name: 🧾 Checkout code
         uses: actions/checkout@v4
 
+      # Set up Java 17 with Gradle caching
       - name: ☕ Set up JDK 17
         uses: actions/setup-java@v3
         with:
@@ -23,9 +37,13 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
+      # Make gradlew executable
       - name: 🔐 Make Gradle executable
         run: chmod +x ./gradlew
 
+      # Compute the version for this build
+      # Format: X.Y.Z-dev.BUILD+SHA
+      # Example: 0.1.0-dev.123+a1b2c3d
       - name: 🏗️ Compute version
         id: version
         run: |
@@ -35,24 +53,15 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "📦 Publishing version: $VERSION"
 
-      - name: 🧪 Run SDK Tests
-        run: ./gradlew :sdk:test -Pversion=${{ steps.version.outputs.version }}
-
-      - name: 📊 Upload Test Reports
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: test-reports-develop-${{ github.run_number }}
-          path: |
-            sdk/build/reports/tests/
-            sdk/build/test-results/
-
+      # Build release AARs for all modules
+      # CI already verified these build, so this should succeed
       - name: 🛠️ Build Release AARs
         run: |
           ./gradlew :sdk:assembleRelease -Pversion=${{ steps.version.outputs.version }}
           ./gradlew :adapter-cloudx:assembleRelease -Pversion=${{ steps.version.outputs.version }}
           ./gradlew :adapter-meta:assembleRelease -Pversion=${{ steps.version.outputs.version }}
 
+      # Publish to GitHub Packages (internal artifact repository)
       - name: 📦 Publish to GitHub Packages
         run: |
           ./gradlew :sdk:publishAllPublicationsToGitHubPackagesRepository --no-daemon --stacktrace -Pversion=${{ steps.version.outputs.version }}
@@ -62,6 +71,7 @@ jobs:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.PACKAGES_TOKEN }}
 
+      # Upload AARs as workflow artifacts for direct download if needed
       - name: 📤 Upload AAR Artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -71,6 +81,7 @@ jobs:
             adapter-cloudx/build/outputs/aar/adapter-cloudx-release.aar
             adapter-meta/build/outputs/aar/adapter-meta-release.aar
 
+      # Notify team in Slack about publishing status
       - name: 📢 Slack Notification
         uses: 8398a7/action-slack@v3
         if: always()
@@ -80,7 +91,7 @@ jobs:
             {
               "text": "📦 CloudX Develop Publishing #${{ github.run_number }} finished",
               "attachments": [{
-                "author_name": "cloudx-android/publish-develop",
+                "author_name": "cloudx-android/publish-develop-to-github-packages",
                 "fallback": "Develop publishing pipeline finished",
                 "color": "${{ job.status == 'success' && 'good' || 'danger' }}",
                 "fields": [

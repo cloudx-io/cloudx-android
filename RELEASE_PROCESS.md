@@ -25,9 +25,26 @@ Where:
 
 ## Release Workflows
 
+All release workflows follow a two-stage process:
+1. **CI Workflow** runs first (builds all modules, runs all tests)
+2. **Publishing Workflow** runs only after CI passes
+
+### 0. Continuous Integration (All Branches)
+
+**Trigger**: Every commit to any branch, and all pull requests
+
+**Actions**:
+- Builds all modules (SDK, adapters, demo app)
+- Runs all unit tests
+- Publishes test reports and summaries
+
+**Workflow**: `.github/workflows/ci.yml`
+
+**Purpose**: Quality gate for all code changes
+
 ### 1. Develop Branch (Continuous)
 
-**Trigger**: Every commit to `develop` branch
+**Trigger**: After CI passes on `develop` branch
 
 **Publishes to**: GitHub Packages
 
@@ -37,11 +54,14 @@ Where:
 
 **Workflow**: `.github/workflows/publish-develop.yml`
 
-### 2. Release Candidate (Weekly)
+**Process**:
+1. Push to `develop` → CI runs
+2. CI passes → `publish-develop.yml` triggers
+3. Builds release AARs and publishes to GitHub Packages
 
-**Trigger**:
-- Commits to `release/**` branches
-- Tags matching `*-rc*` pattern
+### 2. Release Candidate (As Needed)
+
+**Trigger**: After CI passes on `release/**` branches
 
 **Publishes to**: GitHub Packages
 
@@ -50,6 +70,11 @@ Where:
 **Use case**: Internal validation before public release
 
 **Workflow**: `.github/workflows/publish-rc.yml`
+
+**Process**:
+1. Push to `release/X.Y.Z` → CI runs
+2. CI passes → `publish-rc.yml` triggers
+3. Builds release AARs and publishes to GitHub Packages
 
 ### 3. Stable Release (Main)
 
@@ -97,10 +122,10 @@ git add .
 git commit -m "HOTFIX: Fix critical bug in XYZ"
 ```
 
-**4. Push to trigger RC workflow**
+**4. Push to trigger CI and RC workflow**
 ```bash
 git push origin release/X.Y.Z
-# Publishes: X.Y.Z+1-rc.N+SHA to GitHub Packages
+# CI runs first, then publishes: X.Y.Z+1-rc.N+SHA to GitHub Packages
 ```
 
 **5. Test the RC version in internal apps**

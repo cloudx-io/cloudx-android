@@ -1,0 +1,81 @@
+name: Build Develop APK
+
+on:
+  workflow_run:
+    workflows: ["CI - Build and Test"]
+    types: [completed]
+    branches: [develop]
+
+jobs:
+  build-apk:
+    name: Build Debug APK
+    runs-on: self-hosted
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v3
+
+      - name: ☕ Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: 🔧 Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: 📱 Build debug APK
+        run: ./gradlew :app:assembleDebug
+
+      - name: 📦 Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cloudx-demo-debug-${{ github.run_number }}
+          path: app/build/outputs/apk/debug/*.apk
+          retention-days: 30
+
+      - name: 📢 Slack Notification
+        uses: 8398a7/action-slack@v3
+        if: always()
+        with:
+          status: custom
+          custom_payload: |
+            {
+              "text": "🤖 CloudX Develop Demo APK Build #${{ github.run_number }} finished",
+              "attachments": [{
+                "author_name": "cloudx-android/build-develop-apk",
+                "fallback": "Develop demo APK build finished",
+                "color": "${{ job.status == 'success' && 'good' || 'danger' }}",
+                "fields": [
+                  {
+                    "title": "Status",
+                    "value": "${{ job.status == 'success' && '✅ Success' || '❌ Failed' }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Branch",
+                    "value": "`develop`",
+                    "short": true
+                  },
+                  {
+                    "title": "Commit",
+                    "value": "`${{ github.sha }}`",
+                    "short": false
+                  },
+                  {
+                    "title": "APK",
+                    "value": "${{ job.status == 'success' && '📱 Debug APK available' || '❌ Build failed' }}",
+                    "short": false
+                  },
+                  {
+                    "title": "Download",
+                    "value": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Download APK>",
+                    "short": false
+                  }
+                ]
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.CLOUDX_ALERTS_MOBILE_SLACK }}

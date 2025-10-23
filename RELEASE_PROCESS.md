@@ -69,6 +69,84 @@ Where:
 - `.github/workflows/publish-sdk.yml`
 - `.github/workflows/publish-adapters.yml`
 
+## Hotfix Process
+
+**Situation**: A critical bug is discovered in stable release `X.Y.Z`
+
+### Steps to Hotfix
+
+**1. Checkout the original RC branch**
+```bash
+git checkout release/X.Y.Z
+git pull origin release/X.Y.Z
+```
+
+**2. Bump version in gradle.properties**
+```bash
+# Edit gradle.properties
+cloudx.version.base=X.Y.Z+1  # e.g., 0.0.1.42 → 0.0.1.43
+
+git add gradle.properties
+git commit -m "Bump version to X.Y.Z+1 for hotfix"
+```
+
+**3. Fix the bug**
+```bash
+# Make your fixes
+git add .
+git commit -m "HOTFIX: Fix critical bug in XYZ"
+```
+
+**4. Push to trigger RC workflow**
+```bash
+git push origin release/X.Y.Z
+# Publishes: X.Y.Z+1-rc.N+SHA to GitHub Packages
+```
+
+**5. Test the RC version in internal apps**
+```kotlin
+implementation("io.cloudx:sdk:X.Y.Z+1-rc.+")
+```
+
+**6. Tag for stable release when validated**
+```bash
+git tag v-sdk-X.Y.Z+1
+git tag v-adapter-all-X.Y.Z+1
+git push origin v-sdk-X.Y.Z+1 v-adapter-all-X.Y.Z+1
+# Publishes: X.Y.Z+1 to Maven Central
+```
+
+**7. Merge back to main and develop**
+```bash
+# Merge to main
+git checkout main
+git merge release/X.Y.Z
+git push origin main
+
+# Merge to develop
+git checkout develop
+git merge release/X.Y.Z
+git push origin develop
+```
+
+**Why reuse the RC branch?**
+- All version history stays in one place
+- Clear commit history from initial release through hotfixes
+- Simpler workflow - no need to create new branches
+- Easy to see the evolution: original RC → release → hotfix → next hotfix
+
+**Example:**
+```bash
+# Original release
+release/0.0.1.42: 0.0.1.42-rc.1 → 0.0.1.42-rc.2 → 0.0.1.42 (stable)
+
+# Hotfix on same branch
+release/0.0.1.42: bump to 0.0.1.43 → fix bug → 0.0.1.43-rc.5 → 0.0.1.43 (stable)
+
+# Another hotfix
+release/0.0.1.42: bump to 0.0.1.44 → fix bug → 0.0.1.44-rc.8 → 0.0.1.44 (stable)
+```
+
 ## Consuming from GitHub Packages (Internal Apps)
 
 ### Step 1: Configure Repository

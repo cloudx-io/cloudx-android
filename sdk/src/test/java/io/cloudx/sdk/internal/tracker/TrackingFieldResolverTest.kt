@@ -101,7 +101,7 @@ class TrackingFieldResolverTest : CXTest() {
         every { config.rawJson } returns JSONObject()
         TrackingFieldResolver.setConfig(config)
 
-        TrackingFieldResolver.setSessionConstData("sess-1", "v1.0", "phone", "", "")
+        TrackingFieldResolver.setSessionConstData("sess-1", "v1.0", "phone", 1, "", "")
 
         // When
         val auctionId = "auction-payload"
@@ -120,7 +120,7 @@ class TrackingFieldResolverTest : CXTest() {
         every { config.rawJson } returns JSONObject()
         TrackingFieldResolver.setConfig(config)
 
-        TrackingFieldResolver.setSessionConstData("sess-2", "", "tablet", "", "")
+        TrackingFieldResolver.setSessionConstData("sess-2", "", "tablet",1, "", "")
 
         // When
         val auctionId = "auction-missing"
@@ -447,7 +447,7 @@ class TrackingFieldResolverTest : CXTest() {
         every { PrivacyService().shouldClearPersonalData() } returns true
 
         val auctionId = "auction-privacy"
-        TrackingFieldResolver.setSessionConstData("session-private", "", "", "", "")
+        TrackingFieldResolver.setSessionConstData("session-private", "", "", 1,"", "")
 
         // When
         val result = TrackingFieldResolver.resolveField(auctionId, "sdk.ifa")
@@ -596,7 +596,7 @@ class TrackingFieldResolverTest : CXTest() {
     fun `resolveField - expands multiple placeholders`() {
         // Given
         val auctionId = "auction-multi-placeholder"
-        TrackingFieldResolver.setSessionConstData("sessionabc", "v10", "", "", "")
+        TrackingFieldResolver.setSessionConstData("sessionabc", "v10", "", 1,"", "")
 
         val requestJson = JSONObject("""
             {
@@ -645,7 +645,8 @@ class TrackingFieldResolverTest : CXTest() {
         TrackingFieldResolver.setSessionConstData(
             sessionId = "KVyyaYSXgyoKnmmxwU9bK",
             sdkVersion = "1.2.3",
-            deviceType = "phone",
+            deviceTypeName = "phone",
+            deviceTypeCode = 1,
             abTestGroup = "",
             appBundle = "com.example.app"
         )

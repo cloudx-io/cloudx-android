@@ -69,7 +69,7 @@ android {
         testInstrumentationRunner = libs.versions.testInstrumentationRunner.get()
         consumerProguardFiles("consumer-rules.pro")
 
-        buildConfigField("String", "SDK_VERSION_NAME", "\"${libs.versions.sdkVersionName.get()}\"")
+        buildConfigField("String", "SDK_VERSION_NAME", "\"${project.version}\"")
         buildConfigField("long", "SDK_BUILD_TIMESTAMP", "${System.currentTimeMillis()}")
     }
 

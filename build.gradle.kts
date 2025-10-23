@@ -18,11 +18,16 @@ val baseVersion = versionCatalog.findVersion("sdkVersionName").get().requiredVer
 val groupId = versionCatalog.findVersion("groupId").get().requiredVersion
 
 // CI can override version with -Pversion=X.Y.Z-dev.42+abc123
-// Local builds get -local suffix automatically
+// Local builds get -local suffix with commit SHA
 val versionOverride = project.findProperty("version") as String?
 val computedVersion = when {
     versionOverride != null && versionOverride != "unspecified" -> versionOverride
-    else -> "$baseVersion-local"
+    else -> {
+        val gitSha = providers.exec {
+            commandLine("git", "rev-parse", "--short=7", "HEAD")
+        }.standardOutput.asText.get().trim()
+        "$baseVersion-local+$gitSha"
+    }
 }
 
 allprojects {

@@ -63,11 +63,11 @@ dependencyResolutionManagement {
 ```kotlin
 dependencies {
     // CloudX Core SDK
-    implementation("io.cloudx:sdk:0.0.1.41")
+    implementation("io.cloudx:sdk:0.1.0")
 
     // Optional: CloudX Adapters (add as needed)
-    implementation("io.cloudx:adapter-cloudx:0.0.1.41")
-    implementation("io.cloudx:adapter-meta:0.0.1.41")
+    implementation("io.cloudx:adapter-cloudx:0.1.0")
+    implementation("io.cloudx:adapter-meta:0.1.0")
 }
 ```
 

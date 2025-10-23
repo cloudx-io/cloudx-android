@@ -1,6 +1,6 @@
 [versions]
 # === SDK Configuration ===
-sdkVersionName = "0.0.1.43"
+sdkVersionName = "0.1.0"
 groupId = "io.cloudx"
 sdkPackageName = "io.cloudx.sdk"
 adapterPackageName = "io.cloudx.adapter"

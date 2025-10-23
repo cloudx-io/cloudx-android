@@ -14,9 +14,9 @@ The SDK uses a three-stage release process:
 
 All modules (SDK + adapters) are released with synchronized versions:
 
-- **Develop**: `X.Y.Z-dev.BUILD+SHA` (e.g., `0.0.1.42-dev.123+a1b2c3d`)
-- **RC**: `X.Y.Z-rc.BUILD+SHA` (e.g., `0.0.1.42-rc.5+e4f5g6h`)
-- **Stable**: `X.Y.Z` (e.g., `0.0.1.42`)
+- **Develop**: `X.Y.Z-dev.BUILD+SHA` (e.g., `0.1.0-dev.123+a1b2c3d`)
+- **RC**: `X.Y.Z-rc.BUILD+SHA` (e.g., `0.1.0-rc.5+e4f5g6h`)
+- **Stable**: `X.Y.Z` (e.g., `0.1.0`)
 
 Where:
 - `X.Y.Z` = Base version from `gradle/libs.versions.toml` (`sdkVersionName`)
@@ -84,7 +84,7 @@ git pull origin release/X.Y.Z
 **2. Bump version in gradle/libs.versions.toml**
 ```bash
 # Edit gradle/libs.versions.toml
-sdkVersionName = "X.Y.Z+1"  # e.g., "0.0.1.42" → "0.0.1.43"
+sdkVersionName = "X.Y.Z+1"  # e.g., "0.1.0" → "0.1.1"
 
 git add gradle/libs.versions.toml
 git commit -m "Bump version to X.Y.Z+1 for hotfix"
@@ -138,13 +138,13 @@ git push origin develop
 **Example:**
 ```bash
 # Original release
-release/0.0.1.42: 0.0.1.42-rc.1 → 0.0.1.42-rc.2 → 0.0.1.42 (stable)
+release/0.1.0: 0.1.0-rc.1 → 0.1.0-rc.2 → 0.1.0 (stable)
 
 # Hotfix on same branch
-release/0.0.1.42: bump to 0.0.1.43 → fix bug → 0.0.1.43-rc.5 → 0.0.1.43 (stable)
+release/0.1.0: bump to 0.1.1 → fix bug → 0.1.1-rc.5 → 0.1.1 (stable)
 
 # Another hotfix
-release/0.0.1.42: bump to 0.0.1.44 → fix bug → 0.0.1.44-rc.8 → 0.0.1.44 (stable)
+release/0.1.0: bump to 0.1.2 → fix bug → 0.1.2-rc.8 → 0.1.2 (stable)
 ```
 
 ## Consuming from GitHub Packages (Internal Apps)
@@ -198,28 +198,28 @@ export GITHUB_TOKEN="ghp_yourPersonalAccessToken"
 ```kotlin
 dependencies {
     // For develop builds (always latest)
-    implementation("io.cloudx:sdk:0.0.1.42-dev.+")
-    implementation("io.cloudx:adapter-cloudx:0.0.1.42-dev.+")
-    implementation("io.cloudx:adapter-meta:0.0.1.42-dev.+")
+    implementation("io.cloudx:sdk:0.1.0-dev.+")
+    implementation("io.cloudx:adapter-cloudx:0.1.0-dev.+")
+    implementation("io.cloudx:adapter-meta:0.1.0-dev.+")
 
     // For specific develop build (pinned)
-    implementation("io.cloudx:sdk:0.0.1.42-dev.123+a1b2c3d")
+    implementation("io.cloudx:sdk:0.1.0-dev.123+a1b2c3d")
 
     // For RC builds
-    implementation("io.cloudx:sdk:0.0.1.42-rc.5+e4f5g6h")
+    implementation("io.cloudx:sdk:0.1.0-rc.5+e4f5g6h")
 
     // For stable releases (from Maven Central)
-    implementation("io.cloudx:sdk:0.0.1.42")
+    implementation("io.cloudx:sdk:0.1.0")
 }
 ```
 
 ## Updating Base Version
 
-To bump the base version (e.g., from `0.0.1.42` to `0.0.2.0`):
+To bump the base version (e.g., from `0.1.0` to `0.2.0`):
 
 1. Edit `gradle/libs.versions.toml`:
    ```toml
-   sdkVersionName = "0.0.2.0"
+   sdkVersionName = "0.2.0"
    ```
 
 2. Commit and push to `develop`
@@ -236,7 +236,7 @@ export GITHUB_ACTOR="your-username"
 export GITHUB_TOKEN="ghp_yourPersonalAccessToken"
 
 # Publish with custom version
-./gradlew publishAllPublicationsToGitHubPackagesRepository -Pversion=0.0.1.42-manual
+./gradlew publishAllPublicationsToGitHubPackagesRepository -Pversion=0.1.0-manual
 ```
 
 ### Publish to Maven Local (Quick Local Testing)
@@ -283,7 +283,7 @@ rm -rf ~/.gradle/caches
 
 ## Best Practices
 
-1. **Use version ranges for develop**: `0.0.1.42-dev.+` to always get latest
+1. **Use version ranges for develop**: `0.1.0-dev.+` to always get latest
 2. **Pin RC versions**: Use exact version for validation testing
 3. **Use stable for production**: Only use stable versions in production apps
 4. **Check build numbers**: Higher build number = newer version
@@ -315,9 +315,9 @@ dependencyResolutionManagement {
 // app/build.gradle.kts
 dependencies {
     // Always use latest develop build
-    implementation("io.cloudx:sdk:0.0.1.42-dev.+")
-    implementation("io.cloudx:adapter-cloudx:0.0.1.42-dev.+")
-    implementation("io.cloudx:adapter-meta:0.0.1.42-dev.+")
+    implementation("io.cloudx:sdk:0.1.0-dev.+")
+    implementation("io.cloudx:adapter-cloudx:0.1.0-dev.+")
+    implementation("io.cloudx:adapter-meta:0.1.0-dev.+")
 }
 ```
 

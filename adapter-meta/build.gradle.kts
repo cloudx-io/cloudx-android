@@ -85,7 +85,7 @@ mavenPublishing {
         signAllPublications()
     }
 
-    coordinates(libs.versions.mavenGroupId.get(), "adapter-meta", project.version.toString())
+    coordinates(libs.versions.groupId.get(), "adapter-meta", project.version.toString())
 
     pom {
         name.set("CloudX Adapter - Meta")

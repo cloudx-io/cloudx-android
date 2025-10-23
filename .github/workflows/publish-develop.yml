@@ -29,7 +29,7 @@ jobs:
       - name: 🏗️ Compute version
         id: version
         run: |
-          BASE_VERSION=$(grep "cloudx.version.base" gradle.properties | cut -d'=' -f2)
+          BASE_VERSION=$(grep '^sdkVersionName = ' gradle/libs.versions.toml | sed 's/sdkVersionName = "\(.*\)"/\1/')
           COMMIT_SHA=$(git rev-parse --short=7 HEAD)
           VERSION="$BASE_VERSION-dev.${{ github.run_number }}+$COMMIT_SHA"
           echo "version=$VERSION" >> $GITHUB_OUTPUT

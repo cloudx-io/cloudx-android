@@ -31,7 +31,7 @@ jobs:
       - name: 🏗️ Compute version
         id: version
         run: |
-          BASE_VERSION=$(grep "cloudx.version.base" gradle.properties | cut -d'=' -f2)
+          BASE_VERSION=$(grep '^sdkVersionName = ' gradle/libs.versions.toml | sed 's/sdkVersionName = "\(.*\)"/\1/')
 
           # Try to extract RC number from tag if it exists
           if [[ "${{ github.ref }}" == refs/tags/*-rc* ]]; then

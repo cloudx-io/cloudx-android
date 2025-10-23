@@ -19,7 +19,7 @@ All modules (SDK + adapters) are released with synchronized versions:
 - **Stable**: `X.Y.Z` (e.g., `0.0.1.42`)
 
 Where:
-- `X.Y.Z` = Base version from `gradle.properties`
+- `X.Y.Z` = Base version from `gradle/libs.versions.toml` (`sdkVersionName`)
 - `BUILD` = GitHub Actions run number (incremental)
 - `SHA` = Short git commit SHA (7 characters)
 
@@ -81,12 +81,12 @@ git checkout release/X.Y.Z
 git pull origin release/X.Y.Z
 ```
 
-**2. Bump version in gradle.properties**
+**2. Bump version in gradle/libs.versions.toml**
 ```bash
-# Edit gradle.properties
-cloudx.version.base=X.Y.Z+1  # e.g., 0.0.1.42 → 0.0.1.43
+# Edit gradle/libs.versions.toml
+sdkVersionName = "X.Y.Z+1"  # e.g., "0.0.1.42" → "0.0.1.43"
 
-git add gradle.properties
+git add gradle/libs.versions.toml
 git commit -m "Bump version to X.Y.Z+1 for hotfix"
 ```
 
@@ -217,9 +217,9 @@ dependencies {
 
 To bump the base version (e.g., from `0.0.1.42` to `0.0.2.0`):
 
-1. Edit `gradle.properties`:
-   ```properties
-   cloudx.version.base=0.0.2.0
+1. Edit `gradle/libs.versions.toml`:
+   ```toml
+   sdkVersionName = "0.0.2.0"
    ```
 
 2. Commit and push to `develop`

@@ -29,7 +29,7 @@ mavenPublishing {
         signAllPublications()
     }
 
-    coordinates(libs.versions.mavenGroupId.get(), "sdk", project.version.toString())
+    coordinates(libs.versions.groupId.get(), "sdk", project.version.toString())
 
     pom {
         name.set("CloudX SDK")

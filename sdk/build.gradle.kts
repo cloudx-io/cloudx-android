@@ -5,11 +5,31 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+// Configure publishing repositories
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/cloudx-io/cloudexchange.android.sdk")
+            credentials {
+                username = project.findProperty("gpr.user") as String? ?: System.getenv("GITHUB_ACTOR")
+                password = project.findProperty("gpr.token") as String? ?: System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
+}
+
 mavenPublishing {
     // Use the new Central Publisher Portal (S01)
     publishToMavenCentral(automaticRelease = true)
-    signAllPublications()
-    coordinates(libs.versions.mavenGroupId.get(), "sdk", project.findProperty("version") as String? ?: libs.versions.sdkVersionName.get())
+
+    // Only sign if GPG keys are configured (required for Maven Central, not needed for GitHub Packages)
+    val signingKey = providers.environmentVariable("ORG_GRADLE_PROJECT_signingInMemoryKey")
+    if (signingKey.isPresent) {
+        signAllPublications()
+    }
+
+    coordinates(libs.versions.mavenGroupId.get(), "sdk", project.version.toString())
 
     pom {
         name.set("CloudX SDK")

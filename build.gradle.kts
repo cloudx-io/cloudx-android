@@ -15,7 +15,6 @@ plugins {
 
 val versionCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
 val baseVersion = versionCatalog.findVersion("sdkVersionName").get().requiredVersion
-val groupId = versionCatalog.findVersion("groupId").get().requiredVersion
 
 // CI can override version with -Pversion=X.Y.Z-dev.42+abc123
 // Local builds get -local suffix with commit SHA
@@ -31,7 +30,6 @@ val computedVersion = when {
 }
 
 allprojects {
-    group = groupId
     version = computedVersion
 }
 

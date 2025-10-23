@@ -49,13 +49,13 @@ jobs:
 
       - name: 🛠️ Build Release AARs
         run: |
-          ./gradlew :sdk:assembleRelease -Pcloudx.endpoint.config=https://example.com/config.json -Pversion=${{ steps.version.outputs.version }}
+          ./gradlew :sdk:assembleRelease -Pversion=${{ steps.version.outputs.version }}
           ./gradlew :adapter-cloudx:assembleRelease -Pversion=${{ steps.version.outputs.version }}
           ./gradlew :adapter-meta:assembleRelease -Pversion=${{ steps.version.outputs.version }}
 
       - name: 📦 Publish to GitHub Packages
         run: |
-          ./gradlew :sdk:publishAllPublicationsToGitHubPackagesRepository --no-daemon --stacktrace -Pcloudx.endpoint.config=https://example.com/config.json -Pversion=${{ steps.version.outputs.version }}
+          ./gradlew :sdk:publishAllPublicationsToGitHubPackagesRepository --no-daemon --stacktrace -Pversion=${{ steps.version.outputs.version }}
           ./gradlew :adapter-cloudx:publishAllPublicationsToGitHubPackagesRepository --no-daemon --stacktrace -Pversion=${{ steps.version.outputs.version }}
           ./gradlew :adapter-meta:publishAllPublicationsToGitHubPackagesRepository --no-daemon --stacktrace -Pversion=${{ steps.version.outputs.version }}
         env:

@@ -98,10 +98,10 @@ jobs:
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.ORG_GRADLE_PROJECT_signingInMemoryKeyPassword }}
 
       - name: 🛠️ Build SDK Release AAR
-        run: ./gradlew :sdk:assembleRelease -Pcloudx.endpoint.config=https://example.com/config.json -Pversion=${{ needs.determine-sdk.outputs.version }}
+        run: ./gradlew :sdk:assembleRelease -Pversion=${{ needs.determine-sdk.outputs.version }}
 
       - name: 📦 Publish SDK to Maven Central
-        run: ./gradlew :sdk:publishToMavenCentral --no-daemon --stacktrace -Pcloudx.endpoint.config=https://example.com/config.json -Pversion=${{ needs.determine-sdk.outputs.version }}
+        run: ./gradlew :sdk:publishToMavenCentral --no-daemon --stacktrace -Pversion=${{ needs.determine-sdk.outputs.version }}
         env:
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralUsername }}
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralPassword }}

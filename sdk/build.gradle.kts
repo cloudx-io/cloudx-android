@@ -71,9 +71,6 @@ android {
 
         buildConfigField("String", "SDK_VERSION_NAME", "\"${libs.versions.sdkVersionName.get()}\"")
         buildConfigField("long", "SDK_BUILD_TIMESTAMP", "${System.currentTimeMillis()}")
-
-        val configEndpoint = property("cloudx.endpoint.config")
-        buildConfigField("String", "CLOUDX_ENDPOINT_CONFIG", """"$configEndpoint"""")
     }
 
     buildFeatures {

@@ -80,7 +80,7 @@ jobs:
             {
               "text": "📦 CloudX Develop Publishing #${{ github.run_number }} finished",
               "attachments": [{
-                "author_name": "cloudexchange.android.sdk/publish-develop",
+                "author_name": "cloudx-android/publish-develop",
                 "fallback": "Develop publishing pipeline finished",
                 "color": "${{ job.status == 'success' && 'good' || 'danger' }}",
                 "fields": [

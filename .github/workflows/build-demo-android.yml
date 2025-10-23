@@ -90,7 +90,7 @@ jobs:
             {
               "text": "🤖 CloudX Demo APK Build #${{ github.run_number }} finished",
               "attachments": [{
-                "author_name": "cloudexchange.android.sdk/build-demo-android",
+                "author_name": "cloudx-android/build-demo-android",
                 "fallback": "Demo APK build pipeline finished",
                 "color": "${{ job.status == 'success' && 'good' || 'danger' }}",
                 "fields": [
@@ -145,8 +145,8 @@ jobs:
           github-token: ${{ secrets.PAT_TOKEN }}
           script: |
             await github.rest.actions.createWorkflowDispatch({
-              owner: 'cloudx-xenoss',
-              repo: 'cloudexchange.sdk.android.automated.testing',
+              owner: 'cloudx-io',
+              repo: 'cloudexchange.sdk.automated.testing',
               workflow_id: 'android.yml',
               ref: 'master',
               inputs: {

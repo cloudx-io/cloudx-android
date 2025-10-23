@@ -90,7 +90,7 @@ jobs:
             {
               "text": "🎯 CloudX RC Publishing #${{ github.run_number }} finished",
               "attachments": [{
-                "author_name": "cloudexchange.android.sdk/publish-rc",
+                "author_name": "cloudx-android/publish-rc",
                 "fallback": "RC publishing pipeline finished",
                 "color": "${{ job.status == 'success' && 'good' || 'danger' }}",
                 "fields": [

@@ -90,7 +90,7 @@ jobs:
             {
               "text": "🚀 CloudX Adapter Publishing #${{ github.run_number }} finished",
               "attachments": [{
-                "author_name": "cloudexchange.android.sdk/publish-adapters",
+                "author_name": "cloudx-android/publish-adapters",
                 "fallback": "Adapter publishing pipeline finished",
                 "color": "${{ job.status == 'success' && 'good' || 'danger' }}",
                 "fields": [
@@ -195,7 +195,7 @@ jobs:
             {
               "text": "🚀 CloudX All Adapters Publishing #${{ github.run_number }} finished",
               "attachments": [{
-                "author_name": "cloudexchange.android.sdk/publish-adapters",
+                "author_name": "cloudx-android/publish-adapters",
                 "fallback": "All adapters publishing pipeline finished",
                 "color": "${{ job.status == 'success' && 'good' || 'danger' }}",
                 "fields": [

@@ -132,7 +132,7 @@ jobs:
             {
               "text": "🚀 CloudX SDK Publishing #${{ github.run_number }} finished",
               "attachments": [{
-                "author_name": "cloudexchange.android.sdk/publish-sdk",
+                "author_name": "cloudx-android/publish-sdk",
                 "fallback": "SDK publishing pipeline finished",
                 "color": "${{ job.status == 'success' && 'good' || 'danger' }}",
                 "fields": [

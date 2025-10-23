@@ -35,7 +35,7 @@ mavenPublishing {
         name.set("CloudX SDK")
         description.set("An Android SDK for the CloudX platform")
         inceptionYear.set("2025")
-        url.set("https://github.com/cloudx-xenoss/cloudexchange.android.sdk")
+        url.set("https://github.com/cloudx-io/cloudx-android")
         licenses {
             license {
                 name.set("Elastic License 2.0")
@@ -51,9 +51,9 @@ mavenPublishing {
             }
         }
         scm {
-            url.set("https://github.com/cloudx-xenoss/cloudexchange.android.sdk")
-            connection.set("scm:git:git://github.com/cloudx-xenoss/cloudexchange.android.sdk.git")
-            developerConnection.set("scm:git:ssh://git@github.com/cloudx-xenoss/cloudexchange.android.sdk.git")
+            url.set("https://github.com/cloudx-io/cloudx-android")
+            connection.set("scm:git:git://github.com/cloudx-io/cloudx-android.git")
+            developerConnection.set("scm:git:ssh://git@github.com/cloudx-io/cloudx-android.git")
         }
     }
 }

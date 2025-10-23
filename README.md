@@ -29,7 +29,7 @@ The CloudX SDK uses the following key dependencies that may affect compatibility
 
 **Note on Version Compatibility:** If your app uses different versions of Ktor or Kotlinx Coroutines, Gradle will 
 typically resolve to the higher version. While we've tested basic compatibility, if you encounter version conflicts 
-or runtime issues, please [report them](https://github.com/cloudx-io/cloudexchange.android.sdk/issues).
+or runtime issues, please [report them](https://github.com/cloudx-io/cloudx-android/issues).
 
 ### Required Permissions
 
@@ -629,8 +629,8 @@ CloudX.setMinLogLevel(CloudXLogLevel.DEBUG);
 
 ## Support
 
-- **Documentation**: [CloudX Android SDK Docs](https://github.com/cloudx-io/cloudexchange.android.sdk)
-- **Issues**: [GitHub Issues](https://github.com/cloudx-io/cloudexchange.android.sdk/issues)
+- **Documentation**: [CloudX Android SDK Docs](https://github.com/cloudx-io/cloudx-android)
+- **Issues**: [GitHub Issues](https://github.com/cloudx-io/cloudx-android/issues)
 - **Email**: mobile@cloudx.io
 
 ## License

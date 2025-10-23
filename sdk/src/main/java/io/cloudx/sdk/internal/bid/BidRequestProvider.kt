@@ -506,7 +506,7 @@ private fun ConnectionType?.toOrtbConnectionType(): Int = when (this) {
     else -> 0 // null or connection_unknown
 }
 
-private fun DeviceInfo.toOrtbDeviceType(): Int = if (isTablet) 5 else 1 // mobile
+private fun DeviceInfo.toOrtbDeviceType(): Int = if (isTablet) 5 else 4 // mobile
 
 private fun Boolean.toInt(): Int = if (this) 1 else 0
 

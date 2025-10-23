@@ -11,7 +11,8 @@ internal object TrackingFieldResolver {
     const val SDK_PARAM_RESPONSE_IN_MILLIS = "sdk.responseTimeMillis"
     private const val SDK_PARAM_APP_BUNDLE = "sdk.app.bundle"
     private const val SDK_PARAM_SDK_VERSION = "sdk.releaseVersion"
-    private const val SDK_PARAM_DEVICE_TYPE = "sdk.deviceType"
+    private const val SDK_PARAM_DEVICE_TYPE_NAME = "sdk.deviceTypeName"
+    private const val SDK_PARAM_DEVICE_TYPE_CODE = "sdk.deviceTypeCode"
     private const val SDK_PARAM_SESSION_ID = "sdk.sessionId"
     private const val SDK_PARAM_ABTEST_GROUP = "sdk.testGroupName"
     private const val SDK_PARAM_LOOP_INDEX = "sdk.loopIndex"
@@ -26,7 +27,8 @@ internal object TrackingFieldResolver {
 
     private var sessionId: String? = null
     private var sdkVersion: String? = null
-    private var deviceType: String? = null
+    private var deviceTypeName: String? = null
+    private var deviceTypeCode: Int? = null
     private var abTestGroup: String? = null
     private var appBundle: String? = null
     private var hashedGeoIp: String? = null
@@ -42,13 +44,15 @@ internal object TrackingFieldResolver {
     fun setSessionConstData(
         sessionId: String,
         sdkVersion: String,
-        deviceType: String,
+        deviceTypeName: String,
+        deviceTypeCode: Int,
         abTestGroup: String,
         appBundle: String
     ) {
         TrackingFieldResolver.sessionId = sessionId
         TrackingFieldResolver.sdkVersion = sdkVersion
-        TrackingFieldResolver.deviceType = deviceType
+        TrackingFieldResolver.deviceTypeName = deviceTypeName
+        TrackingFieldResolver.deviceTypeCode = deviceTypeCode
         TrackingFieldResolver.abTestGroup = abTestGroup
         TrackingFieldResolver.appBundle = appBundle
     }
@@ -182,7 +186,8 @@ internal object TrackingFieldResolver {
                     SDK_PARAM_SESSION_ID -> sessionId
                     SDK_PARAM_APP_BUNDLE -> appBundle
                     SDK_PARAM_SDK_VERSION -> sdkVersion
-                    SDK_PARAM_DEVICE_TYPE -> deviceType
+                    SDK_PARAM_DEVICE_TYPE_NAME -> deviceTypeName
+                    SDK_PARAM_DEVICE_TYPE_CODE -> deviceTypeCode
                     SDK_PARAM_LOOP_INDEX -> auctionedLoopIndex[auctionId]?.toString()
                     SDK_PARAM_IFA -> handleIfaField(auctionId)
                     SDK_PARAM_ABTEST_GROUP -> abTestGroup

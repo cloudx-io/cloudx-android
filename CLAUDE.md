@@ -267,7 +267,7 @@ The repository is organized into several modules:
 ## Important Notes
 
 - **Module Dependencies:** The `:app` demo module uses local project dependencies (`:sdk`, `:adapter-cloudx`, `:adapter-meta`) during development. For Maven Central releases, these would be remote dependencies.
-- **Build Config:** SDK generates BuildConfig with `SDK_VERSION_NAME` and `SDK_BUILD_TIMESTAMP` via `sdk/build.gradle.kts`
+- **Build Config:** SDK generates BuildConfig with `SDK_VERSION_NAME` via `sdk/build.gradle.kts`
 - **ProGuard:** Consumer ProGuard rules are defined in `consumer-rules.pro` for each module
 - **Java Compatibility:** SDK is Kotlin-first but provides Java-friendly APIs using `@JvmStatic` and `@JvmOverloads`
 - **Gradle Configuration Cache:** Enabled in `gradle.properties` for faster builds

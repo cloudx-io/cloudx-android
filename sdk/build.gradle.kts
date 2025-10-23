@@ -70,7 +70,6 @@ android {
         consumerProguardFiles("consumer-rules.pro")
 
         buildConfigField("String", "SDK_VERSION_NAME", "\"${project.version}\"")
-        buildConfigField("long", "SDK_BUILD_TIMESTAMP", "${System.currentTimeMillis()}")
     }
 
     buildFeatures {

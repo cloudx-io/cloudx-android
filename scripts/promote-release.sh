@@ -185,7 +185,7 @@ print_success "Main branch is up to date"
 echo ""
 print_step "Step 3: Squash merge release branch to main"
 print_info "Squash merging $CURRENT_BRANCH into main..."
-git merge "$CURRENT_BRANCH" --squash --allow-unrelated-histories
+git merge "$CURRENT_BRANCH" --squash --allow-unrelated-histories -X theirs
 git commit -m "Release $VERSION
 
 Squash merge $CURRENT_BRANCH to main for stable release.

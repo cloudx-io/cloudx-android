@@ -89,7 +89,8 @@ internal fun BidBannerSource(
                 bid = bid,
                 auctionId = auctionId,
                 eventTracker = eventTracker,
-                winLossTracker = winLossTracker
+                winLossTracker = winLossTracker,
+                type = placementType,
             ) + createAdapterEventLoggingDecorator(
                 placementName = placementName,
                 adNetwork = network,

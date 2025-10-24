@@ -14,10 +14,11 @@ import io.cloudx.sdk.internal.bid.Bid
 import io.cloudx.sdk.internal.tracker.ClickCounterTracker
 import io.cloudx.sdk.internal.tracker.EventTracker
 import io.cloudx.sdk.internal.tracker.EventType
+import io.cloudx.sdk.internal.tracker.SessionMetricsTracker
 import io.cloudx.sdk.internal.tracker.TrackingFieldResolver
+import io.cloudx.sdk.internal.tracker.XorEncryption
 import io.cloudx.sdk.internal.tracker.win_loss.BidLifecycleEvent
 import io.cloudx.sdk.internal.tracker.win_loss.LossReason
-import io.cloudx.sdk.internal.tracker.XorEncryption
 import io.cloudx.sdk.internal.tracker.win_loss.WinLossTracker
 import io.cloudx.sdk.internal.util.ThreadUtils
 import kotlinx.coroutines.launch
@@ -149,9 +150,12 @@ internal fun createAdEventTrackingDecorator(
     auctionId: String,
     eventTracker: EventTracker,
     winLossTracker: WinLossTracker,
+    type: AdType
 ) = AdEventDecorator(
     onLoad = {},
     onImpression = {
+        SessionMetricsTracker.recordImpression(type)
+
         ThreadUtils.GlobalIOScope.launch {
             var payload = TrackingFieldResolver.buildPayload(auctionId, bid.id)
             payload = payload?.replace(auctionId, auctionId)

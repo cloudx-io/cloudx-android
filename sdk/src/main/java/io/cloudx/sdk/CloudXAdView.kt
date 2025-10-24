@@ -19,7 +19,6 @@ import io.cloudx.sdk.internal.common.createViewabilityTracker
 import io.cloudx.sdk.internal.initialization.InitializationState
 import io.cloudx.sdk.internal.size
 import io.cloudx.sdk.internal.tracker.PlacementLoopIndexTracker
-import io.cloudx.sdk.internal.tracker.SessionMetricsTracker
 import io.cloudx.sdk.internal.util.ThreadUtils
 import io.cloudx.sdk.internal.util.dpToPx
 import kotlinx.coroutines.Job
@@ -130,7 +129,6 @@ class CloudXAdView internal constructor(
             viewabilityTracker.destroy()
 
             PlacementLoopIndexTracker.reset(placementName)
-            SessionMetricsTracker.resetPlacement(placementName)
         }
     }
 
@@ -203,7 +201,6 @@ class CloudXAdView internal constructor(
 
 //                            listener?.onAdCollapsed(placementName)
                             PlacementLoopIndexTracker.reset(placementName)
-                            SessionMetricsTracker.resetPlacement(placementName)
                             destroy()
                         }
                         val padding = context.dpToPx(2)

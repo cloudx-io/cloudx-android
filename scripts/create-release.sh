@@ -6,6 +6,11 @@ set -e
 # This script creates a new release branch from develop.
 # Must be run from the develop branch.
 #
+# Process:
+# 1. Bumps version on develop (so dev builds get correct version)
+# 2. Creates release branch from updated develop
+# 3. Pushes both develop and release branch
+#
 # Usage: ./scripts/create-release.sh <major|minor> [--dry-run]
 # Examples:
 #   ./scripts/create-release.sh minor           # 0.1.0 → 0.2.0
@@ -19,6 +24,7 @@ set -e
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Function to print colored output
@@ -32,6 +38,10 @@ print_success() {
 
 print_info() {
     echo -e "${YELLOW}➜ $1${NC}"
+}
+
+print_step() {
+    echo -e "${BLUE}=== $1 ===${NC}"
 }
 
 # Check if parameter is provided
@@ -123,8 +133,8 @@ elif [ "$BUMP_TYPE" = "minor" ]; then
     print_info "Bumping minor version: $CURRENT_VERSION → $VERSION"
 fi
 
-# Fetch latest changes
-print_info "Fetching latest changes from remote..."
+echo ""
+print_step "Step 1: Fetch latest changes"
 git fetch origin
 
 # Pull latest develop
@@ -144,10 +154,8 @@ if git show-ref --verify --quiet "refs/remotes/origin/$RELEASE_BRANCH"; then
     exit 1
 fi
 
-# Create release branch
-print_info "Creating release branch: $RELEASE_BRANCH"
-git checkout -b "$RELEASE_BRANCH"
-print_success "Created branch $RELEASE_BRANCH"
+echo ""
+print_step "Step 2: Bump version on develop"
 
 # Update version in libs.versions.toml
 print_info "Updating version to $VERSION in gradle/libs.versions.toml..."
@@ -164,43 +172,65 @@ print_success "Updated version in gradle/libs.versions.toml"
 print_info "Changes:"
 git diff gradle/libs.versions.toml
 
-# Commit the version bump
-print_info "Committing version bump..."
+# Commit the version bump on develop
+print_info "Committing version bump to develop..."
 git add gradle/libs.versions.toml
 git commit -m "Bump version to $VERSION for release
 
-Prepare release branch for version $VERSION.
-This will trigger RC builds: $VERSION-rc.N+SHA
+Prepare develop for $VERSION release cycle.
+Dev builds will now use: $VERSION-dev.N+SHA
 
 🤖 Generated with create-release.sh"
-print_success "Committed version bump"
+print_success "Committed version bump to develop"
 
-# Push the release branch (or show what would be pushed in dry-run)
+echo ""
+print_step "Step 3: Create release branch"
+
+# Create release branch from develop (now has bumped version)
+print_info "Creating release branch: $RELEASE_BRANCH"
+git checkout -b "$RELEASE_BRANCH"
+print_success "Created branch $RELEASE_BRANCH from develop"
+
+# Switch back to develop
+git checkout develop
+
+# Push changes (or show what would be pushed in dry-run)
 if [ "$DRY_RUN" = true ]; then
     echo ""
-    print_info "DRY RUN: Would push branch with:"
+    print_step "DRY RUN: Summary"
+    print_info "Would execute:"
+    echo "  git push origin develop"
     echo "  git push -u origin $RELEASE_BRANCH"
     echo ""
     print_info "To clean up this dry run:"
-    echo "  git checkout develop"
+    echo "  git reset --hard HEAD~1"
     echo "  git branch -D $RELEASE_BRANCH"
-    echo "  git checkout gradle/libs.versions.toml"
 else
-    print_info "Pushing release branch to origin..."
+    echo ""
+    print_step "Step 4: Push develop and release branch"
+
+    print_info "Pushing develop with version bump..."
+    git push origin develop
+    print_success "Pushed develop"
+
+    print_info "Pushing release branch..."
     git push -u origin "$RELEASE_BRANCH"
-    print_success "Pushed $RELEASE_BRANCH to origin"
+    print_success "Pushed $RELEASE_BRANCH"
 
     echo ""
     print_success "Release branch created successfully!"
+    echo ""
+    echo "📋 Summary:"
+    echo "  • develop version: $VERSION (dev builds: $VERSION-dev.N+SHA)"
+    echo "  • release branch: $RELEASE_BRANCH (RC builds: $VERSION-rc.N+SHA)"
     echo ""
     echo "Next steps:"
     echo "  1. CI will run tests on $RELEASE_BRANCH"
     echo "  2. After CI passes, RC build will publish: $VERSION-rc.N+SHA"
     echo "  3. Test the RC build in your apps"
-    echo "  4. When ready, tag for stable release:"
-    echo "     git tag v-sdk-$VERSION"
-    echo "     git tag v-adapter-all-$VERSION"
-    echo "     git push origin v-sdk-$VERSION v-adapter-all-$VERSION"
+    echo "  4. When ready to promote to stable release:"
+    echo "     git checkout $RELEASE_BRANCH"
+    echo "     ./scripts/promote-release.sh"
     echo ""
     echo "View the release branch: https://github.com/cloudx-io/cloudx-android/tree/$RELEASE_BRANCH"
 fi

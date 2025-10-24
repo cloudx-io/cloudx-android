@@ -10,6 +10,14 @@ This document describes the release process for the CloudX Android SDK and how t
 ./scripts/create-release.sh minor            # Create release/0.2.0
 ```
 
+**Creating a hotfix:**
+```bash
+git checkout release/X.Y.Z                   # Checkout release branch
+# Make your bug fixes, then:
+./scripts/create-hotfix.sh --dry-run         # Test first
+./scripts/create-hotfix.sh                   # Bump patch: 0.1.0 → 0.1.1
+```
+
 **Publishing stable release:**
 ```bash
 git tag v-sdk-X.Y.Z
@@ -165,31 +173,47 @@ The script will:
 
 ### Steps to Hotfix
 
-**1. Checkout the original RC branch**
+**1. Checkout the release branch and make your fixes**
 ```bash
 git checkout release/X.Y.Z
 git pull origin release/X.Y.Z
+
+# Make your bug fixes
+git add .
+git commit -m "HOTFIX: Fix critical bug in XYZ"
 ```
 
-**2. Bump version in gradle/libs.versions.toml**
+**2. Bump version using the automated script**
+
+Use the `scripts/create-hotfix.sh` script to automate version bumping:
+
+```bash
+# Test first with dry-run
+./scripts/create-hotfix.sh --dry-run  # 0.1.0 → 0.1.1
+
+# Bump the patch version
+./scripts/create-hotfix.sh            # Creates commit and pushes
+```
+
+The script will:
+1. Verify you're on a `release/*` branch
+2. Read current version from `gradle/libs.versions.toml`
+3. Increment patch version (X.Y.Z → X.Y.Z+1)
+4. Update version in `gradle/libs.versions.toml`
+5. Commit and push the change
+
+**Alternative: Manual version bump**
 ```bash
 # Edit gradle/libs.versions.toml
 sdkVersionName = "X.Y.Z+1"  # e.g., "0.1.0" → "0.1.1"
 
 git add gradle/libs.versions.toml
 git commit -m "Bump version to X.Y.Z+1 for hotfix"
-```
-
-**3. Fix the bug**
-```bash
-# Make your fixes
-git add .
-git commit -m "HOTFIX: Fix critical bug in XYZ"
-```
-
-**4. Push to trigger CI and RC workflow**
-```bash
 git push origin release/X.Y.Z
+```
+
+**3. CI and RC workflow automatically trigger**
+```bash
 # CI runs first, then publishes: X.Y.Z+1-rc.N+SHA to GitHub Packages
 ```
 

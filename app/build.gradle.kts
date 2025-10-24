@@ -68,9 +68,9 @@ android {
 
 dependencies {
     // remote dependencies
-//    implementation("io.cloudx:sdk:0.0.1.42-test")
-//    implementation("io.cloudx:adapter-cloudx:0.0.1.42-test")
-//    implementation("io.cloudx:adapter-meta:0.0.1.42-test")
+//    implementation("io.cloudx:sdk:0.1.0")
+//    implementation("io.cloudx:adapter-cloudx:0.1.0")
+//    implementation("io.cloudx:adapter-meta:0.1.0")
 
     // local dev
     implementation(project(":adapter-meta"))

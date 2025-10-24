@@ -19,7 +19,7 @@ android {
 publishing {
     publications {
         register<MavenPublication>(releaseVariant) {
-            groupId =  libs.mavenGroupId
+            groupId =  libs.groupId
             // TODO. More robust approach in case project name changes
             artifactId = project.name
             version = libs.sdkVersionName

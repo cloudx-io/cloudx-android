@@ -33,8 +33,8 @@ internal val VersionCatalog.testInstrumentationRunner: String
 internal val VersionCatalog.sdkVersionName: String
     get() = findVersionOrThrow("sdkVersionName")
 
-internal val VersionCatalog.mavenGroupId: String
-    get() = findVersionOrThrow("mavenGroupId")
+internal val VersionCatalog.groupId: String
+    get() = findVersionOrThrow("groupId")
 
 internal val VersionCatalog.testUnit
     get() = findBundleOrThrow("test-unit")

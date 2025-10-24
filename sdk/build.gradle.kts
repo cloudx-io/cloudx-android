@@ -10,7 +10,7 @@ publishing {
     repositories {
         maven {
             name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/cloudx-io/cloudexchange.android.sdk")
+            url = uri("https://maven.pkg.github.com/cloudx-io/cloudx-android")
             credentials {
                 username = project.findProperty("gpr.user") as String? ?: System.getenv("GITHUB_ACTOR")
                 password = project.findProperty("gpr.token") as String? ?: System.getenv("GITHUB_TOKEN")
@@ -29,13 +29,13 @@ mavenPublishing {
         signAllPublications()
     }
 
-    coordinates(libs.versions.mavenGroupId.get(), "sdk", project.version.toString())
+    coordinates(libs.versions.groupId.get(), "sdk", project.version.toString())
 
     pom {
         name.set("CloudX SDK")
         description.set("An Android SDK for the CloudX platform")
         inceptionYear.set("2025")
-        url.set("https://github.com/cloudx-xenoss/cloudexchange.android.sdk")
+        url.set("https://github.com/cloudx-io/cloudx-android")
         licenses {
             license {
                 name.set("Elastic License 2.0")
@@ -51,9 +51,9 @@ mavenPublishing {
             }
         }
         scm {
-            url.set("https://github.com/cloudx-xenoss/cloudexchange.android.sdk")
-            connection.set("scm:git:git://github.com/cloudx-xenoss/cloudexchange.android.sdk.git")
-            developerConnection.set("scm:git:ssh://git@github.com/cloudx-xenoss/cloudexchange.android.sdk.git")
+            url.set("https://github.com/cloudx-io/cloudx-android")
+            connection.set("scm:git:git://github.com/cloudx-io/cloudx-android.git")
+            developerConnection.set("scm:git:ssh://git@github.com/cloudx-io/cloudx-android.git")
         }
     }
 }
@@ -69,11 +69,7 @@ android {
         testInstrumentationRunner = libs.versions.testInstrumentationRunner.get()
         consumerProguardFiles("consumer-rules.pro")
 
-        buildConfigField("String", "SDK_VERSION_NAME", "\"${libs.versions.sdkVersionName.get()}\"")
-        buildConfigField("long", "SDK_BUILD_TIMESTAMP", "${System.currentTimeMillis()}")
-
-        val configEndpoint = property("cloudx.endpoint.config")
-        buildConfigField("String", "CLOUDX_ENDPOINT_CONFIG", """"$configEndpoint"""")
+        buildConfigField("String", "SDK_VERSION_NAME", "\"${project.version}\"")
     }
 
     buildFeatures {

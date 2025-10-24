@@ -26,9 +26,12 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
-      # Check out the code
+      # Check out the code from the branch that triggered CI
+      # workflow_run doesn't automatically check out the right ref, so we specify it explicitly
       - name: 🧾 Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       # Set up Java 17 with Gradle caching
       - name: ☕ Set up JDK 17

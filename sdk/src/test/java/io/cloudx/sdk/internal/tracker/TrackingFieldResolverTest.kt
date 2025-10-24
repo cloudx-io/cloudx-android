@@ -97,7 +97,7 @@ class TrackingFieldResolverTest : CXTest() {
         // Given - tracking list configured
         val config = mockk<Config>(relaxed = true)
         every { config.accountId } returns "acc-1"
-        every { config.trackers } returns listOf("sdk.sessionId", "sdk.releaseVersion", "sdk.deviceType")
+        every { config.trackers } returns listOf("sdk.sessionId", "sdk.releaseVersion", "sdk.deviceTypeName")
         every { config.rawJson } returns JSONObject()
         TrackingFieldResolver.setConfig(config)
 
@@ -116,7 +116,7 @@ class TrackingFieldResolverTest : CXTest() {
         // Given - tracking list with some missing fields
         val config = mockk<Config>(relaxed = true)
         every { config.accountId } returns "acc-2"
-        every { config.trackers } returns listOf("sdk.sessionId", "bidRequest.missing", "sdk.deviceType")
+        every { config.trackers } returns listOf("sdk.sessionId", "bidRequest.missing", "sdk.deviceTypeName")
         every { config.rawJson } returns JSONObject()
         TrackingFieldResolver.setConfig(config)
 
@@ -646,7 +646,7 @@ class TrackingFieldResolverTest : CXTest() {
             sessionId = "KVyyaYSXgyoKnmmxwU9bK",
             sdkVersion = "1.2.3",
             deviceTypeName = "phone",
-            deviceTypeCode = 1,
+            deviceTypeCode = 4,
             abTestGroup = "",
             appBundle = "com.example.app"
         )
@@ -668,7 +668,7 @@ class TrackingFieldResolverTest : CXTest() {
             "sdk.app.bundle",
             "bidRequest.imp.tagid",
             "bidRequest.device.model",
-            "sdk.deviceType",
+            "sdk.deviceTypeName",
             "bidRequest.device.os",
             "bidRequest.device.osv",
             "sdk.sessionId",
@@ -798,7 +798,7 @@ class TrackingFieldResolverTest : CXTest() {
         assertThat(values[11]).isEqualTo("com.example.app") // sdk.app.bundle
         assertThat(values[12]).isEqualTo(placementId) // bidRequest.imp.tagid
         assertThat(values[13]).isEqualTo("iPhone14,2") // bidRequest.device.model
-        assertThat(values[14]).isEqualTo("phone") // sdk.deviceType
+        assertThat(values[14]).isEqualTo("phone") // sdk.deviceTypeName
         assertThat(values[15]).isEqualTo("iOS") // bidRequest.device.os
         assertThat(values[16]).isEqualTo("17.1") // bidRequest.device.osv
         assertThat(values[17]).isEqualTo("KVyyaYSXgyoKnmmxwU9bK") // sdk.sessionId

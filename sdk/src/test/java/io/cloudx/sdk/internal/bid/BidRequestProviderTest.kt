@@ -188,7 +188,7 @@ class BidRequestProviderTest : CXTest() {
         assertThat(device.getString("model")).isEqualTo("Pixel 5")
         assertThat(device.getString("os")).isEqualTo("Android")
         assertThat(device.getString("osv")).isEqualTo("12")
-        assertThat(device.getInt("devicetype")).isEqualTo(1) // mobile
+        assertThat(device.getInt("devicetype")).isEqualTo(4) // mobile per OpenRTB 2.6
 
         // Verify impression array
         val imp = result.getJSONArray("imp")
@@ -513,9 +513,9 @@ class BidRequestProviderTest : CXTest() {
         // When
         val result = subject.invoke(params, "auction-123")
 
-        // Then - devicetype should be 1 (mobile/phone in ORTB)
+        // Then - devicetype should be 4 (mobile/phone per OpenRTB 2.6)
         val device = result.getJSONObject("device")
-        assertThat(device.getInt("devicetype")).isEqualTo(1)
+        assertThat(device.getInt("devicetype")).isEqualTo(4)
     }
 
     // ========== Key-Value Injection Tests ==========

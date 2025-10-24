@@ -2,6 +2,21 @@
 
 This document describes the release process for the CloudX Android SDK and how to consume different versions.
 
+## Quick Start
+
+**Creating a new release:**
+```bash
+./scripts/create-release.sh minor --dry-run  # Test first
+./scripts/create-release.sh minor            # Create release/0.2.0
+```
+
+**Publishing stable release:**
+```bash
+git tag v-sdk-X.Y.Z
+git tag v-adapter-all-X.Y.Z
+git push origin v-sdk-X.Y.Z v-adapter-all-X.Y.Z
+```
+
 ## Overview
 
 The SDK uses a three-stage release process:
@@ -97,9 +112,34 @@ All release workflows follow a two-stage process:
 **Workflow**: `.github/workflows/publish-rc.yml`
 
 **Process**:
-1. Push to `release/X.Y.Z` → CI runs
-2. CI passes → `publish-rc.yml` triggers
-3. Builds release AARs and publishes to GitHub Packages
+1. Create release branch from `develop` using the automated script
+2. Push to `release/X.Y.Z` → CI runs
+3. CI passes → `publish-rc.yml` triggers
+4. Builds release AARs and publishes to GitHub Packages
+
+**Creating a Release Branch (Automated)**:
+
+Use the `scripts/create-release.sh` script to automate release branch creation:
+
+```bash
+# Test first with dry-run
+./scripts/create-release.sh minor --dry-run  # 0.1.0 → 0.2.0
+./scripts/create-release.sh major --dry-run  # 0.1.0 → 1.0.0
+
+# Create the release branch
+./scripts/create-release.sh minor  # Creates release/0.2.0
+./scripts/create-release.sh major  # Creates release/1.0.0
+```
+
+The script will:
+1. Verify you're on `develop` branch with clean working tree
+2. Read current version from `gradle/libs.versions.toml`
+3. Increment version (major or minor)
+4. Create `release/X.Y.Z` branch
+5. Update version in `gradle/libs.versions.toml`
+6. Commit and push the branch
+
+**Important**: The script must be run from `develop` branch. Patch releases (hotfixes) are handled differently (see Hotfix Process below).
 
 ### 3. Stable Release (Main)
 

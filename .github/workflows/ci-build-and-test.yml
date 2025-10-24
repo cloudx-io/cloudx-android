@@ -47,13 +47,10 @@ jobs:
         run: chmod +x gradlew
 
       # Build all modules and run all tests
-      # This single command:
-      # - Compiles SDK, adapters, and demo app
-      # - Runs all unit tests
-      # - Runs lint checks
-      # Using clean to ensure tests always run (avoid Gradle UP-TO-DATE)
+      # Run 'test' explicitly because Android library 'build' task doesn't include tests by default
+      # Then run 'build' to also compile the demo app and run lint checks
       - name: 🏗️ Build all modules and run tests
-        run: ./gradlew clean build
+        run: ./gradlew clean test build
 
       # Parse test results and create summary (runs even if tests fail)
       - name: 📊 Publish Test Report

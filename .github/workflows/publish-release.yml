@@ -21,6 +21,8 @@ jobs:
   publish-release:
     runs-on: self-hosted
     name: 📦 Publish SDK + Adapters to Maven Central
+    permissions:
+      contents: write  # Required to create releases
 
     steps:
       - name: 🏷️ Extract version from tag

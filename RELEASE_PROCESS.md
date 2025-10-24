@@ -18,11 +18,18 @@ git checkout release/X.Y.Z                   # Checkout release branch
 ./scripts/create-hotfix.sh                   # Bump patch: 0.1.0 → 0.1.1
 ```
 
-**Publishing stable release:**
+**Promoting to stable release:**
 ```bash
-git tag v-sdk-X.Y.Z
-git tag v-adapter-all-X.Y.Z
-git push origin v-sdk-X.Y.Z v-adapter-all-X.Y.Z
+git checkout release/X.Y.Z                   # Checkout release branch
+./scripts/promote-release.sh --dry-run       # Test first
+./scripts/promote-release.sh                 # Promote to main + publish
+```
+
+**Merging back to develop:**
+```bash
+git checkout develop
+git merge release/X.Y.Z --no-ff
+git push origin develop
 ```
 
 ## Overview
@@ -151,21 +158,53 @@ The script will:
 
 ### 3. Stable Release (Main)
 
-**Trigger**: Git tags
-- SDK: `v-sdk-X.Y.Z`
-- CloudX Adapter: `v-adapter-cloudx-X.Y.Z`
-- Meta Adapter: `v-adapter-meta-X.Y.Z`
-- All Adapters: `v-adapter-all-X.Y.Z`
+**Trigger**: Git tag `vX.Y.Z` (e.g., `v0.1.0`, `v1.2.3`)
 
-**Publishes to**: Maven Central
+**Publishes to**: Maven Central + GitHub Releases
 
 **Version**: `X.Y.Z`
 
 **Use case**: Public consumption
 
-**Workflows**:
-- `.github/workflows/publish-sdk.yml`
-- `.github/workflows/publish-adapters.yml`
+**Workflow**: `.github/workflows/publish-release.yml`
+
+**What gets published:**
+- `io.cloudx:sdk:X.Y.Z`
+- `io.cloudx:adapter-cloudx:X.Y.Z`
+- `io.cloudx:adapter-meta:X.Y.Z`
+- GitHub Release with AAR attachments
+
+**Promoting a Release (Automated)**:
+
+Use the `scripts/promote-release.sh` script to promote a release branch to main:
+
+```bash
+# Must be on release/* branch with RC tested and validated
+git checkout release/X.Y.Z
+
+# Test first with dry-run
+./scripts/promote-release.sh --dry-run
+
+# Promote to main
+./scripts/promote-release.sh
+```
+
+The script will:
+1. Verify you're on a `release/*` branch
+2. Verify last commit is a version bump
+3. Verify release version > main version
+4. Squash merge release branch to `main`
+5. Create tag `vX.Y.Z`
+6. Push to `main` and tag
+7. Trigger `publish-release.yml` workflow
+
+**After promotion, merge back to develop:**
+```bash
+git checkout develop
+git merge release/X.Y.Z --no-ff
+# Resolve conflicts (keep develop's version if higher)
+git push origin develop
+```
 
 ## Hotfix Process
 
@@ -222,24 +261,24 @@ git push origin release/X.Y.Z
 implementation("io.cloudx:sdk:X.Y.Z+1-rc.+")
 ```
 
-**6. Tag for stable release when validated**
+**6. Promote hotfix to stable release when validated**
+
+Use the promote script to publish to Maven Central:
+
 ```bash
-git tag v-sdk-X.Y.Z+1
-git tag v-adapter-all-X.Y.Z+1
-git push origin v-sdk-X.Y.Z+1 v-adapter-all-X.Y.Z+1
-# Publishes: X.Y.Z+1 to Maven Central
+# Test first with dry-run
+./scripts/promote-release.sh --dry-run
+
+# Promote to main
+./scripts/promote-release.sh
+# Publishes: X.Y.Z+1 to Maven Central + creates GitHub Release
 ```
 
-**7. Merge back to main and develop**
+**7. Merge back to develop**
 ```bash
-# Merge to main
-git checkout main
-git merge release/X.Y.Z
-git push origin main
-
-# Merge to develop
 git checkout develop
-git merge release/X.Y.Z
+git merge release/X.Y.Z --no-ff
+# Resolve conflicts (keep develop's version if higher)
 git push origin develop
 ```
 

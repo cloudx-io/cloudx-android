@@ -178,7 +178,8 @@ fi
 echo ""
 print_step "Step 2: Checkout and update main branch"
 git checkout main
-git pull origin main
+git fetch origin main
+git reset --hard origin/main
 print_success "Main branch is up to date"
 
 echo ""

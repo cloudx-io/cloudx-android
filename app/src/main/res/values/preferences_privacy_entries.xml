@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="pref_privacy_entry_yes">yes</string>
+    <string name="pref_privacy_entry_no">no</string>
+    <string name="pref_privacy_entry_none">none</string>
+
+    <string-array name="pref_privacy_entries">
+        <item>@string/pref_privacy_entry_yes</item>
+        <item>@string/pref_privacy_entry_no</item>
+        <item>@string/pref_privacy_entry_none</item>
+    </string-array>
+
+    <string-array name="pref_privacy_entry_values">
+        <item>1</item>
+        <item>0</item>
+        <item>-1</item>
+    </string-array>
+
+    <string name="pref_privacy_entry_def_val">-1</string>
+</resources>

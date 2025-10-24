@@ -1,0 +1,141 @@
+# Publish RC to GitHub Packages
+#
+# This workflow publishes Release Candidate (RC) builds to GitHub Packages for internal validation.
+# It runs after the CI workflow passes on release/* branches.
+#
+# RC builds are used for final validation before publishing stable releases to Maven Central.
+# Version format: X.Y.Z-rc.BUILD+SHA (e.g., 0.1.0-rc.5+e4f5g6h)
+
+name: 🎯 Publish RC to GitHub Packages
+
+on:
+  workflow_run:
+    workflows: ["CI - Build and Test"]  # Wait for CI to pass
+    types: [completed]
+    branches:
+      - 'release/**'  # Matches release/0.1.0, release/1.0.0, etc.
+
+env:
+  ANDROID_HOME: /Users/administrator/Library/Android/sdk
+
+jobs:
+  publish-rc:
+    runs-on: self-hosted
+    name: 📦 Publish SDK + Adapters to GitHub Packages (RC)
+    # Only run if CI passed
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      # Check out the code from the branch that triggered CI
+      # workflow_run doesn't automatically check out the right ref, so we specify it explicitly
+      - name: 🧾 Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      # Set up Java 17 with Gradle caching
+      - name: ☕ Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      # Make gradlew executable
+      - name: 🔐 Make Gradle executable
+        run: chmod +x ./gradlew
+
+      # Compute the RC version for this build
+      # Format: X.Y.Z-rc.BUILD+SHA
+      # Example: 0.1.0-rc.5+e4f5g6h
+      - name: 🏗️ Compute version
+        id: version
+        run: |
+          BASE_VERSION=$(grep '^sdkVersionName = ' gradle/libs.versions.toml | sed 's/sdkVersionName = "\(.*\)"/\1/')
+          COMMIT_SHA=$(git rev-parse --short=7 HEAD)
+          VERSION="$BASE_VERSION-rc.${{ github.run_number }}+$COMMIT_SHA"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "📦 Publishing RC version: $VERSION"
+
+      # Build release AARs for all modules
+      # CI already verified these build, so this should succeed
+      - name: 🛠️ Build Release AARs
+        run: |
+          ./gradlew :sdk:assembleRelease -Pversion=${{ steps.version.outputs.version }}
+          ./gradlew :adapter-cloudx:assembleRelease -Pversion=${{ steps.version.outputs.version }}
+          ./gradlew :adapter-meta:assembleRelease -Pversion=${{ steps.version.outputs.version }}
+
+      # Publish to GitHub Packages (internal artifact repository for validation)
+      - name: 📦 Publish to GitHub Packages
+        run: |
+          ./gradlew :sdk:publishAllPublicationsToGitHubPackagesRepository --no-daemon --stacktrace -Pversion=${{ steps.version.outputs.version }}
+          ./gradlew :adapter-cloudx:publishAllPublicationsToGitHubPackagesRepository --no-daemon --stacktrace -Pversion=${{ steps.version.outputs.version }}
+          ./gradlew :adapter-meta:publishAllPublicationsToGitHubPackagesRepository --no-daemon --stacktrace -Pversion=${{ steps.version.outputs.version }}
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.PACKAGES_TOKEN }}
+
+      # Upload AARs as workflow artifacts for direct download if needed
+      - name: 📤 Upload AAR Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: rc-aars-${{ github.run_number }}
+          path: |
+            sdk/build/outputs/aar/sdk-release.aar
+            adapter-cloudx/build/outputs/aar/adapter-cloudx-release.aar
+            adapter-meta/build/outputs/aar/adapter-meta-release.aar
+
+      # Notify team in Slack about RC publishing status
+      - name: 📢 Slack Notification
+        uses: 8398a7/action-slack@v3
+        if: always()
+        with:
+          status: custom
+          custom_payload: |
+            {
+              "text": "🎯 CloudX RC Publishing #${{ github.run_number }} finished",
+              "attachments": [{
+                "author_name": "cloudx-android/publish-rc-to-github-packages",
+                "fallback": "RC publishing pipeline finished",
+                "color": "${{ job.status == 'success' && 'good' || 'danger' }}",
+                "fields": [
+                  {
+                    "title": "Status",
+                    "value": "${{ job.status == 'success' && '✅ Success' || '❌ Failed' }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Version",
+                    "value": "`${{ steps.version.outputs.version }}`",
+                    "short": true
+                  },
+                  {
+                    "title": "Commit",
+                    "value": "<${{ github.server_url }}/${{ github.repository }}/commit/${{ github.event.workflow_run.head_sha }}|${{ github.event.workflow_run.head_sha }}>",
+                    "short": true
+                  },
+                  {
+                    "title": "Branch",
+                    "value": "`${{ github.event.workflow_run.head_branch }}`",
+                    "short": true
+                  },
+                  {
+                    "title": "Published To",
+                    "value": "${{ job.status == 'success' && '📦 GitHub Packages (internal validation)' || '❌ Publishing failed' }}",
+                    "short": false
+                  },
+                  {
+                    "title": "Pipeline Log",
+                    "value": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Pipeline Log>",
+                    "short": true
+                  },
+                  {
+                    "title": "Artifacts",
+                    "value": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Download AARs>",
+                    "short": true
+                  }
+                ]
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.CLOUDX_ALERTS_MOBILE_SLACK }}

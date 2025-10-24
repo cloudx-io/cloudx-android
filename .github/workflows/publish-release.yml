@@ -1,0 +1,239 @@
+# Publish Release to Maven Central
+#
+# This workflow publishes SDK and all adapters to Maven Central when a version tag is pushed.
+#
+# Trigger: Push tag in format vX.Y.Z (e.g., v0.1.0, v1.2.3)
+# Publishes: SDK + all adapters with synchronized versions
+#
+# This workflow runs tests, builds release AARs, and publishes to Maven Central.
+
+name: 🚀 Publish Release to Maven Central
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+env:
+  ANDROID_HOME: /Users/administrator/Library/Android/sdk
+
+jobs:
+  publish-release:
+    runs-on: self-hosted
+    name: 📦 Publish SDK + Adapters to Maven Central
+
+    steps:
+      - name: 🏷️ Extract version from tag
+        id: version
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Publishing version: $VERSION"
+
+      - name: 🧾 Checkout code
+        uses: actions/checkout@v4
+
+      - name: ☕ Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: 🔐 Make Gradle executable
+        run: chmod +x ./gradlew
+
+      # Verify version in libs.versions.toml matches tag
+      - name: ✅ Verify version matches tag
+        run: |
+          TOML_VERSION=$(grep '^sdkVersionName = ' gradle/libs.versions.toml | sed 's/sdkVersionName = "\(.*\)"/\1/')
+          TAG_VERSION=${{ steps.version.outputs.version }}
+
+          echo "Version in libs.versions.toml: $TOML_VERSION"
+          echo "Version from tag: $TAG_VERSION"
+
+          if [ "$TOML_VERSION" != "$TAG_VERSION" ]; then
+            echo "❌ ERROR: Version mismatch!"
+            echo "  Tag version: $TAG_VERSION"
+            echo "  libs.versions.toml version: $TOML_VERSION"
+            exit 1
+          fi
+
+          echo "✅ Version matches: $TAG_VERSION"
+
+      # Run all tests
+      - name: 🧪 Run all tests
+        run: ./gradlew test --stacktrace
+
+      - name: 📊 Publish Test Report
+        uses: mikepenz/action-junit-report@v4
+        if: always()
+        with:
+          report_paths: '**/build/test-results/**/TEST-*.xml'
+          check_name: Release Test Results
+
+      - name: 📦 Upload detailed test reports
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: test-reports-${{ github.run_number }}
+          path: |
+            **/build/reports/tests/
+            **/build/test-results/
+          retention-days: 7
+
+      # Build all release AARs
+      - name: 🛠️ Build SDK release AAR
+        run: ./gradlew :sdk:assembleRelease -Pversion=${{ steps.version.outputs.version }}
+
+      - name: 🛠️ Build CloudX adapter release AAR
+        run: ./gradlew :adapter-cloudx:assembleRelease -PuseRemoteSdk=true -Pversion=${{ steps.version.outputs.version }}
+
+      - name: 🛠️ Build Meta adapter release AAR
+        run: ./gradlew :adapter-meta:assembleRelease -PuseRemoteSdk=true -Pversion=${{ steps.version.outputs.version }}
+
+      # Log Maven Central credentials (partially, for debugging)
+      - name: 🔐 Verify Maven Central secrets
+        run: |
+          echo "🔐 mavenCentralUsername: ${ORG_GRADLE_PROJECT_mavenCentralUsername:0:4}..."
+          echo "🔐 mavenCentralPassword length: ${#ORG_GRADLE_PROJECT_mavenCentralPassword} characters"
+          echo "🔏 signingInMemoryKey: $([ -z \"$ORG_GRADLE_PROJECT_signingInMemoryKey\" ] && echo '❌ NOT SET' || echo '✅ SET')"
+          echo "🔏 signingInMemoryKeyPassword: $([ -z \"$ORG_GRADLE_PROJECT_signingInMemoryKeyPassword\" ] && echo '❌ NOT SET' || echo '✅ SET')"
+        env:
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralUsername }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralPassword }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.ORG_GRADLE_PROJECT_signingInMemoryKey }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.ORG_GRADLE_PROJECT_signingInMemoryKeyPassword }}
+
+      # Publish SDK to Maven Central
+      - name: 📦 Publish SDK to Maven Central
+        run: ./gradlew :sdk:publishToMavenCentral --no-daemon --stacktrace -Pversion=${{ steps.version.outputs.version }}
+        env:
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralUsername }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralPassword }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.ORG_GRADLE_PROJECT_signingInMemoryKey }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.ORG_GRADLE_PROJECT_signingInMemoryKeyPassword }}
+
+      # Publish adapters to Maven Central
+      - name: 📦 Publish CloudX adapter to Maven Central
+        run: ./gradlew :adapter-cloudx:publishToMavenCentral --no-daemon --stacktrace -PuseRemoteSdk=true -Pversion=${{ steps.version.outputs.version }}
+        env:
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralUsername }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralPassword }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.ORG_GRADLE_PROJECT_signingInMemoryKey }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.ORG_GRADLE_PROJECT_signingInMemoryKeyPassword }}
+
+      - name: 📦 Publish Meta adapter to Maven Central
+        run: ./gradlew :adapter-meta:publishToMavenCentral --no-daemon --stacktrace -PuseRemoteSdk=true -Pversion=${{ steps.version.outputs.version }}
+        env:
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralUsername }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralPassword }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.ORG_GRADLE_PROJECT_signingInMemoryKey }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.ORG_GRADLE_PROJECT_signingInMemoryKeyPassword }}
+
+      # Upload AAR artifacts
+      - name: 📤 Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-aars-${{ steps.version.outputs.version }}
+          path: |
+            sdk/build/outputs/aar/sdk-release.aar
+            adapter-cloudx/build/outputs/aar/adapter-cloudx-release.aar
+            adapter-meta/build/outputs/aar/adapter-meta-release.aar
+          retention-days: 90
+
+      # Create GitHub Release with AAR files
+      - name: 📝 Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Release ${{ steps.version.outputs.version }}
+          body: |
+            # CloudX Android SDK ${{ steps.version.outputs.version }}
+
+            ## 📦 Published to Maven Central
+
+            Add to your `build.gradle.kts`:
+
+            ```kotlin
+            dependencies {
+                implementation("io.cloudx:sdk:${{ steps.version.outputs.version }}")
+                implementation("io.cloudx:adapter-cloudx:${{ steps.version.outputs.version }}")
+                implementation("io.cloudx:adapter-meta:${{ steps.version.outputs.version }}")
+            }
+            ```
+
+            ## 📥 Direct Downloads
+
+            AAR files are attached to this release for direct download if needed.
+
+            ## 🔗 Maven Central Links
+
+            - [SDK on Maven Central](https://central.sonatype.com/artifact/io.cloudx/sdk/${{ steps.version.outputs.version }})
+            - [CloudX Adapter on Maven Central](https://central.sonatype.com/artifact/io.cloudx/adapter-cloudx/${{ steps.version.outputs.version }})
+            - [Meta Adapter on Maven Central](https://central.sonatype.com/artifact/io.cloudx/adapter-meta/${{ steps.version.outputs.version }})
+
+            ---
+            **Note:** It may take up to 30 minutes for packages to appear on Maven Central after this release is published.
+          files: |
+            sdk/build/outputs/aar/sdk-release.aar
+            adapter-cloudx/build/outputs/aar/adapter-cloudx-release.aar
+            adapter-meta/build/outputs/aar/adapter-meta-release.aar
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Slack notification
+      - name: 📢 Slack Notification
+        uses: 8398a7/action-slack@v3
+        if: always()
+        with:
+          status: custom
+          custom_payload: |
+            {
+              "text": "🚀 CloudX Release ${{ steps.version.outputs.version }} Publishing #${{ github.run_number }} finished",
+              "attachments": [{
+                "author_name": "cloudx-android/publish-release",
+                "fallback": "Release publishing pipeline finished",
+                "color": "${{ job.status == 'success' && 'good' || 'danger' }}",
+                "fields": [
+                  {
+                    "title": "Status",
+                    "value": "${{ job.status == 'success' && '✅ Success' || '❌ Failed' }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Version",
+                    "value": "`${{ steps.version.outputs.version }}`",
+                    "short": true
+                  },
+                  {
+                    "title": "Tag",
+                    "value": "`${{ github.ref_name }}`",
+                    "short": true
+                  },
+                  {
+                    "title": "Modules Published",
+                    "value": "${{ job.status == 'success' && '📦 SDK + adapter-cloudx + adapter-meta' || '❌ Publishing failed' }}",
+                    "short": false
+                  },
+                  {
+                    "title": "Maven Central",
+                    "value": "${{ job.status == 'success' && '📤 Uploaded (~30 min to publish publicly)' || '❌ Upload failed' }}",
+                    "short": false
+                  },
+                  {
+                    "title": "Pipeline Log",
+                    "value": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Pipeline Log>",
+                    "short": true
+                  },
+                  {
+                    "title": "Artifacts",
+                    "value": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Download AARs>",
+                    "short": true
+                  }
+                ]
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.CLOUDX_ALERTS_MOBILE_SLACK }}

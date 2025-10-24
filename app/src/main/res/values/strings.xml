@@ -1,0 +1,49 @@
+<resources>
+    <string name="app_name">CloudX SDK Demo</string>
+    <string name="initialize_sdk">Init SDK</string>
+    <string name="init_in_progress">Initializing..</string>
+    <string name="retry_initialization">Retry initialization</string>
+    <string name="init_completed">Initialized</string>
+    <string name="menu_stop">Stop</string>
+    <string name="restart_app">Restart app</string>
+    <string name="interstitial">Interstitial</string>
+    <string name="rewarded">Rewarded</string>
+    <string name="banner">Banner</string>
+    <string name="banner_standard">Standard</string>
+    <string name="small">Small</string>
+    <string name="medium">Medium</string>
+    <string name="initialize_sdk_retry">Retry Init</string>
+    <string name="settings">Settings</string>
+    <string name="hint_app_key">App key</string>
+    <string name="hint_init_url">Initialization url</string>
+    <string name="hint_user_id">User Id</string>
+    <string name="hint_placements">Placements</string>
+    <string name="hint_iab_api">IAB API</string>
+    <string name="hint_manual_privacy_api">Manual Privacy API</string>
+    <string name="hint_gdpr_consent">GDPR consent</string>
+    <string name="hint_age_restricted">COPPA (Age restricted)</string>
+    <string name="hint_iab_tcf_gdpr_applies">GDPR applies</string>
+    <string name="hint_iab_tcf_tc_string">TC String</string>
+    <string name="hint_iab_us_privacy_string">US Privacy String</string>
+    <string name="load">Load</string>
+    <string name="show">Show</string>
+    <string name="load_show">Load/Show</string>
+    <string name="stop">Stop</string>
+    <string name="mrec">MREC</string>
+    <string name="hint_banner_placement_name">Banner</string>
+    <string name="hint_mrec_placement_name">MREC</string>
+    <string name="hint_interstitial_placement_name">Interstitial</string>
+    <string name="hint_rewarded_placement_name">Rewarded</string>
+    <string name="hint_native_small_placement_name">Native small</string>
+    <string name="hint_native_medium_placement_name">Native medium</string>
+    <string name="native_tab">Native</string>
+    <string name="hint_targeting">Targeting</string>
+    <string name="hint_mock_user_targeting_enabled">Mock user targeting enabled</string>
+    <string name="hint_meta_test_mode_enabled">Meta Audience Network test mode</string>
+    <string name="hint_iab_tcfv2_gdpr">IAB TCFv2 (GDPR)</string>
+    <string name="hint_iab_ccpa">IAB CCPA</string>
+    <string name="ask_location_permission">Ask location permission</string>
+    
+    <!-- Meta Audience Network App ID - Replace with your actual Meta App ID from Meta Developer Dashboard -->
+    <string name="facebook_app_id">1477955076736171</string>
+</resources>

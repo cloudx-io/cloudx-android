@@ -1,0 +1,299 @@
+package io.cloudx.sdk.internal.ads.banner
+
+import io.cloudx.sdk.CloudXAdViewListener
+import io.cloudx.sdk.CloudXDestroyable
+import io.cloudx.sdk.CloudXError
+import io.cloudx.sdk.internal.AdNetwork
+import io.cloudx.sdk.internal.AdType
+import io.cloudx.sdk.internal.CXLogger
+import io.cloudx.sdk.internal.adapter.BannerFactoryMiscParams
+import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterContainer
+import io.cloudx.sdk.internal.adapter.CloudXAdViewAdapterFactory
+import io.cloudx.sdk.internal.adapter.CloudXAdapterBidRequestExtrasProvider
+import io.cloudx.sdk.internal.ads.AdLoader
+import io.cloudx.sdk.internal.bid.BidApi
+import io.cloudx.sdk.internal.bid.BidRequestProvider
+import io.cloudx.sdk.internal.cdp.CdpApi
+import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
+import io.cloudx.sdk.internal.tracker.EventTracker
+import io.cloudx.sdk.internal.tracker.SessionMetricsTracker
+import io.cloudx.sdk.internal.tracker.metrics.MetricsTracker
+import io.cloudx.sdk.internal.tracker.metrics.MetricsType
+import io.cloudx.sdk.internal.tracker.win_loss.WinLossTracker
+import io.cloudx.sdk.internal.util.Result
+import io.cloudx.sdk.internal.util.ThreadUtils
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
+
+internal class BannerManager(
+    private val placementId: String,
+    private val placementName: String,
+    private val adType: AdType,
+    private val adLoader: AdLoader<BannerAdapterDelegate>,
+    bannerVisibility: StateFlow<Boolean>,
+    private val refreshSeconds: Int,
+    private val metricsTracker: MetricsTracker,
+) : CloudXDestroyable {
+
+    // Core properties
+    private val logger = CXLogger.forPlacement("BannerManager", placementName)
+    private val scope = ThreadUtils.createMainScope("BannerManager")
+    var listener: CloudXAdViewListener? = null
+
+    // Timing configuration
+    private val refreshDelayMillis = TimeUnit.SECONDS.toMillis(refreshSeconds.toLong())
+
+    // Banner refresh management
+    private val bannerRefreshTimer = BannerSuspendableTimer(bannerVisibility)
+    private var bannerRefreshJob: Job? = null
+
+    // Backup banner management
+    private val backupBanner = MutableStateFlow<Result<BannerAdapterDelegate, CloudXError>?>(null)
+    private var backupBannerLoadJob: Job? = null
+    private var backupBannerErrorHandlerJob: Job? = null
+
+    // Current banner management
+    private var currentBanner: BannerAdapterDelegate? = null
+    private var currentBannerEventHandlerJob: Job? = null
+
+    init {
+        // Start auto-refresh by default
+        restartBannerRefresh()
+    }
+
+    fun load() {
+        if (bannerRefreshTimer.isManuallyEnabled) {
+            logger.w("Unable to load a new ad. Auto-refresh is enabled.")
+            return
+        }
+        restartBannerRefresh()
+    }
+
+    // Public auto-refresh control methods
+    fun startAutoRefresh() {
+        logger.i("Starting auto-refresh")
+        bannerRefreshTimer.resume()
+    }
+
+    fun stopAutoRefresh() {
+        logger.i("Stopping auto-refresh")
+        bannerRefreshTimer.pause()
+    }
+
+    // Banner refresh methods
+    private fun restartBannerRefresh() {
+        bannerRefreshJob?.cancel()
+        bannerRefreshJob = scope.launch {
+            while (true) {
+                ensureActive()
+
+                val banner = loadBackupBanner()
+                banner.fold(
+                    onSuccess = {
+                        hideAndDestroyCurrentBanner()
+                        listener?.onAdLoaded(it)
+                        showNewBanner(it)
+                    },
+                    onFailure = {
+                        listener?.onAdLoadFailed(it)
+                    }
+                )
+
+                metricsTracker.trackMethodCall(MetricsType.Method.BannerRefresh)
+                logger.d("Banner refresh scheduled in ${refreshSeconds}s")
+                bannerRefreshTimer.awaitTimeout(refreshDelayMillis)
+            }
+        }
+    }
+
+    // Backup banner methods
+    private suspend fun loadBackupBanner(): Result<BannerAdapterDelegate, CloudXError> {
+        loadBackupBannerIfAbsent()
+
+        val banner = backupBanner.mapNotNull { it }.first()
+
+        backupBannerErrorHandlerJob?.cancel()
+        backupBanner.value = null
+
+        return banner
+    }
+
+    private fun loadBackupBannerIfAbsent() {
+        if (backupBanner.value is Result.Success || backupBannerLoadJob?.isActive == true) {
+            return
+        }
+
+        logger.d("Loading backup banner")
+        backupBannerLoadJob = scope.launch {
+            /**
+             * Each returned banner from this method should be already attached to the BannerContainer in CloudXAdView.
+             * If you look at the implementation of CloudXAdView::createBannerContainer()
+             * you'll see that each banner gets inserted to the "background" of the view hence can be treated as invisible/precached.
+             * So, first successful non-null tryLoadBanner() call will result in banner displayed on the screen.
+             * All the consecutive successful tryLoadBanner() calls will result in banner attached to the background and visibility set to GONE.
+             * Once the foreground visible banner is destroyed (banner.destroy())
+             * it gets removed from the screen and the next topmost banner gets displayed if available.
+             */
+            val banner = adLoader.load()
+            backupBanner.value = banner
+            banner.onSuccess {
+                preserveBackupBanner(it)
+            }
+        }
+    }
+
+    private fun preserveBackupBanner(banner: BannerAdapterDelegate) {
+        logger.d("Backup banner loaded and ready")
+
+        backupBannerErrorHandlerJob?.cancel()
+        backupBannerErrorHandlerJob = scope.launch {
+            val error = banner.lastErrorEvent.first { it != null }
+            logger.w("Backup banner error detected: $error - destroying and reloading")
+            destroyBackupBanner()
+            loadBackupBannerIfAbsent()
+        }
+    }
+
+    private fun destroyBackupBanner() {
+        backupBannerErrorHandlerJob?.cancel()
+
+        with(backupBanner) {
+            value?.onSuccess {
+                logger.d("Destroying backup banner")
+                it.destroy()
+            }
+            value = null
+        }
+    }
+
+    // Current banner management methods
+    private fun showNewBanner(banner: BannerAdapterDelegate) {
+        logger.d("Displaying new banner")
+        listener?.onAdDisplayed(banner)
+        SessionMetricsTracker.recordImpression(placementName, adType)
+
+        currentBanner = banner
+
+        currentBannerEventHandlerJob?.cancel()
+        currentBannerEventHandlerJob = scope.launch {
+            launch {
+                banner.event.filter { it == BannerAdapterDelegateEvent.Click }.collect {
+                    logger.i("Banner clicked by user")
+                    listener?.onAdClicked(banner)
+                }
+            }
+            launch {
+                val error = banner.lastErrorEvent.first { it != null }
+                logger.w("Banner error detected: $error - restarting refresh cycle")
+                error?.let { listener?.onAdDisplayFailed(it) }
+                hideAndDestroyCurrentBanner()
+                restartBannerRefresh()
+            }
+        }
+    }
+
+    private fun hideAndDestroyCurrentBanner() {
+        currentBanner?.let {
+            logger.d("Hiding current banner")
+            listener?.onAdHidden(it)
+        }
+        destroyCurrentBanner()
+    }
+
+    private fun destroyCurrentBanner() {
+        currentBannerEventHandlerJob?.cancel()
+
+        currentBanner?.let {
+            logger.d("Destroying current banner")
+            it.destroy()
+        }
+        currentBanner = null
+    }
+
+    // Cleanup methods
+    override fun destroy() {
+        scope.cancel()
+
+        destroyCurrentBanner()
+        bannerRefreshTimer.destroy()
+
+        destroyBackupBanner()
+        SessionMetricsTracker.resetPlacement(placementName)
+    }
+}
+
+internal fun BannerManager(
+    placementId: String,
+    placementName: String,
+    adViewContainer: CloudXAdViewAdapterContainer,
+    bannerVisibility: StateFlow<Boolean>,
+    refreshSeconds: Int,
+    adType: AdType,
+    bidFactories: Map<AdNetwork, CloudXAdViewAdapterFactory>,
+    bidRequestExtrasProviders: Map<AdNetwork, CloudXAdapterBidRequestExtrasProvider>,
+    bidAdLoadTimeoutMillis: Long,
+    miscParams: BannerFactoryMiscParams,
+    bidApi: BidApi,
+    cdpApi: CdpApi,
+    eventTracker: EventTracker,
+    metricsTracker: MetricsTracker,
+    winLossTracker: WinLossTracker,
+    connectionStatusService: ConnectionStatusService,
+    accountId: String,
+    appKey: String,
+    appId: String
+): BannerManager {
+
+    val bidRequestProvider = BidRequestProvider(
+        bidRequestExtrasProviders = bidRequestExtrasProviders
+    )
+
+    val bidSource =
+        BidBannerSource(
+            adViewContainer = adViewContainer,
+            refreshSeconds = refreshSeconds,
+            factories = bidFactories,
+            placementId = placementId,
+            placementName = placementName,
+            placementType = adType,
+            requestBid = bidApi,
+            cdpApi = cdpApi,
+            generateBidRequest = bidRequestProvider,
+            eventTracker = eventTracker,
+            metricsTracker = metricsTracker,
+            winLossTracker = winLossTracker,
+            miscParams = miscParams,
+            bidRequestTimeoutMillis = 0,
+            accountId = accountId,
+            appKey = appKey,
+            appId = appId
+        )
+
+
+    val adLoader = AdLoader(
+        bidAdSource = bidSource,
+        bidAdLoadTimeoutMillis = bidAdLoadTimeoutMillis,
+        placementName = placementName,
+        placementId = placementId,
+        connectionStatusService = connectionStatusService,
+        winLossTracker = winLossTracker
+    )
+
+    return BannerManager(
+        placementId = placementId,
+        placementName = placementName,
+        adType = adType,
+        adLoader = adLoader,
+        bannerVisibility = bannerVisibility,
+        refreshSeconds = refreshSeconds,
+        metricsTracker = metricsTracker
+    )
+}

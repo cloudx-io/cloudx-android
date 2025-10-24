@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/menu_init"
+        android:contentDescription="@string/initialize_sdk"
+        android:enabled="true"
+        android:icon="@drawable/outline_play_circle_outline_24"
+        android:title="@string/initialize_sdk"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/menu_init_in_progress"
+        android:contentDescription="@string/init_in_progress"
+        android:enabled="true"
+        android:icon="@drawable/outline_hourglass_top_24"
+        android:title="@string/init_in_progress"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/menu_init_retry"
+        android:contentDescription="@string/initialize_sdk_retry"
+        android:enabled="true"
+        android:icon="@drawable/outline_replay_24"
+        android:title="@string/initialize_sdk_retry"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/menu_init_success"
+        android:contentDescription="@string/init_completed"
+        android:enabled="true"
+        android:icon="@drawable/outline_check_circle_outline_24"
+        android:title="@string/init_completed"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/menu_stop"
+        android:contentDescription="@string/menu_stop"
+        android:enabled="true"
+        android:icon="@drawable/baseline_stop_circle_24"
+        android:title="@string/menu_stop"
+        app:showAsAction="always" />
+</menu>

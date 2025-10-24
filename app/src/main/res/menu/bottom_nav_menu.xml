@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/menu_banner"
+        android:enabled="true"
+        android:icon="@drawable/baseline_smart_screen_24"
+        android:title="@string/banner" />
+
+    <item
+        android:id="@+id/menu_native"
+        android:enabled="true"
+        android:icon="@drawable/baseline_smart_screen_24"
+        android:title="@string/native_tab" />
+
+    <item
+        android:id="@+id/menu_interstitial"
+        android:enabled="true"
+        android:icon="@drawable/baseline_smartphone_24"
+        android:title="@string/interstitial" />
+
+    <item
+        android:id="@+id/menu_rewarded"
+        android:enabled="true"
+        android:icon="@drawable/baseline_diamond_24"
+        android:title="@string/rewarded" />
+
+    <item
+        android:id="@+id/menu_settings"
+        android:enabled="true"
+        android:icon="@drawable/baseline_settings_24"
+        android:title="@string/settings" />
+</menu>

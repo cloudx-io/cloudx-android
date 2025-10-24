@@ -18,6 +18,12 @@ on:
     branches:
       - '**'  # Run on all PRs
 
+# Required for junit-report action to create checks and annotations
+permissions:
+  checks: write
+  pull-requests: write
+  contents: read
+
 jobs:
   build:
     name: Build and Test
@@ -45,8 +51,9 @@ jobs:
       # - Compiles SDK, adapters, and demo app
       # - Runs all unit tests
       # - Runs lint checks
+      # Using clean to ensure tests always run (avoid Gradle UP-TO-DATE)
       - name: 🏗️ Build all modules and run tests
-        run: ./gradlew build
+        run: ./gradlew clean build
 
       # Parse test results and create summary (runs even if tests fail)
       - name: 📊 Publish Test Report

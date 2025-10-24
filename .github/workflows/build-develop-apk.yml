@@ -64,7 +64,7 @@ jobs:
                   },
                   {
                     "title": "Commit",
-                    "value": "`${{ github.sha }}`",
+                    "value": "`${{ github.event.workflow_run.head_sha }}`",
                     "short": false
                   },
                   {

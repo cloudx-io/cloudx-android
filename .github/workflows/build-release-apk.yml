@@ -60,12 +60,12 @@ jobs:
                   },
                   {
                     "title": "Branch",
-                    "value": "`${{ github.ref_name }}`",
+                    "value": "`${{ github.event.workflow_run.head_branch }}`",
                     "short": true
                   },
                   {
                     "title": "Commit",
-                    "value": "`${{ github.sha }}`",
+                    "value": "`${{ github.event.workflow_run.head_sha }}`",
                     "short": false
                   },
                   {

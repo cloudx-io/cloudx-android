@@ -19,7 +19,7 @@ private val LazySingleInstance by lazy {
     GPPProviderImpl.create(ApplicationContext())
 }
 
-private class GPPProviderImpl(
+internal class GPPProviderImpl(
     private val sharedPrefs: SharedPreferences
 ) : GPPProvider {
 

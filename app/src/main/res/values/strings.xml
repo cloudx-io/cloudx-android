@@ -16,7 +16,6 @@
     <string name="settings">Settings</string>
     <string name="hint_app_key">App key</string>
     <string name="hint_init_url">Initialization url</string>
-    <string name="hint_user_id">User Id</string>
     <string name="hint_placements">Placements</string>
     <string name="hint_iab_api">IAB API</string>
     <string name="hint_manual_privacy_api">Manual Privacy API</string>

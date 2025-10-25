@@ -41,20 +41,10 @@ object CloudXInitializer {
             }
         )
 
-        val userId = settings.userId
-        val hashedUserId = if (userId.isNotBlank()) {
-            normalizeAndHash(userId, "sha256").also {
-                CXLogger.i(logTag, "Using hashed user ID: $it")
-            }
-        } else {
-            null
-        }
-
         CloudX.initialize(
             initParams = CloudXInitializationParams(
                 appKey = settings.appKey,
-                initServer = CloudXInitializationServer.Custom(settings.initUrl),
-                hashedUserId = hashedUserId
+                initServer = CloudXInitializationServer.Custom(settings.initUrl)
             ),
             listener = object : CloudXInitializationListener {
                 override fun onInitialized() {

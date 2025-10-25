@@ -8,6 +8,5 @@ package io.cloudx.sdk
  */
 data class CloudXInitializationParams @JvmOverloads constructor(
     val appKey: String,
-    val initServer: CloudXInitializationServer = CloudXInitializationServer.Production,
-    val hashedUserId: String? = null
+    val initServer: CloudXInitializationServer = CloudXInitializationServer.Production
 )

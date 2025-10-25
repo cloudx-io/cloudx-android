@@ -16,25 +16,6 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
         gppTestLogic()
         updatePlacementsFromPreferences()
-        updateUserId()
-    }
-
-    fun updateUserId() {
-        val context = preferenceManager.context
-
-        val userIdKey = getString(R.string.pref_user_id)
-        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
-
-        val userIdPref = findPreference<EditTextPreference>(userIdKey)
-        val userIdRaw = prefs.getString(userIdKey, null)
-
-        if (!userIdRaw.isNullOrBlank()) {
-            userIdPref?.text = userIdRaw
-            userIdPref?.isVisible = true
-        } else {
-            userIdPref?.text = null
-            userIdPref?.isVisible = false
-        }
     }
 
     private fun gppTestLogic() {

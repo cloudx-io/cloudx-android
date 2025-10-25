@@ -79,12 +79,11 @@ dependencies {
 
 **Kotlin:**
 ```kotlin
-// Initialize with app key and optional hashed user ID
+// Initialize with app key
 CloudX.initialize(
     initParams = CloudXInitializationParams(
         appKey = "your-app-key-here",
-        initServer = CloudXInitializationServer.Production,
-        hashedUserId = "hashed-user-id-optional"
+        initServer = CloudXInitializationServer.Production
     ),
     listener = object : CloudXInitializationListener {
         override fun onInitialized() {

@@ -68,7 +68,6 @@ internal object CXSdk {
                 val initService = InitializationService(
                     configApi = ConfigApi(initParams.initServer)
                 )
-                SdkKeyValueState.hashedUserId = initParams.hashedUserId
                 initService.metricsTracker?.trackMethodCall(MetricsType.Method.SdkInitMethod)
 
                 // Initializing SDK...

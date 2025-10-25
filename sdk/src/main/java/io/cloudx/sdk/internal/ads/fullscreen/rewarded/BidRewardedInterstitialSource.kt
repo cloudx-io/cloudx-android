@@ -81,7 +81,8 @@ internal fun BidRewardedInterstitialSource(
                 bid = bid,
                 auctionId = auctionId,
                 eventTracker = eventTracker,
-                winLossTracker = winLossTracker
+                winLossTracker = winLossTracker,
+                type = adType
             ) + createAdapterEventLoggingDecorator(
                 placementName = placementName,
                 adNetwork = network,

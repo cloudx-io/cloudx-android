@@ -43,8 +43,7 @@ private fun JSONArray?.toAssets(): List<NativeOrtbResponse.Asset> {
     val len = length()
     for (i in 0 until len) {
         with(getJSONObject(i)) {
-            // TODO. Change this logic when/if "assetsurl" field support is implemented
-            //  (assets there might not contain "id" field).
+            // TODO. Change this logic when/if "assetsurl" field support is implemented (assets there might not contain "id" field).
             if (has("id")) {
                 val id = getInt("id")
                 val required = optInt("required", 0) == 1

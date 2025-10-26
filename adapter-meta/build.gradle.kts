@@ -27,7 +27,7 @@ android {
         minSdk = libs.versions.minSdk.get().toInt()
 
         testInstrumentationRunner = libs.versions.testInstrumentationRunner.get()
-        consumerProguardFiles("consumer-rules.pro") // TODO
+        consumerProguardFiles("consumer-rules.pro")
 
         buildConfigField("String", "AUDIENCE_SDK_VERSION_NAME", "\"${libs.versions.metaAudienceNetworkVersion.get()}\"")
     }

@@ -46,7 +46,7 @@ class CloudXAdView internal constructor(
     private var bannerManager: BannerManager? = null
 
     // Banner container tracking - ordered by layer: background first, foreground last
-    // TODO. View is null for acquireBannerContainer() call... Fyber... ugh.
+    // TODO. View is null for acquireBannerContainer() call... Fyber
     private val orderedBannerToContainerList = mutableListOf<Pair<View?, ViewGroup>>()
     private var hasCloseButton = false
 

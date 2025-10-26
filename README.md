@@ -82,8 +82,7 @@ dependencies {
 // Initialize with app key
 CloudX.initialize(
     initParams = CloudXInitializationParams(
-        appKey = "your-app-key-here",
-        initServer = CloudXInitializationServer.Production
+        appKey = "your-app-key-here"
     ),
     listener = object : CloudXInitializationListener {
         override fun onInitialized() {
@@ -99,13 +98,9 @@ CloudX.initialize(
 
 **Java:**
 ```java
-// Initialize with app key and optional hashed user ID
+// Initialize with app key
 CloudX.initialize(
-    new CloudXInitializationParams(
-        "your-app-key-here",
-        CloudXInitializationServer.production(),
-        "hashed-user-id-optional"
-    ),
+    new CloudXInitializationParams("your-app-key-here"),
     new CloudXInitializationListener() {
         @Override
         public void onInitialized() {

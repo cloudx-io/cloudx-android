@@ -116,13 +116,28 @@ else
 fi
 print_success "Updated version in gradle/libs.versions.toml"
 
+# Update version in README.md
+print_info "Updating version to $NEW_VERSION in README.md..."
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    # macOS
+    sed -i '' -E "s/io\.cloudx:sdk:[0-9]+\.[0-9]+\.[0-9]+/io.cloudx:sdk:$NEW_VERSION/g" README.md
+    sed -i '' -E "s/io\.cloudx:adapter-cloudx:[0-9]+\.[0-9]+\.[0-9]+/io.cloudx:adapter-cloudx:$NEW_VERSION/g" README.md
+    sed -i '' -E "s/io\.cloudx:adapter-meta:[0-9]+\.[0-9]+\.[0-9]+/io.cloudx:adapter-meta:$NEW_VERSION/g" README.md
+else
+    # Linux
+    sed -i -E "s/io\.cloudx:sdk:[0-9]+\.[0-9]+\.[0-9]+/io.cloudx:sdk:$NEW_VERSION/g" README.md
+    sed -i -E "s/io\.cloudx:adapter-cloudx:[0-9]+\.[0-9]+\.[0-9]+/io.cloudx:adapter-cloudx:$NEW_VERSION/g" README.md
+    sed -i -E "s/io\.cloudx:adapter-meta:[0-9]+\.[0-9]+\.[0-9]+/io.cloudx:adapter-meta:$NEW_VERSION/g" README.md
+fi
+print_success "Updated version in README.md"
+
 # Show the diff
 print_info "Changes:"
-git diff gradle/libs.versions.toml
+git diff gradle/libs.versions.toml README.md
 
 # Commit the version bump
 print_info "Committing version bump..."
-git add gradle/libs.versions.toml
+git add gradle/libs.versions.toml README.md
 git commit -m "Bump version to $NEW_VERSION for hotfix
 
 Prepare hotfix for version $NEW_VERSION.

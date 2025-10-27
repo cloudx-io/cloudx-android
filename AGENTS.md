@@ -4,7 +4,6 @@
 - `sdk/` holds the public CloudX SDK API under `io.cloudx.sdk` and internal logic under `io.cloudx.sdk.internal`.
 - `adapter-cloudx/` and `adapter-meta/` implement ad network bridges mirroring the adapter interfaces in `sdk/internal/adapter`.
 - `app/` is the demo client that wires the SDK and adapters together; use it when validating end-to-end ad flows.
-- `build-logic/` centralizes shared Gradle convention plugins; avoid duplicating configuration in module `build.gradle.kts` files.
 - Reusable scripts live in `scripts/`; docs and policy text are under `docs/`.
 
 ## Build, Test, and Development Commands

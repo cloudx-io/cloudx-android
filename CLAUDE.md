@@ -104,12 +104,6 @@ The repository is organized into several modules:
 - **Purpose:** Demo app showcasing SDK integration
 - **Note:** Uses local dependencies (`:sdk`, `:adapter-cloudx`, `:adapter-meta`) for development
 
-### `:build-logic` - Build Configuration
-- **Location:** `build-logic/src/main/kotlin/`
-- **Purpose:** Shared Gradle build configuration and conventions
-- **Key Files:**
-  - `app-conventions.gradle.kts` - Conventions for app modules
-
 ## Architecture
 
 ### Initialization Flow
@@ -165,7 +159,7 @@ The repository is organized into several modules:
 ## Key Configuration Files
 
 - **`gradle.properties`** - Project-wide Gradle settings, configuration cache enabled
-- **`settings.gradle.kts`** - Module includes, repository configuration, composite build for build-logic
+- **`settings.gradle.kts`** - Module includes, repository configuration
 - **`sdk/gradle.properties`** - SDK-specific properties (if exists)
 - **`keystore.properties`** - Keystore configuration for signing (gitignored, used by `:app`)
 - **`local.properties`** - Local SDK paths (gitignored)

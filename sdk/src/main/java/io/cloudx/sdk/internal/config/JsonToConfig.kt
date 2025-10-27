@@ -166,7 +166,6 @@ private fun JSONArray.toPlacements(): Map<String, Config.Placement> {
                 bidResponseTimeoutMillis,
                 adLoadTimeoutMillis,
                 jsonPlacement.toNativeTemplateType(),
-                // TODO. getInt() once back-end supports.
                 refreshRateMillis = jsonPlacement.optInt("bannerRefreshRateMs", 900_000),
                 hasCloseButton
             )

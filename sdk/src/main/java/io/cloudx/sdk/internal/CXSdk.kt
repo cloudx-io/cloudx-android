@@ -65,10 +65,10 @@ internal object CXSdk {
         initJob = scope.launch {
             try {
                 // Initial creation of InitializationService.
+                @Suppress("DEPRECATION")
                 val initService = InitializationService(
                     configApi = ConfigApi(initParams.initServer)
                 )
-                SdkKeyValueState.hashedUserId = initParams.hashedUserId
                 initService.metricsTracker?.trackMethodCall(MetricsType.Method.SdkInitMethod)
 
                 // Initializing SDK...

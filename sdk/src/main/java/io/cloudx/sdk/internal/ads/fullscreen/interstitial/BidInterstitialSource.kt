@@ -65,7 +65,6 @@ internal fun BidInterstitialSource(
             externalPlacementId = null,
             price = price,
         ) { listener ->
-            // TODO. IMPORTANT. Explicit Result cast isn't "cool", even though there's try catch somewhere.
             (factories[adNetwork]?.create(
                 contextProvider = ContextProvider(),
                 placementName = placementName,
@@ -80,7 +79,8 @@ internal fun BidInterstitialSource(
                 bid = bid,
                 auctionId = auctionId,
                 eventTracker = eventTracker,
-                winLossTracker = winLossTracker
+                winLossTracker = winLossTracker,
+                type = adType
             ) + createAdapterEventLoggingDecorator(
                 placementName = placementName,
                 adNetwork = adNetwork,

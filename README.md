@@ -2,6 +2,8 @@
 
 A powerful Android SDK for maximizing ad revenue through intelligent ad mediation across multiple ad networks. The CloudX SDK helps developers efficiently manage and optimize their ad inventory to ensure the highest possible returns.
 
+[![Maven Central](https://img.shields.io/maven-central/v/io.cloudx/sdk)](https://central.sonatype.com/artifact/io.cloudx/sdk)
+
 ## Features
 
 - **Multiple Ad Formats**: Banner, Interstitial, and MREC ads
@@ -63,11 +65,11 @@ dependencyResolutionManagement {
 ```kotlin
 dependencies {
     // CloudX Core SDK
-    implementation("io.cloudx:sdk:0.1.0")
+    implementation("io.cloudx:sdk:0.4.0")
 
     // Optional: CloudX Adapters (add as needed)
-    implementation("io.cloudx:adapter-cloudx:0.1.0")
-    implementation("io.cloudx:adapter-meta:0.1.0")
+    implementation("io.cloudx:adapter-cloudx:0.4.0")
+    implementation("io.cloudx:adapter-meta:0.4.0")
 }
 ```
 
@@ -79,12 +81,10 @@ dependencies {
 
 **Kotlin:**
 ```kotlin
-// Initialize with app key and optional hashed user ID
+// Initialize with app key
 CloudX.initialize(
     initParams = CloudXInitializationParams(
-        appKey = "your-app-key-here",
-        initServer = CloudXInitializationServer.Production,
-        hashedUserId = "hashed-user-id-optional"
+        appKey = "your-app-key-here"
     ),
     listener = object : CloudXInitializationListener {
         override fun onInitialized() {
@@ -100,13 +100,9 @@ CloudX.initialize(
 
 **Java:**
 ```java
-// Initialize with app key and optional hashed user ID
+// Initialize with app key
 CloudX.initialize(
-    new CloudXInitializationParams(
-        "your-app-key-here",
-        CloudXInitializationServer.production(),
-        "hashed-user-id-optional"
-    ),
+    new CloudXInitializationParams("your-app-key-here"),
     new CloudXInitializationListener() {
         @Override
         public void onInitialized() {
@@ -630,6 +626,7 @@ CloudX.setMinLogLevel(CloudXLogLevel.DEBUG);
 ## Support
 
 - **Documentation**: [CloudX Android SDK Docs](https://github.com/cloudx-io/cloudx-android)
+- **Changelog**: [CHANGELOG.md](./CHANGELOG.md)
 - **Issues**: [GitHub Issues](https://github.com/cloudx-io/cloudx-android/issues)
 - **Email**: mobile@cloudx.io
 

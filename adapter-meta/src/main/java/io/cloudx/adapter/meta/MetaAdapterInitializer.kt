@@ -34,8 +34,6 @@ internal object Initializer : CloudXAdapterInitializer {
             return@withContext Unit.toSuccess()
         }
 
-        privacy.updatePrivacy()
-
         suspendCancellableCoroutine { continuation ->
             val initListener = AudienceNetworkAds.InitListener { initResult ->
                 if (initResult.isSuccess) {
@@ -77,12 +75,3 @@ internal object Initializer : CloudXAdapterInitializer {
 private var isInitialized = false
 
 internal const val AudienceNetworkAdsVersion = BuildConfig.AUDIENCE_SDK_VERSION_NAME
-
-private fun StateFlow<CloudXPrivacy>.updatePrivacy() {
-    val cloudxPrivacy = value
-    // TODO. https://developers.facebook.com/docs/audience-network/optimization/best-practices/coppa
-    // AdSettings.setMixedAudience(cloudxPrivacy.isAgeRestrictedUser )
-
-    // TODO. CCPA. https://developers.facebook.com/docs/audience-network/optimization/best-practices/data-processing-options
-    // AdSettings.setDataProcessingOptions()
-}

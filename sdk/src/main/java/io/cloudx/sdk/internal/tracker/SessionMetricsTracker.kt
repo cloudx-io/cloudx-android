@@ -2,7 +2,6 @@ package io.cloudx.sdk.internal.tracker
 
 import android.os.SystemClock
 import io.cloudx.sdk.internal.AdType
-import java.util.concurrent.TimeUnit
 
 internal data class SessionMetrics(
     val depth: Float,
@@ -19,8 +18,6 @@ internal data class SessionMetrics(
  * Metrics reset after 30 minutes of inactivity or an explicit reset call.
  */
 internal object SessionMetricsTracker {
-
-    private val sessionTimeoutMillis = TimeUnit.MINUTES.toMillis(30)
 
     internal interface Clock {
         fun elapsedRealtime(): Long
@@ -41,33 +38,26 @@ internal object SessionMetricsTracker {
     private var clock: Clock = SystemClockClock
 
     private var sessionStartElapsedRealtime: Long? = null
-    private var lastActivityElapsedRealtime: Long? = null
     private var globalCount: Int = 0
     private val formatCounts = IntArray(SessionAdFormat.entries.size)
-    private val placementCounts = mutableMapOf<String, Int>()
 
     @Synchronized
-    fun recordImpression(placementName: String, adType: AdType) {
+    fun recordImpression(adType: AdType) {
         val now = clock.elapsedRealtime()
-        maybeResetForInactivity(now)
 
         val format = adType.toSessionFormat()
 
         if (sessionStartElapsedRealtime == null) {
             sessionStartElapsedRealtime = now
         }
-        lastActivityElapsedRealtime = now
 
         globalCount += 1
         formatCounts[format.ordinal] = formatCounts[format.ordinal] + 1
-        placementCounts[placementName] = placementCounts.getOrElse(placementName) { 0 } + 1
     }
 
     @Synchronized
     fun getMetrics(): SessionMetrics {
         val now = clock.elapsedRealtime()
-        maybeResetForInactivity(now)
-
         val durationSeconds = sessionStartElapsedRealtime
             ?.let { ((now - it) / 1000f).coerceAtLeast(0f) }
             ?: 0f
@@ -84,18 +74,8 @@ internal object SessionMetricsTracker {
     }
 
     @Synchronized
-    fun getPlacementDepth(placementName: String): Int =
-        placementCounts[placementName] ?: 0
-
-    @Synchronized
-    fun resetPlacement(placementName: String) {
-        placementCounts.remove(placementName)
-    }
-
-    @Synchronized
     fun resetAll() {
         resetState()
-        PlacementLoopIndexTracker.resetAll()
     }
 
     @Synchronized
@@ -108,20 +88,10 @@ internal object SessionMetricsTracker {
         clock = SystemClockClock
     }
 
-    private fun maybeResetForInactivity(now: Long) {
-        val lastActivity = lastActivityElapsedRealtime ?: return
-        if (now - lastActivity >= sessionTimeoutMillis) {
-            resetState()
-            PlacementLoopIndexTracker.resetAll()
-        }
-    }
-
     private fun resetState() {
         globalCount = 0
         formatCounts.fill(0)
-        placementCounts.clear()
         sessionStartElapsedRealtime = null
-        lastActivityElapsedRealtime = null
     }
 
     private fun AdType.toSessionFormat(): SessionAdFormat = when (this) {

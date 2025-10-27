@@ -2,7 +2,6 @@
 <resources>
     <string name="pref_app_key_def_val">OvCr4PMQfN44vPoNF99sv</string>
     <string name="pref_init_url_def_val">https://pro.cloudx.io/sdk</string>
-    <string name="pref_user_id_def_val">79166804-e59b-4964-ac80-ebdf0e74f13f</string>
 
     <string name="pref_banner_placement_name_dev_val">DemoBanner</string>
     <string name="pref_mrec_placement_name_dev_val">DemoMrec</string>

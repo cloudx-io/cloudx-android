@@ -71,7 +71,6 @@ internal fun BidBannerSource(
             externalPlacementId = null,
             price = price,
         ) { listener ->
-            // TODO. Explicit Result cast isn't "cool", even though there's try catch somewhere.
             (factories[network]?.create(
                 contextProvider = ContextProvider(),
                 placementName = placementName,
@@ -89,7 +88,8 @@ internal fun BidBannerSource(
                 bid = bid,
                 auctionId = auctionId,
                 eventTracker = eventTracker,
-                winLossTracker = winLossTracker
+                winLossTracker = winLossTracker,
+                type = placementType,
             ) + createAdapterEventLoggingDecorator(
                 placementName = placementName,
                 adNetwork = network,

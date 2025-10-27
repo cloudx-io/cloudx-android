@@ -1,6 +1,5 @@
 package io.cloudx.sdk.internal.tracker
 
-// Test workflow triggers
 import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.tracker.SessionMetricsTracker.Clock
 import org.junit.After
@@ -27,10 +26,10 @@ class SessionMetricsTrackerTest {
 
     @Test
     fun `recordImpression tracks global and format counts`() {
-        SessionMetricsTracker.recordImpression("banner_placement", AdType.Banner.Standard)
-        SessionMetricsTracker.recordImpression("mrec_placement", AdType.Banner.MREC)
-        SessionMetricsTracker.recordImpression("fullscreen", AdType.Interstitial)
-        SessionMetricsTracker.recordImpression("rewarded", AdType.Rewarded)
+        SessionMetricsTracker.recordImpression(AdType.Banner.Standard)
+        SessionMetricsTracker.recordImpression(AdType.Banner.MREC)
+        SessionMetricsTracker.recordImpression(AdType.Interstitial)
+        SessionMetricsTracker.recordImpression(AdType.Rewarded)
 
         val metrics = SessionMetricsTracker.getMetrics()
 
@@ -43,42 +42,29 @@ class SessionMetricsTrackerTest {
     }
 
     @Test
-    fun `resetPlacement clears placement counter only`() {
-        SessionMetricsTracker.recordImpression("placement_a", AdType.Banner.Standard)
-        SessionMetricsTracker.recordImpression("placement_a", AdType.Banner.Standard)
-        SessionMetricsTracker.recordImpression("placement_b", AdType.Rewarded)
-
-        SessionMetricsTracker.resetPlacement("placement_a")
-
-        assertEquals(0, SessionMetricsTracker.getPlacementDepth("placement_a"))
-        assertEquals(1, SessionMetricsTracker.getPlacementDepth("placement_b"))
-        assertEquals(3f, SessionMetricsTracker.getMetrics().depth, 0f)
-    }
-
-    @Test
-    fun `session resets after inactivity timeout`() {
-        SessionMetricsTracker.recordImpression("placement", AdType.Banner.Standard)
-        val timeoutMillis = TimeUnit.MINUTES.toMillis(31)
-        clock.advance(timeoutMillis)
+    fun `session duration starts on first impression`() {
+        SessionMetricsTracker.recordImpression(AdType.Banner.Standard)
+        clock.advance(TimeUnit.SECONDS.toMillis(10))
 
         val metrics = SessionMetricsTracker.getMetrics()
 
-        assertEquals(0f, metrics.depth, 0f)
-        assertEquals(0f, metrics.durationSeconds, 0f)
-        assertEquals(0, SessionMetricsTracker.getPlacementDepth("placement"))
+        assertEquals(1f, metrics.depth, 0f)
+        assertEquals(10f, metrics.durationSeconds, 0.1f)
     }
 
     @Test
-    fun `resetAll clears counters and placement loops`() {
-        SessionMetricsTracker.recordImpression("loop", AdType.Banner.Standard)
-        PlacementLoopIndexTracker.getAndIncrement("loop")
+    fun `resetAll clears all counters and duration`() {
+        SessionMetricsTracker.recordImpression(AdType.Banner.Standard)
+        SessionMetricsTracker.recordImpression(AdType.Interstitial)
+        clock.advance(TimeUnit.SECONDS.toMillis(60))
 
         SessionMetricsTracker.resetAll()
 
         val metrics = SessionMetricsTracker.getMetrics()
         assertEquals(0f, metrics.depth, 0f)
-        assertEquals(0, SessionMetricsTracker.getPlacementDepth("loop"))
-        assertEquals(0, PlacementLoopIndexTracker.getCount("loop"))
+        assertEquals(0f, metrics.bannerDepth, 0f)
+        assertEquals(0f, metrics.fullDepth, 0f)
+        assertEquals(0f, metrics.durationSeconds, 0f)
     }
 
     private class FakeClock : Clock {

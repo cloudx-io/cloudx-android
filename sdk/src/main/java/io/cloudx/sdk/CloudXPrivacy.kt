@@ -8,7 +8,5 @@ package io.cloudx.sdk
  */
 data class CloudXPrivacy(
     @JvmField val isUserConsent: Boolean? = null,
-    @JvmField val isAgeRestrictedUser: Boolean? = null,
-    // TODO: this flag can be removed due to GPP integration in SDK
-    @JvmField val isDoNotSell: Boolean? = null
+    @JvmField val isAgeRestrictedUser: Boolean? = null
 )

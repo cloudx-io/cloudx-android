@@ -19,7 +19,6 @@ import io.cloudx.sdk.internal.common.createViewabilityTracker
 import io.cloudx.sdk.internal.initialization.InitializationState
 import io.cloudx.sdk.internal.size
 import io.cloudx.sdk.internal.tracker.PlacementLoopIndexTracker
-import io.cloudx.sdk.internal.tracker.SessionMetricsTracker
 import io.cloudx.sdk.internal.util.ThreadUtils
 import io.cloudx.sdk.internal.util.dpToPx
 import kotlinx.coroutines.Job
@@ -47,7 +46,7 @@ class CloudXAdView internal constructor(
     private var bannerManager: BannerManager? = null
 
     // Banner container tracking - ordered by layer: background first, foreground last
-    // TODO. View is null for acquireBannerContainer() call... Fyber... ugh.
+    // TODO. View is null for acquireBannerContainer() call... Fyber
     private val orderedBannerToContainerList = mutableListOf<Pair<View?, ViewGroup>>()
     private var hasCloseButton = false
 
@@ -130,7 +129,6 @@ class CloudXAdView internal constructor(
             viewabilityTracker.destroy()
 
             PlacementLoopIndexTracker.reset(placementName)
-            SessionMetricsTracker.resetPlacement(placementName)
         }
     }
 
@@ -203,7 +201,6 @@ class CloudXAdView internal constructor(
 
 //                            listener?.onAdCollapsed(placementName)
                             PlacementLoopIndexTracker.reset(placementName)
-                            SessionMetricsTracker.resetPlacement(placementName)
                             destroy()
                         }
                         val padding = context.dpToPx(2)

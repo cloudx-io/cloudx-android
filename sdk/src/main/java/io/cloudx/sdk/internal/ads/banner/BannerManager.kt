@@ -16,7 +16,6 @@ import io.cloudx.sdk.internal.bid.BidRequestProvider
 import io.cloudx.sdk.internal.cdp.CdpApi
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.tracker.EventTracker
-import io.cloudx.sdk.internal.tracker.SessionMetricsTracker
 import io.cloudx.sdk.internal.tracker.metrics.MetricsTracker
 import io.cloudx.sdk.internal.tracker.metrics.MetricsType
 import io.cloudx.sdk.internal.tracker.win_loss.WinLossTracker
@@ -178,7 +177,6 @@ internal class BannerManager(
     private fun showNewBanner(banner: BannerAdapterDelegate) {
         logger.d("Displaying new banner")
         listener?.onAdDisplayed(banner)
-        SessionMetricsTracker.recordImpression(placementName, adType)
 
         currentBanner = banner
 
@@ -226,7 +224,6 @@ internal class BannerManager(
         bannerRefreshTimer.destroy()
 
         destroyBackupBanner()
-        SessionMetricsTracker.resetPlacement(placementName)
     }
 }
 

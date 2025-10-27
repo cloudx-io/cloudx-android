@@ -183,12 +183,20 @@ git reset --hard origin/main
 print_success "Main branch is up to date"
 
 echo ""
-print_step "Step 3: Squash merge release branch to main"
-print_info "Squash merging $CURRENT_BRANCH into main..."
-git merge "$CURRENT_BRANCH" --squash --allow-unrelated-histories -X theirs
+print_step "Step 3: Make main an exact copy of release branch"
+print_info "Making main an exact copy of $CURRENT_BRANCH..."
+
+# Remove all tracked files from main
+git rm -rf . > /dev/null 2>&1
+
+# Copy everything from release branch
+git checkout "$CURRENT_BRANCH" -- .
+
+# Commit the result
 git commit -m "Release $VERSION
 
-Squash merge $CURRENT_BRANCH to main for stable release.
+Sync $CURRENT_BRANCH to main for stable release.
+Main now contains an exact copy of the release branch.
 
 This release will be tagged as v$VERSION and published to Maven Central.
 
@@ -198,7 +206,7 @@ Modules published:
 - io.cloudx:adapter-meta:$VERSION
 
 🤖 Generated with promote-release.sh"
-print_success "Squash merged $CURRENT_BRANCH to main"
+print_success "Synced $CURRENT_BRANCH to main (exact copy)"
 
 echo ""
 print_step "Step 4: Create release tag"

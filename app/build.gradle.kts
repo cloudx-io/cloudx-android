@@ -2,7 +2,8 @@ import java.util.Properties
 import java.io.FileInputStream
 
 plugins {
-    id("app-conventions")
+    alias(libs.plugins.androidApplication)
+    alias(libs.plugins.kotlinAndroid)
     // TODO. Move to toml if possible; getting gradle error if done toml way.
     id("kotlin-parcelize")
 }
@@ -10,10 +11,15 @@ plugins {
 android {
     namespace = "io.cloudx.demo.demoapp"
 
+    compileSdk = libs.versions.compileSdk.get().toInt()
+
     defaultConfig {
         applicationId = namespace
         versionCode = 6
         versionName = libs.versions.sdkVersionName.get()
+        minSdk = libs.versions.minSdk.get().toInt()
+        targetSdk = libs.versions.targetSdk.get().toInt()
+        testInstrumentationRunner = libs.versions.testInstrumentationRunner.get()
     }
 
     // Load keystore properties from file (gitignored)
@@ -36,6 +42,12 @@ android {
 
     buildTypes {
         release {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
             if (keystorePropertiesFile.exists()) {
                 signingConfig = signingConfigs.getByName("release")
             }
@@ -50,6 +62,22 @@ android {
         outputs.all {
             val outputImpl = this as com.android.build.gradle.internal.api.BaseVariantOutputImpl
             outputImpl.outputFileName = "cloudx-demo-$name-$versionName.apk"
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = libs.versions.kotlinJvmTarget.get()
+    }
+
+    testOptions {
+        animationsDisabled = true
+        unitTests {
+            isIncludeAndroidResources = true
         }
     }
 
@@ -88,4 +116,6 @@ dependencies {
     implementation(libs.lifecycle.runtime)
     implementation(libs.lifecycle.viewmodel)
     implementation(libs.kotlinx.coroutines.android)
+
+    testImplementation(libs.bundles.test.unit)
 }

@@ -626,6 +626,7 @@ CloudX.setMinLogLevel(CloudXLogLevel.DEBUG);
 ## Support
 
 - **Documentation**: [CloudX Android SDK Docs](https://github.com/cloudx-io/cloudx-android)
+- **Changelog**: [CHANGELOG.md](./CHANGELOG.md)
 - **Issues**: [GitHub Issues](https://github.com/cloudx-io/cloudx-android/issues)
 - **Email**: mobile@cloudx.io
 

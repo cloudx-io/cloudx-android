@@ -62,7 +62,8 @@ internal class WinLossTracker(
         bid: Bid,
         event: BidLifecycleEvent,
         lossReason: LossReason,
-        winnerBidPrice: Float = -1f
+        winnerBidPrice: Float = -1f,
+        error: io.cloudx.sdk.CloudXError? = null
     ) {
         scope.launch {
             val payloadMap = winLossFieldResolver.buildWinLossPayload(
@@ -74,7 +75,8 @@ internal class WinLossTracker(
                     BidLifecycleEvent.LOAD_SUCCESS -> bid.price ?: -1f
                     BidLifecycleEvent.RENDER_SUCCESS -> bid.price ?: -1f
                     BidLifecycleEvent.LOSS -> winnerBidPrice
-                }
+                },
+                error = error
             )
             val payloadJson = payloadMap?.toJsonString()
             if (payloadJson.isNullOrEmpty()) {

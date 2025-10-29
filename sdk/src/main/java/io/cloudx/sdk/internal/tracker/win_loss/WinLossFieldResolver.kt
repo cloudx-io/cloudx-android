@@ -1,5 +1,6 @@
 package io.cloudx.sdk.internal.tracker.win_loss
 
+import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.internal.bid.Bid
 import io.cloudx.sdk.internal.tracker.TrackingFieldResolver
 
@@ -22,7 +23,7 @@ internal class WinLossFieldResolver {
         lossReason: LossReason,
         bidLifecycleEvent: BidLifecycleEvent?,
         loadedBidPrice: Float,
-        error: io.cloudx.sdk.CloudXError? = null
+        error: CloudXError? = null
     ): Map<String, Any>? {
         val payloadMapping = winLossPayloadMapping ?: return null
         val result = mutableMapOf<String, Any>()
@@ -53,7 +54,7 @@ internal class WinLossFieldResolver {
         fieldPath: String,
         bidLifecycleEvent: BidLifecycleEvent?,
         loadedBidPrice: Float,
-        error: io.cloudx.sdk.CloudXError?
+        error: CloudXError?
     ): Any? {
         return when {
             fieldPath == "sdk.sdk" -> "sdk"

@@ -1,5 +1,6 @@
 package io.cloudx.sdk.internal.tracker.win_loss
 
+import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.bid.Bid
 import io.cloudx.sdk.internal.db.win_loss.CachedWinLossEvents
@@ -63,7 +64,7 @@ internal class WinLossTracker(
         event: BidLifecycleEvent,
         lossReason: LossReason,
         winnerBidPrice: Float = -1f,
-        error: io.cloudx.sdk.CloudXError? = null
+        error: CloudXError? = null
     ) {
         scope.launch {
             val payloadMap = winLossFieldResolver.buildWinLossPayload(

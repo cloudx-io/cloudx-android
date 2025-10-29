@@ -1,6 +1,10 @@
 package io.cloudx.sdk.internal.tracker
 
+import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.CXLogger
+import io.cloudx.sdk.internal.bid.Bid
+import io.cloudx.sdk.internal.bid.BidRequestProvider
+import io.cloudx.sdk.internal.config.Config
 import io.cloudx.sdk.internal.db.CloudXDb
 import io.cloudx.sdk.internal.db.Database
 import io.cloudx.sdk.internal.db.imp_tracking.CachedTrackingEvents
@@ -126,5 +130,81 @@ internal class EventTracker(
             )
         )
         return eventId
+    }
+
+    fun sendImpression(auctionId: String, bid: Bid) {
+        val payload = TrackingFieldResolver.buildPayload(auctionId, bid.id)
+        val accountId = TrackingFieldResolver.getAccountId()
+
+        if (payload != null && accountId != null) {
+            val secret = XorEncryption.generateXorSecret(accountId)
+            val campaignId = XorEncryption.generateCampaignIdBase64(accountId)
+            val impressionId = XorEncryption.encrypt(payload, secret)
+            send(impressionId, campaignId, "1", EventType.IMPRESSION)
+        }
+    }
+
+    fun sendClick(auctionId: String, bid: Bid) {
+        val clickCount = ClickCounterTracker.incrementAndGet(auctionId)
+
+        val payload = TrackingFieldResolver.buildPayload(auctionId, bid.id)?.replace(
+            auctionId,
+            "$auctionId-$clickCount"
+        )
+        val accountId = TrackingFieldResolver.getAccountId()
+
+        if (payload != null && accountId != null) {
+            val secret = XorEncryption.generateXorSecret(accountId)
+            val campaignId = XorEncryption.generateCampaignIdBase64(accountId)
+            val impressionId = XorEncryption.encrypt(payload, secret)
+            send(impressionId, campaignId, "1", EventType.CLICK)
+        }
+    }
+
+    fun sendBidRequest(auctionId: String) {
+        val payload = TrackingFieldResolver.buildPayload(auctionId)
+        val accountId = TrackingFieldResolver.getAccountId()
+
+        if (payload != null && accountId != null) {
+            val secret = XorEncryption.generateXorSecret(accountId)
+            val campaignId = XorEncryption.generateCampaignIdBase64(accountId)
+            val impressionId = XorEncryption.encrypt(payload, secret)
+            send(impressionId, campaignId, "1", EventType.BID_REQUEST)
+        }
+    }
+
+    suspend fun sendSdkInit(
+        config: Config,
+        appKey: String,
+        onBasePayloadCreated: (String) -> Unit
+    ) {
+        val eventId = UUID.randomUUID().toString()
+
+        val bidRequestParams = BidRequestProvider.Params(
+            placementId = "",
+            adType = AdType.Banner.Standard,
+            placementName = "",
+            accountId = config.accountId ?: "",
+            appKey = appKey,
+            appId = config.appId ?: ""
+        )
+
+        val bidRequestProvider = BidRequestProvider(bidRequestExtrasProviders = emptyMap())
+        val bidRequestParamsJson = bidRequestProvider.invoke(bidRequestParams, eventId)
+
+        TrackingFieldResolver.setRequestData(eventId, bidRequestParamsJson)
+
+        val payload = TrackingFieldResolver.buildPayload(eventId)
+        val accountId = TrackingFieldResolver.getAccountId()
+
+        if (payload != null && accountId != null) {
+            val basePayload = payload.replace(eventId, "{eventId}")
+            onBasePayloadCreated(basePayload)
+
+            val secret = XorEncryption.generateXorSecret(accountId)
+            val campaignId = XorEncryption.generateCampaignIdBase64(accountId)
+            val impressionId = XorEncryption.encrypt(payload, secret)
+            send(impressionId, campaignId, "1", EventType.SDK_INIT)
+        }
     }
 }

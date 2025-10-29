@@ -11,12 +11,8 @@ import io.cloudx.sdk.internal.ads.fullscreen.interstitial.InterstitialAdapterDel
 import io.cloudx.sdk.internal.ads.fullscreen.rewarded.DecoratedRewardedInterstitialAdapterDelegate
 import io.cloudx.sdk.internal.ads.fullscreen.rewarded.RewardedInterstitialAdapterDelegate
 import io.cloudx.sdk.internal.bid.Bid
-import io.cloudx.sdk.internal.tracker.ClickCounterTracker
 import io.cloudx.sdk.internal.tracker.EventTracker
-import io.cloudx.sdk.internal.tracker.EventType
 import io.cloudx.sdk.internal.tracker.SessionMetricsTracker
-import io.cloudx.sdk.internal.tracker.TrackingFieldResolver
-import io.cloudx.sdk.internal.tracker.XorEncryption
 import io.cloudx.sdk.internal.tracker.win_loss.BidLifecycleEvent
 import io.cloudx.sdk.internal.tracker.win_loss.LossReason
 import io.cloudx.sdk.internal.tracker.win_loss.WinLossTracker
@@ -157,36 +153,13 @@ internal fun createAdEventTrackingDecorator(
         SessionMetricsTracker.recordImpression(type)
 
         ThreadUtils.GlobalIOScope.launch {
-            var payload = TrackingFieldResolver.buildPayload(auctionId, bid.id)
-            payload = payload?.replace(auctionId, auctionId)
-            val accountId = TrackingFieldResolver.getAccountId()
-
-            if (payload != null && accountId != null) {
-                val secret = XorEncryption.generateXorSecret(accountId)
-                val campaignId = XorEncryption.generateCampaignIdBase64(accountId)
-                val impressionId = XorEncryption.encrypt(payload, secret)
-                eventTracker.send(impressionId, campaignId, "1", EventType.IMPRESSION)
-            }
-
+            eventTracker.sendImpression(auctionId, bid)
             winLossTracker.sendEvent(auctionId, bid, BidLifecycleEvent.RENDER_SUCCESS, LossReason.BID_WON)
         }
     },
     onClick = {
         ThreadUtils.GlobalIOScope.launch {
-            val clickCount = ClickCounterTracker.incrementAndGet(auctionId)
-
-            val payload = TrackingFieldResolver.buildPayload(auctionId, bid.id)?.replace(
-                auctionId,
-                "$auctionId-$clickCount"
-            )
-            val accountId = TrackingFieldResolver.getAccountId()
-
-            if (payload != null && accountId != null) {
-                val secret = XorEncryption.generateXorSecret(accountId)
-                val campaignId = XorEncryption.generateCampaignIdBase64(accountId)
-                val impressionId = XorEncryption.encrypt(payload, secret)
-                eventTracker.send(impressionId, campaignId, "1", EventType.CLICK)
-            }
+            eventTracker.sendClick(auctionId, bid)
         }
     }
 )

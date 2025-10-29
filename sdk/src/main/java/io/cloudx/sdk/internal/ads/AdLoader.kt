@@ -3,7 +3,6 @@ package io.cloudx.sdk.internal.ads
 import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.internal.CXLogger
-import io.cloudx.sdk.internal.UNKNOWN_BID_PRICE
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.tracker.ErrorReportingService
 import io.cloudx.sdk.internal.tracker.win_loss.BidLifecycleEvent
@@ -53,7 +52,6 @@ internal class AdLoader<T : CXAdapterDelegate>(
 
         var loadedAd: T? = null
         var loadedAdIndex = -1
-        var winnerBidPrice = UNKNOWN_BID_PRICE
 
         for ((index, bidItem) in bidResponse.bidItemsByRank.withIndex()) {
             ensureActive()
@@ -64,7 +62,6 @@ internal class AdLoader<T : CXAdapterDelegate>(
 
                     loadedAd = result.value
                     loadedAdIndex = index
-                    winnerBidPrice = bidItem.bid.price ?: UNKNOWN_BID_PRICE
 
                     winLossTracker.sendEvent(
                         bidResponse.auctionId,
@@ -96,8 +93,7 @@ internal class AdLoader<T : CXAdapterDelegate>(
                         bidResponse.auctionId,
                         bidItem.bid,
                         BidLifecycleEvent.LOSS,
-                        LossReason.LOST_TO_HIGHER_BID,
-                        winnerBidPrice
+                        LossReason.LOST_TO_HIGHER_BID
                     )
                 }
             }

@@ -76,7 +76,7 @@ internal class WinLossFieldResolver {
         }
     }
 
-    private fun serializeError(error: io.cloudx.sdk.CloudXError): org.json.JSONObject {
+    private fun serializeError(error: CloudXError): org.json.JSONObject {
         return org.json.JSONObject().apply {
             put("code", error.code.name)
             put("message", error.effectiveMessage)

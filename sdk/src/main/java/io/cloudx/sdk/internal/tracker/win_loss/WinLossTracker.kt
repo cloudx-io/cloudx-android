@@ -1,6 +1,8 @@
 package io.cloudx.sdk.internal.tracker.win_loss
 
+import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.internal.CXLogger
+import io.cloudx.sdk.internal.UNKNOWN_BID_PRICE
 import io.cloudx.sdk.internal.bid.Bid
 import io.cloudx.sdk.internal.db.win_loss.CachedWinLossEvents
 import io.cloudx.sdk.internal.tracker.ErrorReportingService
@@ -57,12 +59,24 @@ internal class WinLossTracker(
         }
     }
 
+    /**
+     * Sends a win/loss tracking event.
+     *
+     * @param auctionId Unique identifier for the auction
+     * @param bid The bid associated with this event
+     * @param event The bid lifecycle event type
+     * @param lossReason The reason for loss (if applicable)
+     * @param winnerBidPrice The winning bid price, or [UNKNOWN_BID_PRICE] if not applicable
+     * @param error The error that caused the failure. Should be provided for LOSS events
+     *              to enable detailed error tracking and analytics. Null for successful events.
+     */
     fun sendEvent(
         auctionId: String,
         bid: Bid,
         event: BidLifecycleEvent,
         lossReason: LossReason,
-        winnerBidPrice: Float = -1f
+        winnerBidPrice: Float = UNKNOWN_BID_PRICE,
+        error: CloudXError? = null
     ) {
         scope.launch {
             val payloadMap = winLossFieldResolver.buildWinLossPayload(
@@ -71,10 +85,11 @@ internal class WinLossTracker(
                 lossReason = lossReason,
                 bidLifecycleEvent = event,
                 loadedBidPrice = when (event) {
-                    BidLifecycleEvent.LOAD_SUCCESS -> bid.price ?: -1f
-                    BidLifecycleEvent.RENDER_SUCCESS -> bid.price ?: -1f
+                    BidLifecycleEvent.LOAD_SUCCESS -> bid.price ?: UNKNOWN_BID_PRICE
+                    BidLifecycleEvent.RENDER_SUCCESS -> bid.price ?: UNKNOWN_BID_PRICE
                     BidLifecycleEvent.LOSS -> winnerBidPrice
-                }
+                },
+                error = error
             )
             val payloadJson = payloadMap?.toJsonString()
             if (payloadJson.isNullOrEmpty()) {

@@ -3,6 +3,7 @@ package io.cloudx.sdk.internal.ads
 import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.internal.CXLogger
+import io.cloudx.sdk.internal.UNKNOWN_BID_PRICE
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.tracker.ErrorReportingService
 import io.cloudx.sdk.internal.tracker.win_loss.BidLifecycleEvent
@@ -10,6 +11,7 @@ import io.cloudx.sdk.internal.tracker.win_loss.LossReason
 import io.cloudx.sdk.internal.tracker.win_loss.WinLossTracker
 import io.cloudx.sdk.internal.util.Result
 import io.cloudx.sdk.internal.util.toSuccess
+import io.cloudx.sdk.toCloudXError
 import io.cloudx.sdk.toFailure
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.TimeoutCancellationException
@@ -51,36 +53,39 @@ internal class AdLoader<T : CXAdapterDelegate>(
 
         var loadedAd: T? = null
         var loadedAdIndex = -1
-        var winnerBidPrice = -1f
+        var winnerBidPrice = UNKNOWN_BID_PRICE
 
         for ((index, bidItem) in bidResponse.bidItemsByRank.withIndex()) {
             ensureActive()
 
-            val ad = createAndLoadAdapter(bidAdLoadTimeoutMillis, bidItem.createBidAd)
+            when (val result = createAndLoadAdapter(bidAdLoadTimeoutMillis, bidItem.createBidAd)) {
+                is Result.Success -> {
+                    logger.i("Loaded: ${bidItem.adNetworkOriginal.networkName} (rank=${bidItem.bid.rank})")
 
-            if (ad != null) {
-                logger.i("Loaded: ${bidItem.adNetworkOriginal.networkName} (rank=${bidItem.bid.rank})")
+                    loadedAd = result.value
+                    loadedAdIndex = index
+                    winnerBidPrice = bidItem.bid.price ?: UNKNOWN_BID_PRICE
 
-                loadedAd = ad
-                loadedAdIndex = index
-                winnerBidPrice = bidItem.bid.price ?: -1f
+                    winLossTracker.sendEvent(
+                        bidResponse.auctionId,
+                        bidItem.bid,
+                        BidLifecycleEvent.LOAD_SUCCESS,
+                        LossReason.BID_WON
+                    )
+                    break
+                }
 
-                winLossTracker.sendEvent(
-                    bidResponse.auctionId,
-                    bidItem.bid,
-                    BidLifecycleEvent.LOAD_SUCCESS,
-                    LossReason.BID_WON
-                )
-                break
-            } else {
-                logger.w("Failed: ${bidItem.adNetworkOriginal.networkName} (rank=${bidItem.bid.rank})")
+                is Result.Failure -> {
+                    logger.w("Failed: ${bidItem.adNetworkOriginal.networkName} (rank=${bidItem.bid.rank})")
 
-                winLossTracker.sendEvent(
-                    bidResponse.auctionId,
-                    bidItem.bid,
-                    BidLifecycleEvent.LOSS,
-                    LossReason.INTERNAL_ERROR
-                )
+                    winLossTracker.sendEvent(
+                        bidResponse.auctionId,
+                        bidItem.bid,
+                        BidLifecycleEvent.LOSS,
+                        LossReason.INTERNAL_ERROR,
+                        error = result.value
+                    )
+                }
             }
         }
 
@@ -104,18 +109,22 @@ internal class AdLoader<T : CXAdapterDelegate>(
     private suspend fun createAndLoadAdapter(
         timeoutMs: Long,
         createAdapter: suspend () -> T
-    ): T? {
+    ): Result<T, CloudXError> {
         val ad = try {
             createAdapter()
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             logger.e("Failed to create ad", e)
+            val error = CloudXErrorCode.ADAPTER_INITIALIZATION_ERROR.toCloudXError(
+                message = "Ad adapter creation failed: ${e.message}",
+                cause = e
+            )
             errorReportingService.sendErrorEvent(
-                errorMessage = "Ad adapter creation failed: ${e.message}",
+                errorMessage = error.effectiveMessage,
                 errorDetails = e.stackTraceToString()
             )
-            return null
+            return Result.Failure(error)
         }
 
         var loaded = false
@@ -125,20 +134,36 @@ internal class AdLoader<T : CXAdapterDelegate>(
             loaded = withTimeout(timeoutMs) {
                 ad.load()
             }
-            if (loaded) ad else null
+            if (loaded) {
+                Result.Success(ad)
+            } else {
+                // Use the adapter's reported error, or fall back to NO_FILL if the adapter
+                // didn't provide a specific error (e.g., ad network returned no ad)
+                val error = ad.lastErrorEvent.value
+                    ?: CloudXErrorCode.NO_FILL.toCloudXError(message = "Ad failed to load")
+                Result.Failure(error)
+            }
         } catch (e: TimeoutCancellationException) {
             logger.w("Load timeout ${timeoutMs}ms", e)
             ad.timeout()
-            null
+            val error = CloudXErrorCode.LOAD_TIMEOUT.toCloudXError(
+                message = "Ad load timeout after ${timeoutMs}ms",
+                cause = e
+            )
+            Result.Failure(error)
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             logger.e("Load failed", e)
+            val error = CloudXErrorCode.UNEXPECTED_ERROR.toCloudXError(
+                message = "Ad loading failed: ${e.message}",
+                cause = e
+            )
             errorReportingService.sendErrorEvent(
-                errorMessage = "Ad loading failed: ${e.message}",
+                errorMessage = error.effectiveMessage,
                 errorDetails = e.stackTraceToString()
             )
-            null
+            Result.Failure(error)
         } finally {
             if (!loaded) ad.destroy()
         }

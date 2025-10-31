@@ -1,5 +1,6 @@
 package io.cloudx.sdk.internal.tracker.win_loss
 
+import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.internal.bid.Bid
 import io.cloudx.sdk.internal.tracker.TrackingFieldResolver
 
@@ -21,7 +22,8 @@ internal class WinLossFieldResolver {
         bid: Bid?,
         lossReason: LossReason,
         bidLifecycleEvent: BidLifecycleEvent?,
-        loadedBidPrice: Float
+        loadedBidPrice: Float,
+        error: CloudXError? = null
     ): Map<String, Any>? {
         val payloadMapping = winLossPayloadMapping ?: return null
         val result = mutableMapOf<String, Any>()
@@ -34,7 +36,8 @@ internal class WinLossFieldResolver {
                 payloadKey,
                 fieldPath,
                 bidLifecycleEvent,
-                loadedBidPrice
+                loadedBidPrice,
+                error
             )
             if (resolvedValue != null) {
                 result[payloadKey] = resolvedValue
@@ -50,7 +53,8 @@ internal class WinLossFieldResolver {
         payloadKey: String,
         fieldPath: String,
         bidLifecycleEvent: BidLifecycleEvent?,
-        loadedBidPrice: Float
+        loadedBidPrice: Float,
+        error: CloudXError?
     ): Any? {
         return when {
             fieldPath == "sdk.sdk" -> "sdk"
@@ -63,12 +67,19 @@ internal class WinLossFieldResolver {
                 bid?.rawJson
             }
             payloadKey == "error" -> {
-                // TODO
+                error?.let { serializeError(it) }
             }
             payloadKey == "lossReasonCode" -> {
                 lossReason.code
             }
             else -> TrackingFieldResolver.resolveField(auctionId, fieldPath, bid?.id)
+        }
+    }
+
+    private fun serializeError(error: CloudXError): org.json.JSONObject {
+        return org.json.JSONObject().apply {
+            put("code", error.code.name)
+            put("message", error.effectiveMessage)
         }
     }
 

@@ -150,7 +150,7 @@ class JsonToConfigTest : CXTest() {
                     "eids": "eids.path",
                     "placementLoopIndex": "placement.index"
                 },
-                "metrics": {}
+                "metrics": []
             }
         """.trimIndent()
 
@@ -169,7 +169,7 @@ class JsonToConfigTest : CXTest() {
         assertThat(config.trackers).containsExactly("param1", "param2")
         assertThat(config.winLossNotificationPayloadConfig).containsEntry("key1", "value1")
         assertThat(config.keyValuePaths?.userKeyValues).isEqualTo("user.kv")
-        assertThat(config.metrics).isNotNull()
+        assertThat(config.metrics).isNull()
     }
 
     // ========== Category 2: Endpoint Config Parsing (toEndpointConfig) ==========
@@ -770,7 +770,7 @@ class JsonToConfigTest : CXTest() {
 
     @Test
     fun `toMetricsConfig - parses all enabled flags`() = runTest {
-        // Given - metrics config with all flags enabled
+        // Given - metrics config with all flags enabled (array format)
         val json = """
             {
                 "appID": "test",
@@ -780,14 +780,24 @@ class JsonToConfigTest : CXTest() {
                 "cdpEndpointURL": "https://cdp.example.com",
                 "bidders": [],
                 "placements": [],
-                "metrics": {
-                    "send_interval_seconds": 120,
-                    "sdk_api_calls.enabled": true,
-                    "network_calls.enabled": true,
-                    "network_calls.bid_req.enabled": true,
-                    "network_calls.init_sdk_req.enabled": true,
-                    "network_calls.geo_req.enabled": true
-                }
+                "metrics": [{
+                    "sendIntervalSeconds": 120,
+                    "sdkAPICalls": {
+                        "enabled": true
+                    },
+                    "networkCalls": {
+                        "enabled": true,
+                        "bidReq": {
+                            "enabled": true
+                        },
+                        "initSdkReq": {
+                            "enabled": true
+                        },
+                        "geoReq": {
+                            "enabled": true
+                        }
+                    }
+                }]
             }
         """.trimIndent()
 
@@ -808,7 +818,7 @@ class JsonToConfigTest : CXTest() {
 
     @Test
     fun `toMetricsConfig - parses all disabled flags`() = runTest {
-        // Given - metrics config with all flags disabled
+        // Given - metrics config with all flags disabled (array format)
         val json = """
             {
                 "appID": "test",
@@ -818,13 +828,23 @@ class JsonToConfigTest : CXTest() {
                 "cdpEndpointURL": "https://cdp.example.com",
                 "bidders": [],
                 "placements": [],
-                "metrics": {
-                    "sdk_api_calls.enabled": false,
-                    "network_calls.enabled": false,
-                    "network_calls.bid_req.enabled": false,
-                    "network_calls.init_sdk_req.enabled": false,
-                    "network_calls.geo_req.enabled": false
-                }
+                "metrics": [{
+                    "sdkAPICalls": {
+                        "enabled": false
+                    },
+                    "networkCalls": {
+                        "enabled": false,
+                        "bidReq": {
+                            "enabled": false
+                        },
+                        "initSdkReq": {
+                            "enabled": false
+                        },
+                        "geoReq": {
+                            "enabled": false
+                        }
+                    }
+                }]
             }
         """.trimIndent()
 
@@ -844,7 +864,7 @@ class JsonToConfigTest : CXTest() {
 
     @Test
     fun `toMetricsConfig - uses null for missing optional flags`() = runTest {
-        // Given - metrics config with only send_interval_seconds
+        // Given - metrics config with only sendIntervalSeconds (array format)
         val json = """
             {
                 "appID": "test",
@@ -854,9 +874,9 @@ class JsonToConfigTest : CXTest() {
                 "cdpEndpointURL": "https://cdp.example.com",
                 "bidders": [],
                 "placements": [],
-                "metrics": {
-                    "send_interval_seconds": 90
-                }
+                "metrics": [{
+                    "sendIntervalSeconds": 90
+                }]
             }
         """.trimIndent()
 
@@ -877,7 +897,7 @@ class JsonToConfigTest : CXTest() {
 
     @Test
     fun `toMetricsConfig - uses default send interval when missing`() = runTest {
-        // Given - metrics config without send_interval_seconds
+        // Given - metrics config without sendIntervalSeconds (array format)
         val json = """
             {
                 "appID": "test",
@@ -887,9 +907,11 @@ class JsonToConfigTest : CXTest() {
                 "cdpEndpointURL": "https://cdp.example.com",
                 "bidders": [],
                 "placements": [],
-                "metrics": {
-                    "sdk_api_calls.enabled": true
-                }
+                "metrics": [{
+                    "sdkAPICalls": {
+                        "enabled": true
+                    }
+                }]
             }
         """.trimIndent()
 
@@ -929,7 +951,7 @@ class JsonToConfigTest : CXTest() {
 
     @Test
     fun `toMetricsConfig - handles partial flag configuration`() = runTest {
-        // Given - metrics with some flags set, others missing
+        // Given - metrics with some flags set, others missing (array format)
         val json = """
             {
                 "appID": "test",
@@ -939,10 +961,16 @@ class JsonToConfigTest : CXTest() {
                 "cdpEndpointURL": "https://cdp.example.com",
                 "bidders": [],
                 "placements": [],
-                "metrics": {
-                    "sdk_api_calls.enabled": true,
-                    "network_calls.bid_req.enabled": false
-                }
+                "metrics": [{
+                    "sdkAPICalls": {
+                        "enabled": true
+                    },
+                    "networkCalls": {
+                        "bidReq": {
+                            "enabled": false
+                        }
+                    }
+                }]
             }
         """.trimIndent()
 
@@ -1127,12 +1155,14 @@ class JsonToConfigTest : CXTest() {
         assertThat(config.trackers!!).contains("config.placements[id=${'$'}{bidRequest.imp.tagid}].name")
         assertThat(config.trackers!!).contains("bidResponse.ext.cloudx.auction.participants[rank=${'$'}{bid.ext.cloudx.rank}].round")
 
-        // Metrics config
-        // NOTE: Real API returns metrics as array with nested objects, but parser expects object with dot-notation keys
-        // This means metrics will be null for this real config (parsing mismatch)
-        // Real format: "metrics": [{"sdkAPICalls": {"enabled": true}, ...}]
-        // Expected format: "metrics": {"sdk_api_calls.enabled": true, ...}
-        assertThat(config.metrics).isNull()
+        // Metrics config (array with nested objects)
+        assertThat(config.metrics).isNotNull()
+        assertThat(config.metrics!!.sendIntervalSeconds).isEqualTo(60)
+        assertThat(config.metrics.sdkApiCallsEnabled).isTrue()
+        assertThat(config.metrics.networkCallsEnabled).isTrue()
+        assertThat(config.metrics.networkCallsBidReqEnabled).isTrue()
+        assertThat(config.metrics.networkCallsInitSdkReqEnabled).isTrue()
+        assertThat(config.metrics.networkCallsGeoReqEnabled).isFalse()
 
         // Win/loss notification payload config (critical for revenue tracking)
         // This is a Map<String, String> where keys are payload field names, values are field paths

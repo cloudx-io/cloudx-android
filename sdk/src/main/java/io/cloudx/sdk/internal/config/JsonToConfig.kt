@@ -49,7 +49,7 @@ internal suspend fun jsonToConfig(json: String): Result<Config, CloudXError> =
                             placementLoopIndex = kvp.optString("placementLoopIndex", null)
                         )
                     },
-                    metrics = root.optJSONObject("metrics")?.toMetricsConfig(),
+                    metrics = root.optJSONArray("metrics")?.toMetricsConfig(),
                     rawJson = root
                 )
             )
@@ -107,14 +107,25 @@ private fun JSONArray.toGeoHeaders(): List<Config.GeoHeader> {
     return headers
 }
 
-private fun JSONObject.toMetricsConfig(): Config.MetricsConfig {
+private fun JSONArray.toMetricsConfig(): Config.MetricsConfig? {
+    // Metrics comes as an array with single object
+    if (length() == 0) return null
+
+    val metricsObj = getJSONObject(0)
+
+    val sdkApiCalls = metricsObj.optJSONObject("sdkAPICalls")
+    val networkCalls = metricsObj.optJSONObject("networkCalls")
+    val bidReq = networkCalls?.optJSONObject("bidReq")
+    val initSdkReq = networkCalls?.optJSONObject("initSdkReq")
+    val geoReq = networkCalls?.optJSONObject("geoReq")
+
     return Config.MetricsConfig(
-        sendIntervalSeconds = this.optLong("send_interval_seconds", 60),
-        sdkApiCallsEnabled = if (has("sdk_api_calls.enabled")) optBoolean("sdk_api_calls.enabled") else null,
-        networkCallsEnabled = if (has("network_calls.enabled")) optBoolean("network_calls.enabled") else null,
-        networkCallsBidReqEnabled = if (has("network_calls.bid_req.enabled")) optBoolean("network_calls.bid_req.enabled") else null,
-        networkCallsInitSdkReqEnabled = if (has("network_calls.init_sdk_req.enabled")) optBoolean("network_calls.init_sdk_req.enabled") else null,
-        networkCallsGeoReqEnabled = if (has("network_calls.geo_req.enabled")) optBoolean("network_calls.geo_req.enabled") else null
+        sendIntervalSeconds = metricsObj.optLong("sendIntervalSeconds", 60),
+        sdkApiCallsEnabled = sdkApiCalls?.takeIf { it.has("enabled") }?.optBoolean("enabled"),
+        networkCallsEnabled = networkCalls?.takeIf { it.has("enabled") }?.optBoolean("enabled"),
+        networkCallsBidReqEnabled = bidReq?.takeIf { it.has("enabled") }?.optBoolean("enabled"),
+        networkCallsInitSdkReqEnabled = initSdkReq?.takeIf { it.has("enabled") }?.optBoolean("enabled"),
+        networkCallsGeoReqEnabled = geoReq?.takeIf { it.has("enabled") }?.optBoolean("enabled")
     )
 }
 

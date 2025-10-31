@@ -2,7 +2,6 @@ package io.cloudx.sdk.internal.tracker.win_loss
 
 import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.internal.CXLogger
-import io.cloudx.sdk.internal.UNKNOWN_BID_PRICE
 import io.cloudx.sdk.internal.bid.Bid
 import io.cloudx.sdk.internal.db.win_loss.CachedWinLossEvents
 import io.cloudx.sdk.internal.tracker.ErrorReportingService
@@ -66,7 +65,6 @@ internal class WinLossTracker(
      * @param bid The bid associated with this event
      * @param event The bid lifecycle event type
      * @param lossReason The reason for loss (if applicable)
-     * @param winnerBidPrice The winning bid price, or [UNKNOWN_BID_PRICE] if not applicable
      * @param error The error that caused the failure. Should be provided for LOSS events
      *              to enable detailed error tracking and analytics. Null for successful events.
      */
@@ -75,7 +73,6 @@ internal class WinLossTracker(
         bid: Bid,
         event: BidLifecycleEvent,
         lossReason: LossReason,
-        winnerBidPrice: Float = UNKNOWN_BID_PRICE,
         error: CloudXError? = null
     ) {
         scope.launch {
@@ -84,11 +81,6 @@ internal class WinLossTracker(
                 bid = bid,
                 lossReason = lossReason,
                 bidLifecycleEvent = event,
-                loadedBidPrice = when (event) {
-                    BidLifecycleEvent.LOAD_SUCCESS -> bid.price ?: UNKNOWN_BID_PRICE
-                    BidLifecycleEvent.RENDER_SUCCESS -> bid.price ?: UNKNOWN_BID_PRICE
-                    BidLifecycleEvent.LOSS -> winnerBidPrice
-                },
                 error = error
             )
             val payloadJson = payloadMap?.toJsonString()

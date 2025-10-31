@@ -8,11 +8,6 @@ internal class WinLossFieldResolver {
 
     private var winLossPayloadMapping: Map<String, String>? = null
 
-    companion object {
-        private const val PLACEHOLDER_AUCTION_PRICE = "\${AUCTION_PRICE}"
-        private const val PLACEHOLDER_AUCTION_LOSS = "\${AUCTION_LOSS}"
-    }
-
     fun setPayloadMapping(payloadMapping: Map<String, String>) {
         winLossPayloadMapping = payloadMapping
     }
@@ -22,7 +17,6 @@ internal class WinLossFieldResolver {
         bid: Bid?,
         lossReason: LossReason,
         bidLifecycleEvent: BidLifecycleEvent?,
-        loadedBidPrice: Float,
         error: CloudXError? = null
     ): Map<String, Any>? {
         val payloadMapping = winLossPayloadMapping ?: return null
@@ -36,7 +30,6 @@ internal class WinLossFieldResolver {
                 payloadKey,
                 fieldPath,
                 bidLifecycleEvent,
-                loadedBidPrice,
                 error
             )
             if (resolvedValue != null) {
@@ -53,7 +46,6 @@ internal class WinLossFieldResolver {
         payloadKey: String,
         fieldPath: String,
         bidLifecycleEvent: BidLifecycleEvent?,
-        loadedBidPrice: Float,
         error: CloudXError?
     ): Any? {
         return when {
@@ -81,30 +73,5 @@ internal class WinLossFieldResolver {
             put("code", error.code.name)
             put("message", error.effectiveMessage)
         }
-    }
-
-    /**
-     * Replace URL templates with actual values for win/loss notifications
-     *
-     * Supported templates:
-     * - ${AUCTION_PRICE} -> actual winning bid price or losing bid price
-     * - ${AUCTION_LOSS} -> loss reason code
-     */
-    private fun replaceUrlTemplates(
-        url: String,
-        lossReason: LossReason,
-        loadedBidPrice: Float
-    ): String {
-        var processedUrl = url
-
-        if (processedUrl.contains(PLACEHOLDER_AUCTION_PRICE)) {
-            processedUrl = processedUrl.replace(PLACEHOLDER_AUCTION_PRICE, loadedBidPrice.toString())
-        }
-
-        if (processedUrl.contains(PLACEHOLDER_AUCTION_LOSS)) {
-            processedUrl = processedUrl.replace(PLACEHOLDER_AUCTION_LOSS, lossReason.code.toString())
-        }
-
-        return processedUrl
     }
 }

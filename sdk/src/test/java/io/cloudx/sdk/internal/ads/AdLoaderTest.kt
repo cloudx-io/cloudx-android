@@ -61,7 +61,7 @@ class AdLoaderTest : CXTest() {
         val bidResponse = createBidResponse(successfulAd)
         val expectedBid = bidResponse.bidItemsByRank.first().bid
         coEvery { mockBidAdSource.requestBid() } returns Result.Success(bidResponse)
-        justRun { mockWinLossTracker.sendEvent(any(), any(), any(), any(), any(), any()) }
+        justRun { mockWinLossTracker.sendEvent(any(), any(), any(), any(), any()) }
 
         // When
         val result = adLoader.load()
@@ -75,7 +75,6 @@ class AdLoaderTest : CXTest() {
                 "auction-123",
                 expectedBid,
                 BidLifecycleEvent.LOAD_SUCCESS,
-                any(),
                 any(),
                 any()
             )
@@ -92,7 +91,7 @@ class AdLoaderTest : CXTest() {
         val winningBid = bidResponse.bidItemsByRank[0].bid
         val losingBid = bidResponse.bidItemsByRank[1].bid
         coEvery { mockBidAdSource.requestBid() } returns Result.Success(bidResponse)
-        justRun { mockWinLossTracker.sendEvent(any(), any(), any(), any(), any(), any()) }
+        justRun { mockWinLossTracker.sendEvent(any(), any(), any(), any(), any()) }
 
         // When
         val result = adLoader.load()
@@ -108,19 +107,17 @@ class AdLoaderTest : CXTest() {
                 winningBid,
                 BidLifecycleEvent.LOAD_SUCCESS,
                 any(),
-                any(),
                 any()
             )
         }
 
-        // Verify losing ad gets loss notification with winner's price
+        // Verify losing ad gets loss notification
         verify {
             mockWinLossTracker.sendEvent(
                 "auction-123",
                 losingBid,
                 BidLifecycleEvent.LOSS,
                 any(),
-                winningBid.price!!,
                 any()
             )
         }
@@ -152,7 +149,7 @@ class AdLoaderTest : CXTest() {
         val expectedBid1 = bidResponse.bidItemsByRank[0].bid
         val expectedBid2 = bidResponse.bidItemsByRank[1].bid
         coEvery { mockBidAdSource.requestBid() } returns Result.Success(bidResponse)
-        justRun { mockWinLossTracker.sendEvent(any(), any(), any(), any(), any(), any()) }
+        justRun { mockWinLossTracker.sendEvent(any(), any(), any(), any(), any()) }
 
         // When
         val result = adLoader.load()
@@ -169,7 +166,6 @@ class AdLoaderTest : CXTest() {
                 expectedBid1,
                 BidLifecycleEvent.LOSS,
                 any(),
-                any(),
                 any()
             )
         }
@@ -178,7 +174,6 @@ class AdLoaderTest : CXTest() {
                 "auction-123",
                 expectedBid2,
                 BidLifecycleEvent.LOSS,
-                any(),
                 any(),
                 any()
             )
@@ -222,7 +217,7 @@ class AdLoaderTest : CXTest() {
             }
 
         coEvery { mockBidAdSource.requestBid() } returns bidResponse.toSuccess()
-        justRun { mockWinLossTracker.sendEvent(any(), any(), any(), any(), any(), any()) }
+        justRun { mockWinLossTracker.sendEvent(any(), any(), any(), any(), any()) }
 
         // When
         val result = adLoader.load()
@@ -239,7 +234,6 @@ class AdLoaderTest : CXTest() {
                 bidResponse.bidItemsByRank[0].bid,
                 BidLifecycleEvent.LOSS,
                 any(),
-                any(),
                 any()
             )
         }
@@ -254,7 +248,7 @@ class AdLoaderTest : CXTest() {
         val bidResponse = createBidResponse(failingAd)
         val expectedBid = bidResponse.bidItemsByRank.first().bid
         coEvery { mockBidAdSource.requestBid() } returns Result.Success(bidResponse)
-        justRun { mockWinLossTracker.sendEvent(any(), any(), any(), any(), any(), any()) }
+        justRun { mockWinLossTracker.sendEvent(any(), any(), any(), any(), any()) }
 
         // When
         val result = adLoader.load()
@@ -270,7 +264,6 @@ class AdLoaderTest : CXTest() {
                 "auction-123",
                 expectedBid,
                 BidLifecycleEvent.LOSS,
-                any(),
                 any(),
                 any()
             )

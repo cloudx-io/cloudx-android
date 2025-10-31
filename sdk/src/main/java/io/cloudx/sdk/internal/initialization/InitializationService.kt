@@ -240,15 +240,11 @@ internal class InitializationService(
     }
 
     private suspend fun sendInitSDKEvent(cfg: Config, appKey: String) {
-        eventTracker.sendSdkInit(cfg, appKey) { basePayload ->
+        eventTracker.sendSdkInit(cfg, appKey)?.let { basePayload ->
             this.basePayload = basePayload
             crashReportingService.setBasePayload(basePayload)
             errorReportingService.setBasePayload(basePayload)
             metricsTracker.setBasicData(cfg.sessionId, cfg.accountId ?: "", basePayload)
         }
-    }
-
-    companion object {
-        private const val ARG_PLACEHOLDER_EVENT_ID = "{eventId}"
     }
 }

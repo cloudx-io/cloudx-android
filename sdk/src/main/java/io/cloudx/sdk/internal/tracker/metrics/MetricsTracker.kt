@@ -59,7 +59,7 @@ internal class MetricsTracker(
             return
         }
 
-        endpoint = "${config.trackingEndpointUrl}/bulk?debug=true"
+        endpoint = "${config.trackingEndpointUrl}/bulk"
         sendInternalInSeconds = config.metrics?.sendIntervalSeconds ?: 60L
 
         logger.d("Starting metrics tracker with cycle duration: $sendInternalInSeconds seconds")

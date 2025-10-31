@@ -3,6 +3,7 @@ package io.cloudx.sdk.internal.ads
 import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.internal.CXLogger
+import io.cloudx.sdk.internal.UNKNOWN_BID_PRICE
 import io.cloudx.sdk.internal.connectionstatus.ConnectionStatusService
 import io.cloudx.sdk.internal.tracker.ErrorReportingService
 import io.cloudx.sdk.internal.tracker.win_loss.BidLifecycleEvent
@@ -52,7 +53,7 @@ internal class AdLoader<T : CXAdapterDelegate>(
 
         var loadedAd: T? = null
         var loadedAdIndex = -1
-        var winnerBidPrice = -1f
+        var winnerBidPrice = UNKNOWN_BID_PRICE
 
         for ((index, bidItem) in bidResponse.bidItemsByRank.withIndex()) {
             ensureActive()
@@ -63,7 +64,7 @@ internal class AdLoader<T : CXAdapterDelegate>(
 
                     loadedAd = result.value
                     loadedAdIndex = index
-                    winnerBidPrice = bidItem.bid.price ?: -1f
+                    winnerBidPrice = bidItem.bid.price ?: UNKNOWN_BID_PRICE
 
                     winLossTracker.sendEvent(
                         bidResponse.auctionId,
@@ -73,6 +74,7 @@ internal class AdLoader<T : CXAdapterDelegate>(
                     )
                     break
                 }
+
                 is Result.Failure -> {
                     logger.w("Failed: ${bidItem.adNetworkOriginal.networkName} (rank=${bidItem.bid.rank})")
 
@@ -135,6 +137,8 @@ internal class AdLoader<T : CXAdapterDelegate>(
             if (loaded) {
                 Result.Success(ad)
             } else {
+                // Use the adapter's reported error, or fall back to NO_FILL if the adapter
+                // didn't provide a specific error (e.g., ad network returned no ad)
                 val error = ad.lastErrorEvent.value
                     ?: CloudXErrorCode.NO_FILL.toCloudXError(message = "Ad failed to load")
                 Result.Failure(error)

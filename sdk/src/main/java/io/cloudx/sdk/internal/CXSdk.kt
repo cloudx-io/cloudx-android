@@ -5,10 +5,9 @@ import io.cloudx.sdk.CloudXErrorCode
 import io.cloudx.sdk.CloudXInitializationListener
 import io.cloudx.sdk.CloudXInitializationParams
 import io.cloudx.sdk.internal.config.ConfigApi
-import io.cloudx.sdk.internal.tracker.metrics.MetricsType
 import io.cloudx.sdk.internal.initialization.InitializationService
 import io.cloudx.sdk.internal.initialization.InitializationState
-import io.cloudx.sdk.internal.state.SdkKeyValueState
+import io.cloudx.sdk.internal.tracker.metrics.MetricsType
 import io.cloudx.sdk.internal.util.Result
 import io.cloudx.sdk.internal.util.ThreadUtils
 import io.cloudx.sdk.toCloudXError
@@ -69,7 +68,7 @@ internal object CXSdk {
                 val initService = InitializationService(
                     configApi = ConfigApi(initParams.initServer)
                 )
-                initService.metricsTracker?.trackMethodCall(MetricsType.Method.SdkInitMethod)
+                initService.metricsTracker.trackMethodCall(MetricsType.Method.SdkInitMethod)
 
                 // Initializing SDK...
                 when (val result = initService.initialize(initParams.appKey)) {

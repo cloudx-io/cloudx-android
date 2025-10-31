@@ -4,12 +4,10 @@ import android.content.Context
 import io.cloudx.sdk.BuildConfig
 import io.cloudx.sdk.CloudXError
 import io.cloudx.sdk.CloudXErrorCode
-import io.cloudx.sdk.internal.AdType
 import io.cloudx.sdk.internal.ApplicationContext
 import io.cloudx.sdk.internal.CXLogger
 import io.cloudx.sdk.internal.ads.AdFactory
 import io.cloudx.sdk.internal.appinfo.AppInfoProvider
-import io.cloudx.sdk.internal.bid.BidRequestProvider
 import io.cloudx.sdk.internal.config.Config
 import io.cloudx.sdk.internal.config.ConfigApi
 import io.cloudx.sdk.internal.config.ConfigRequestProvider
@@ -23,10 +21,8 @@ import io.cloudx.sdk.internal.state.SdkKeyValueState
 import io.cloudx.sdk.internal.tracker.ClickCounterTracker
 import io.cloudx.sdk.internal.tracker.ErrorReportingService
 import io.cloudx.sdk.internal.tracker.EventTracker
-import io.cloudx.sdk.internal.tracker.EventType
 import io.cloudx.sdk.internal.tracker.SessionMetricsTracker
 import io.cloudx.sdk.internal.tracker.TrackingFieldResolver
-import io.cloudx.sdk.internal.tracker.XorEncryption
 import io.cloudx.sdk.internal.tracker.crash.CrashReportingService
 import io.cloudx.sdk.internal.tracker.metrics.MetricsTracker
 import io.cloudx.sdk.internal.tracker.metrics.MetricsType
@@ -36,7 +32,6 @@ import io.cloudx.sdk.internal.util.normalizeAndHash
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.util.UUID
 import kotlin.system.measureTimeMillis
 
 /**
@@ -245,38 +240,11 @@ internal class InitializationService(
     }
 
     private suspend fun sendInitSDKEvent(cfg: Config, appKey: String) {
-        val eventId = UUID.randomUUID().toString()
-        val bidRequestParams = BidRequestProvider.Params(
-            placementId = "",
-            adType = AdType.Banner.Standard,
-            placementName = "",
-            accountId = cfg.accountId ?: "",
-            appKey = appKey,
-            appId = cfg.appId ?: ""
-        )
-        val bidRequestProvider = BidRequestProvider(
-            bidRequestExtrasProviders = emptyMap()
-        )
-        val bidRequestParamsJson = bidRequestProvider.invoke(bidRequestParams, eventId)
-        TrackingFieldResolver.setRequestData(eventId, bidRequestParamsJson)
-
-        val payload = TrackingFieldResolver.buildPayload(eventId)
-        val accountId = TrackingFieldResolver.getAccountId()
-
-        if (payload != null && accountId != null) {
-            basePayload = payload.replace(eventId, ARG_PLACEHOLDER_EVENT_ID)
+        eventTracker.sendSdkInit(cfg, appKey)?.let { basePayload ->
+            this.basePayload = basePayload
             crashReportingService.setBasePayload(basePayload)
             errorReportingService.setBasePayload(basePayload)
-            metricsTracker.setBasicData(cfg.sessionId, accountId, basePayload)
-
-            val secret = XorEncryption.generateXorSecret(accountId)
-            val campaignId = XorEncryption.generateCampaignIdBase64(accountId)
-            val impressionId = XorEncryption.encrypt(payload, secret)
-            eventTracker.send(impressionId, campaignId, "1", EventType.SDK_INIT)
+            metricsTracker.setBasicData(cfg.sessionId, cfg.accountId ?: "", basePayload)
         }
-    }
-
-    companion object {
-        private const val ARG_PLACEHOLDER_EVENT_ID = "{eventId}"
     }
 }

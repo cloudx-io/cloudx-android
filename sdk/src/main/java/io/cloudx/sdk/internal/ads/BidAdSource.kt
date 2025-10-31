@@ -12,11 +12,9 @@ import io.cloudx.sdk.internal.cdp.CdpApi
 import io.cloudx.sdk.internal.config.ResolvedEndpoints
 import io.cloudx.sdk.internal.state.SdkKeyValueState
 import io.cloudx.sdk.internal.tracker.EventTracker
-import io.cloudx.sdk.internal.tracker.EventType
 import io.cloudx.sdk.internal.tracker.PlacementLoopIndexTracker
 import io.cloudx.sdk.internal.tracker.TrackingFieldResolver
 import io.cloudx.sdk.internal.tracker.TrackingFieldResolver.SDK_PARAM_RESPONSE_IN_MILLIS
-import io.cloudx.sdk.internal.tracker.XorEncryption
 import io.cloudx.sdk.internal.tracker.metrics.MetricsTracker
 import io.cloudx.sdk.internal.tracker.metrics.MetricsType
 import io.cloudx.sdk.internal.tracker.win_loss.WinLossTracker
@@ -105,15 +103,7 @@ internal class BidAdSource<T : CloudXDestroyable>(
             bidRequestLatencyMillis.toString()
         )
 
-        val payload = TrackingFieldResolver.buildPayload(auctionId)
-        val accountId = TrackingFieldResolver.getAccountId()
-
-        if (payload != null && accountId != null) {
-            val secret = XorEncryption.generateXorSecret(accountId)
-            val campaignId = XorEncryption.generateCampaignIdBase64(accountId)
-            val impressionId = XorEncryption.encrypt(payload, secret)
-            eventTracker.send(impressionId, campaignId, "1", EventType.BID_REQUEST)
-        }
+        eventTracker.sendBidRequest(auctionId)
 
         return when (result) {
             is Result.Success -> {
